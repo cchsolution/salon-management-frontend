@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ========================================================
+     CENTRALIZED THEME TOKENS — LIGHT MODE (DEFAULT)
+     Palette: Deep Purple (#6D28D9) + White (#FFFFFF) + Emerald Green (#059669)
+     ======================================================== */
+  --primary: #6D28D9;
+  --primary-dark: #5B21B6;
+  --primary-light: #8B5CF6;
+
+  --secondary: #059669;
+  --secondary-dark: #047857;
+  --secondary-light: #10B981;
+
+  --background: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-secondary: #F1F5F9;
+
+  --text-primary: #1E1B2E;
+  --text-secondary: #64748B;
+
+  --border: #E2E8F0;
+  --border-subtle: #F1F5F9;
+
+  --success: #16A34A;
+  --warning: #D97706;
+  --error: #DC2626;
+  --info: #2563EB;
+
+  /* Aliases for legacy component bindings */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-dark);
+  --color-primary-light: #F5F3FF;
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-dark);
+  --color-secondary-light: #ECFDF5;
+  --color-accent: var(--secondary);
+  --color-accent-hover: var(--secondary-dark);
+  --color-accent-light: #ECFDF5;
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+.dark {
+  /* ========================================================
+     CENTRALIZED THEME TOKENS — DARK MODE
+     Intentionally designed dark mode with excellent contrast.
+     Background: #0F0B1A | Surface: #171225 | Border: #332A46
+     ======================================================== */
+  --primary: #8B5CF6;
+  --primary-dark: #7C3AED;
+  --primary-light: #A78BFA;
+
+  --secondary: #10B981;
+  --secondary-dark: #059669;
+  --secondary-light: #34D399;
+
+  --background: #0F0B1A;
+  --surface: #171225;
+  --surface-secondary: #211A32;
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #C4BFD0;
+
+  --border: #332A46;
+  --border-subtle: #211A32;
+
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #60A5FA;
+
+  /* Aliases for legacy component bindings */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-light);
+  --color-primary-light: #2E1065;
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-light);
+  --color-secondary-light: #064E3B;
+  --color-accent: var(--secondary);
+  --color-accent-hover: var(--secondary-light);
+  --color-accent-light: #064E3B;
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  h1, h2, h3, h4, .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Centralized Component Utilities */
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--primary);
+    color: #FFFFFF;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+  }
+  .dark .btn-primary {
+    background-color: var(--primary);
+    color: #FFFFFF;
+  }
+  .dark .btn-primary:hover:not(:disabled) {
+    background-color: var(--primary-light);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--secondary);
+    color: #FFFFFF;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--secondary-dark);
+  }
+  .dark .btn-secondary {
+    background-color: var(--secondary);
+    color: #FFFFFF;
+  }
+  .dark .btn-secondary:hover:not(:disabled) {
+    background-color: var(--secondary-light);
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--secondary);
+    color: #FFFFFF;
+  }
+  .btn-accent:hover:not(:disabled) {
+    background-color: var(--secondary-dark);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-all duration-150 bg-transparent disabled:opacity-50;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background-color: var(--surface-secondary);
+    color: var(--text-primary);
+  }
+
+  /* Cards */
+  .card-surface {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .card-surface:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Form Inputs */
+  .input-field {
+    @apply w-full px-3.5 py-2 text-sm rounded-md transition-colors focus:outline-none;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+  .input-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15);
+  }
+  .dark .input-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+  }
+
+  /* Status Badges */
+  .badge-success {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background-color: rgba(5, 150, 105, 0.12);
+    color: var(--secondary);
+  }
+  .badge-warning {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background-color: rgba(217, 119, 6, 0.12);
+    color: var(--warning);
+  }
+  .badge-error {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background-color: rgba(220, 38, 38, 0.12);
+    color: var(--error);
+  }
+  .badge-info {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    background-color: rgba(109, 40, 217, 0.12);
+    color: var(--primary);
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
