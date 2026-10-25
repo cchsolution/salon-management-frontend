@@ -6,7 +6,8 @@ import {
   AlertTriangle,
   Award,
   ArrowUpRight,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -15,8 +16,11 @@ import { StylistDashboard } from './StylistDashboard';
 import { ReceptionistDashboard } from './ReceptionistDashboard';
 import { SuperadminDashboard } from './SuperadminDashboard';
 
+// Client-side cache for loaded metrics to eliminate skeleton flicker on tab switching
+const metricsCache = new Map<string, DashboardMetrics>();
+
 export const OverviewDashboard: React.FC = () => {
-  const { user, salon, branch } = useAuth();
+  const { user } = useAuth();
 
   // Route to dedicated role dashboards
   if (user?.role === 'STYLIST') {
@@ -36,58 +40,59 @@ export const OverviewDashboard: React.FC = () => {
 };
 
 const OwnerOverviewDashboard: React.FC = () => {
-  const { salon, branch } = useAuth();
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { salon, branch, branches } = useAuth();
+  const cacheKey = branch?.id || 'default';
+
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(() => metricsCache.get(cacheKey) || null);
+  const [isLoading, setIsLoading] = useState<boolean>(() => !metricsCache.has(cacheKey));
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMetrics();
-  }, [branch]);
-
-  const fetchMetrics = async () => {
-    setIsLoading(true);
-    try {
-      const url = branch ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
-      const data = await api.get<DashboardMetrics>(url);
-      setMetrics(data);
-    } catch {
-      // Fallback
-    } finally {
-      setIsLoading(false);
+    // If branches are configured or available, wait until active branch is hydrated
+    if (branches.length > 0 && !branch) {
+      return;
     }
-  };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-slate-200 dark:bg-[#332A46] rounded-md w-64"></div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 bg-white dark:bg-[#171225] rounded-xl border border-[#E2E8F0] dark:border-[#332A46]"></div>
-          ))}
-        </div>
-        <div className="h-80 bg-white dark:bg-[#171225] rounded-xl border border-[#E2E8F0] dark:border-[#332A46]"></div>
-      </div>
-    );
-  }
+    const controller = new AbortController();
+    const currentKey = branch?.id || 'default';
 
-  const summary = metrics?.summary || {
-    today_revenue: 0,
-    today_appointments: 0,
-    completed_today: 0,
-    pending_today: 0,
-    cancelled_today: 0,
-    total_revenue: 0,
-    avg_bill_value: 0,
-    pending_payments: 0,
-    total_clients: 0,
-    new_clients_this_month: 0,
-    low_stock_count: 0,
-  };
+    const fetchMetrics = async () => {
+      // If we don't have cached data for this branch, show local card loading
+      if (!metricsCache.has(currentKey)) {
+        setIsLoading(true);
+      }
+      setError(null);
+
+      try {
+        const url = branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
+        const data = await api.get<DashboardMetrics>(url, {
+          signal: controller.signal,
+        });
+
+        metricsCache.set(currentKey, data);
+        setMetrics(data);
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') {
+          setError(err?.message || 'Failed to load live metrics.');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMetrics();
+
+    return () => {
+      controller.abort();
+    };
+  }, [branch?.id]);
+
+  const summary = metrics?.summary;
+  const isCardLoading = isLoading || !metrics;
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Page Title & Status */}
+      {/* Page Title & Status — ALWAYS renders instantly */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
@@ -103,6 +108,32 @@ const OwnerOverviewDashboard: React.FC = () => {
         </div>
       </div>
 
+      {error && !metrics && (
+        <div className="p-3 text-xs bg-amber-50 dark:bg-amber-950/40 text-[#D97706] rounded-xl border border-amber-200 dark:border-amber-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => {
+              metricsCache.delete(cacheKey);
+              setIsLoading(true);
+              const url = branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
+              api.get<DashboardMetrics>(url).then((d) => {
+                metricsCache.set(cacheKey, d);
+                setMetrics(d);
+                setError(null);
+              }).catch((e) => {
+                setError(e?.message || 'Failed to reload metrics.');
+              }).finally(() => setIsLoading(false));
+            }}
+            className="font-bold underline ml-2"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Top Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Today's Revenue — Purple Accent */}
@@ -116,15 +147,24 @@ const OwnerOverviewDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              ₹{Number(summary.today_revenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5 flex items-center gap-1.5">
-              <span className="text-[#059669] dark:text-[#10B981] font-semibold flex items-center">
-                <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
-                Total: ₹{Number(summary.total_revenue || 0).toLocaleString('en-IN')}
-              </span>
-            </p>
+            {isCardLoading || !summary ? (
+              <div className="space-y-2">
+                <div className="h-8 w-28 bg-slate-200 dark:bg-[#332A46] rounded animate-pulse" />
+                <div className="h-3.5 w-32 bg-slate-100 dark:bg-[#282038] rounded animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                  ₹{Number(summary.today_revenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </h3>
+                <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5 flex items-center gap-1.5">
+                  <span className="text-[#059669] dark:text-[#10B981] font-semibold flex items-center">
+                    <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
+                    Total: ₹{Number(summary.total_revenue || 0).toLocaleString('en-IN')}
+                  </span>
+                </p>
+              </>
+            )}
           </div>
         </div>
 
@@ -139,12 +179,21 @@ const OwnerOverviewDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {summary.today_appointments}
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
-              <span className="text-[#059669] dark:text-[#10B981] font-semibold">{summary.completed_today}</span> completed · {summary.pending_today} upcoming
-            </p>
+            {isCardLoading || !summary ? (
+              <div className="space-y-2">
+                <div className="h-8 w-16 bg-slate-200 dark:bg-[#332A46] rounded animate-pulse" />
+                <div className="h-3.5 w-36 bg-slate-100 dark:bg-[#282038] rounded animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                  {summary.today_appointments}
+                </h3>
+                <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
+                  <span className="text-[#059669] dark:text-[#10B981] font-semibold">{summary.completed_today}</span> completed · {summary.pending_today} upcoming
+                </p>
+              </>
+            )}
           </div>
         </div>
 
@@ -159,13 +208,22 @@ const OwnerOverviewDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {summary.total_clients}
-            </h3>
-            <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-[#6D28D9] dark:text-[#8B5CF6]" />
-              +{summary.new_clients_this_month} new this month
-            </p>
+            {isCardLoading || !summary ? (
+              <div className="space-y-2">
+                <div className="h-8 w-16 bg-slate-200 dark:bg-[#332A46] rounded animate-pulse" />
+                <div className="h-3.5 w-28 bg-slate-100 dark:bg-[#282038] rounded animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                  {summary.total_clients}
+                </h3>
+                <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-[#6D28D9] dark:text-[#8B5CF6]" />
+                  +{summary.new_clients_this_month} new this month
+                </p>
+              </>
+            )}
           </div>
         </div>
 
@@ -177,7 +235,7 @@ const OwnerOverviewDashboard: React.FC = () => {
             </span>
             <div
               className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                summary.low_stock_count > 0
+                summary && summary.low_stock_count > 0
                   ? 'bg-amber-50 dark:bg-amber-950/40 text-[#D97706]'
                   : 'bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981]'
               }`}
@@ -186,16 +244,25 @@ const OwnerOverviewDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {summary.low_stock_count}
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
-              {summary.low_stock_count > 0 ? (
-                <span className="text-[#D97706] font-semibold">Items below reorder point</span>
-              ) : (
-                <span className="text-[#059669] dark:text-[#10B981]">All stock levels optimal</span>
-              )}
-            </p>
+            {isCardLoading || !summary ? (
+              <div className="space-y-2">
+                <div className="h-8 w-14 bg-slate-200 dark:bg-[#332A46] rounded animate-pulse" />
+                <div className="h-3.5 w-32 bg-slate-100 dark:bg-[#282038] rounded animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                  {summary.low_stock_count}
+                </h3>
+                <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
+                  {summary.low_stock_count > 0 ? (
+                    <span className="text-[#D97706] font-semibold">Items below reorder point</span>
+                  ) : (
+                    <span className="text-[#059669] dark:text-[#10B981]">All stock levels optimal</span>
+                  )}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -223,9 +290,21 @@ const OwnerOverviewDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Clean Theme-Aware Trend Chart */}
+          {/* Trend Chart */}
           <div className="h-64 flex items-end gap-2 sm:gap-4 pt-6 pb-2 border-b border-[#E2E8F0] dark:border-[#332A46]">
-            {metrics?.revenue_chart && metrics.revenue_chart.length > 0 ? (
+            {isCardLoading || !metrics?.revenue_chart ? (
+              <div className="w-full h-full flex items-end gap-2 sm:gap-4 pb-2">
+                {[35, 60, 80, 45, 70, 90, 55].map((h, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center h-full justify-end">
+                    <div
+                      style={{ height: `${h}%` }}
+                      className="w-full max-w-[42px] bg-slate-200 dark:bg-[#332A46] rounded-t-md animate-pulse"
+                    />
+                    <div className="h-3 w-8 bg-slate-100 dark:bg-[#282038] rounded mt-2 animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            ) : metrics.revenue_chart.length > 0 ? (
               metrics.revenue_chart.map((day, idx) => {
                 const maxRev = Math.max(...metrics.revenue_chart.map((d) => d.revenue), 100);
                 const heightPercent = Math.max(Math.round((day.revenue / maxRev) * 100), 10);
@@ -263,7 +342,13 @@ const OwnerOverviewDashboard: React.FC = () => {
             <p className="text-xs text-[#64748B] dark:text-[#C4BFD0]">Ranked by client frequency</p>
           </div>
           <div className="space-y-3.5">
-            {metrics?.popular_services && metrics.popular_services.length > 0 ? (
+            {isCardLoading ? (
+              <div className="space-y-3 py-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-8 bg-slate-100 dark:bg-[#211A32] rounded animate-pulse" />
+                ))}
+              </div>
+            ) : metrics?.popular_services && metrics.popular_services.length > 0 ? (
               metrics.popular_services.map((svc, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -302,7 +387,13 @@ const OwnerOverviewDashboard: React.FC = () => {
           </div>
 
           <div className="divide-y divide-[#E2E8F0] dark:divide-[#332A46]">
-            {metrics?.staff_performance && metrics.staff_performance.length > 0 ? (
+            {isCardLoading ? (
+              <div className="space-y-3 py-3">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-10 bg-slate-100 dark:bg-[#211A32] rounded animate-pulse" />
+                ))}
+              </div>
+            ) : metrics?.staff_performance && metrics.staff_performance.length > 0 ? (
               metrics.staff_performance.map((staff) => (
                 <div key={staff.id} className="py-3 flex items-center justify-between text-xs">
                   <div>
@@ -338,7 +429,13 @@ const OwnerOverviewDashboard: React.FC = () => {
           </div>
 
           <div className="divide-y divide-[#E2E8F0] dark:divide-[#332A46]">
-            {metrics?.recent_transactions && metrics.recent_transactions.length > 0 ? (
+            {isCardLoading ? (
+              <div className="space-y-3 py-3">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-10 bg-slate-100 dark:bg-[#211A32] rounded animate-pulse" />
+                ))}
+              </div>
+            ) : metrics?.recent_transactions && metrics.recent_transactions.length > 0 ? (
               metrics.recent_transactions.map((txn) => (
                 <div key={txn.id} className="py-3 flex items-center justify-between text-xs">
                   <div>

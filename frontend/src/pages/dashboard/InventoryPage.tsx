@@ -6,10 +6,13 @@ import { Product } from '../../types';
 
 export const InventoryPage: React.FC = () => {
   const { branch } = useAuth();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => {
+    const c = api.getCached<{ results?: Product[] } | Product[]>('/inventory/products/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
   const [search, setSearch] = useState('');
   const [filterLowStock, setFilterLowStock] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => products.length === 0);
 
   // Stock Adjustment Modal
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
@@ -29,10 +32,12 @@ export const InventoryPage: React.FC = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [branch]);
+  }, [branch?.id]);
 
   const fetchProducts = async () => {
-    setIsLoading(true);
+    if (products.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const res = await api.get<{ results?: Product[] } | Product[]>('/inventory/products/');
       const list = Array.isArray(res) ? res : res.results || [];

@@ -32,16 +32,34 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = async () => {
+  const lastFetchTimeRef = useRef<number>(0);
+
+  const fetchNotifications = async (signal?: AbortSignal) => {
+    // Avoid re-fetching if fetched less than 60s ago
+    if (Date.now() - lastFetchTimeRef.current < 60000 && notifications.length > 0) {
+      return;
+    }
+    // Superadmin has no salon alerts
+    if (user?.role === 'SUPERADMIN') {
+      return;
+    }
+
     try {
-      const data = await api.get<{ results?: InAppNotification[] } | InAppNotification[]>('/notifications/alerts/');
+      const data = await api.get<{ results?: InAppNotification[] } | InAppNotification[]>('/notifications/alerts/', {
+        signal,
+      });
+      lastFetchTimeRef.current = Date.now();
       const list = Array.isArray(data) ? data : data.results || [];
       setNotifications(list);
-    } catch {}
+    } catch {
+      // Gracefully ignore alerts failures (non-critical)
+    }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const controller = new AbortController();
+    fetchNotifications(controller.signal);
+    return () => controller.abort();
   }, []);
 
   // Close dropdowns on outside click

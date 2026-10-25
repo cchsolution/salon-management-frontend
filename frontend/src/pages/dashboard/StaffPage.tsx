@@ -5,15 +5,20 @@ import { StaffProfile } from '../../types';
 
 export const StaffPage: React.FC = () => {
   const { branch } = useAuth();
-  const [staffList, setStaffList] = useState<StaffProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [staffList, setStaffList] = useState<StaffProfile[]>(() => {
+    const c = api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>('/staff/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [isLoading, setIsLoading] = useState(() => staffList.length === 0);
 
   useEffect(() => {
     fetchStaff();
-  }, [branch]);
+  }, [branch?.id]);
 
   const fetchStaff = async () => {
-    setIsLoading(true);
+    if (staffList.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const res = await api.get<{ results?: StaffProfile[] } | StaffProfile[]>('/staff/');
       const list = Array.isArray(res) ? res : res.results || [];

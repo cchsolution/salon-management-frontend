@@ -18,16 +18,26 @@ import { Service, ServiceCategory, StaffProfile } from '../../types';
 export const ServicesPage: React.FC = () => {
   const { hasPermission } = useAuth();
   const canManageServices = hasPermission('MANAGE_SERVICES');
-  const [services, setServices] = useState<Service[]>([]);
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
-  const [staffList, setStaffList] = useState<StaffProfile[]>([]);
+
+  const [services, setServices] = useState<Service[]>(() => {
+    const c = api.getCached<{ results?: Service[] } | Service[]>('/catalog/services/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [categories, setCategories] = useState<ServiceCategory[]>(() => {
+    const c = api.getCached<{ results?: ServiceCategory[] } | ServiceCategory[]>('/catalog/categories/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [staffList, setStaffList] = useState<StaffProfile[]>(() => {
+    const c = api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(() => services.length === 0 && categories.length === 0);
 
   // New Service Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [svcName, setSvcName] = useState('');
-  const [svcCategory, setSvcCategory] = useState('');
+  const [svcCategory, setSvcCategory] = useState(() => (categories.length > 0 ? categories[0].id : ''));
   const [svcPrice, setSvcPrice] = useState('');
   const [svcDiscountPrice, setSvcDiscountPrice] = useState('');
   const [svcDuration, setSvcDuration] = useState('45');
@@ -45,7 +55,9 @@ export const ServicesPage: React.FC = () => {
   }, []);
 
   const fetchData = async () => {
-    setIsLoading(true);
+    if (services.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const [svcRes, catRes, staffRes] = await Promise.all([
         api.get<{ results?: Service[] } | Service[]>('/catalog/services/'),

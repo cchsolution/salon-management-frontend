@@ -4,9 +4,15 @@ import { api } from '../../services/api';
 import { MembershipPlan, Coupon } from '../../types';
 
 export const LoyaltyOffersPage: React.FC = () => {
-  const [plans, setPlans] = useState<MembershipPlan[]>([]);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [plans, setPlans] = useState<MembershipPlan[]>(() => {
+    const c = api.getCached<{ results?: MembershipPlan[] } | MembershipPlan[]>('/loyalty/plans/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    const c = api.getCached<{ results?: Coupon[] } | Coupon[]>('/loyalty/coupons/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [isLoading, setIsLoading] = useState(() => plans.length === 0 && coupons.length === 0);
 
   // New Coupon Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,7 +28,9 @@ export const LoyaltyOffersPage: React.FC = () => {
   }, []);
 
   const fetchLoyaltyData = async () => {
-    setIsLoading(true);
+    if (plans.length === 0 && coupons.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const [plansRes, coupRes] = await Promise.all([
         api.get<{ results?: MembershipPlan[] } | MembershipPlan[]>('/loyalty/plans/'),

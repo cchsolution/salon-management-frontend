@@ -21,57 +21,107 @@ export const AppointmentCalendarPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [staffList, setStaffList] = useState<StaffProfile[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
-  const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
+
+  const [staffList, setStaffList] = useState<StaffProfile[]>(() => {
+    const c = api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>(
+      branch?.id ? `/catalog/staff/?branch=${branch.id}` : '/catalog/staff/'
+    ) || api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
 
   // Filters
-  const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>('');
+  const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>(() => {
+    if (user?.role === 'STYLIST' && staffList.length > 0) {
+      const found = staffList.find((s) => s.user === user.id);
+      return found ? found.id : '';
+    }
+    return '';
+  });
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('');
   const [viewMode, setViewMode] = useState<'day' | 'agenda'>('day');
 
-  useEffect(() => {
-    fetchStaff();
-  }, [branch]);
+  const [appointments, setAppointments] = useState<Appointment[]>(() => {
+    let url = `/appointments/bookings/?date=${new Date().toISOString().split('T')[0]}`;
+    if (branch?.id) url += `&branch=${branch.id}`;
+    const c = api.getCached<{ results?: Appointment[] } | Appointment[]>(url);
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => appointments.length === 0);
+  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
+  const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchAppointments();
-  }, [selectedDate, branch, selectedStaffFilter, selectedStatusFilter]);
+    let isMounted = true;
 
-  const fetchStaff = async () => {
-    try {
-      const url = branch ? `/catalog/staff/?branch=${branch.id}` : '/catalog/staff/';
-      const data = await api.get<{ results?: StaffProfile[] } | StaffProfile[]>(url);
-      const list = Array.isArray(data) ? data : data.results || [];
-      setStaffList(list);
+    const loadData = async () => {
+      if (appointments.length === 0) {
+        setIsLoading(true);
+      }
 
-      // Auto-filter for stylist role
-      if (user?.role === 'STYLIST') {
-        const found = list.find((s) => s.user === user.id);
-        if (found) {
-          setSelectedStaffFilter(found.id);
+      try {
+        const staffUrl = branch?.id ? `/catalog/staff/?branch=${branch.id}` : '/catalog/staff/';
+        const staffPromise = staffList.length > 0
+          ? Promise.resolve(staffList)
+          : api.get<{ results?: StaffProfile[] } | StaffProfile[]>(staffUrl);
+
+        let activeStaffFilter = selectedStaffFilter;
+
+        const staffRes = await staffPromise;
+        const currentStaffList = Array.isArray(staffRes) ? staffRes : staffRes.results || [];
+
+        if (isMounted && staffList.length === 0) {
+          setStaffList(currentStaffList);
+        }
+
+        if (user?.role === 'STYLIST' && !activeStaffFilter) {
+          const found = currentStaffList.find((s: StaffProfile) => s.user === user.id);
+          if (found) {
+            activeStaffFilter = found.id;
+            if (isMounted) setSelectedStaffFilter(found.id);
+          }
+        }
+
+        let apptUrl = `/appointments/bookings/?date=${selectedDate}`;
+        if (branch?.id) apptUrl += `&branch=${branch.id}`;
+        if (activeStaffFilter) apptUrl += `&staff=${activeStaffFilter}`;
+        if (selectedStatusFilter) apptUrl += `&status=${selectedStatusFilter}`;
+
+        const apptRes = await api.get<{ results?: Appointment[] } | Appointment[]>(apptUrl);
+
+        if (isMounted) {
+          setAppointments(Array.isArray(apptRes) ? apptRes : apptRes.results || []);
+        }
+      } catch {
+        if (isMounted && appointments.length === 0) {
+          setAppointments([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
         }
       }
-    } catch {}
-  };
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDate, branch?.id, selectedStaffFilter, selectedStatusFilter]);
 
   const fetchAppointments = async () => {
-    setIsLoading(true);
     try {
       let url = `/appointments/bookings/?date=${selectedDate}`;
-      if (branch) url += `&branch=${branch.id}`;
+      if (branch?.id) url += `&branch=${branch.id}`;
       if (selectedStaffFilter) url += `&staff=${selectedStaffFilter}`;
       if (selectedStatusFilter) url += `&status=${selectedStatusFilter}`;
 
-      const data = await api.get<{ results?: Appointment[] } | Appointment[]>(url);
+      const data = await api.get<{ results?: Appointment[] } | Appointment[]>(url, { forceRefresh: true });
       const list = Array.isArray(data) ? data : data.results || [];
       setAppointments(list);
     } catch {
       setAppointments([]);
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
@@ -29,33 +29,56 @@ export const ReceptionistDashboard: React.FC = () => {
   const [isQuickBookingOpen, setIsQuickBookingOpen] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [todayDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    fetchReceptionData();
-  }, [branch]);
+  const fetchReceptionData = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
-  const fetchReceptionData = async () => {
     setIsLoading(true);
     try {
       let apptUrl = `/appointments/bookings/?date=${todayDate}`;
-      if (branch) {
+      if (branch?.id) {
         apptUrl += `&branch=${branch.id}`;
       }
 
+      // Fetch appointments (branch-dependent) and clients concurrently
       const [apptRes, custRes] = await Promise.all([
-        api.get<{ results?: Appointment[] } | Appointment[]>(apptUrl),
-        api.get<{ results?: Customer[] } | Customer[]>('/crm/clients/'),
+        api.get<{ results?: Appointment[] } | Appointment[]>(apptUrl, {
+          signal: controller.signal,
+        }),
+        customers.length > 0
+          ? Promise.resolve(customers)
+          : api.get<{ results?: Customer[] } | Customer[]>('/crm/clients/', {
+              signal: controller.signal,
+            }),
       ]);
 
       setAppointments(Array.isArray(apptRes) ? apptRes : apptRes.results || []);
-      setCustomers(Array.isArray(custRes) ? custRes : custRes.results || []);
-    } catch {
-      setAppointments([]);
-      setCustomers([]);
+      if (Array.isArray(custRes) || custRes?.results) {
+        setCustomers(Array.isArray(custRes) ? custRes : custRes.results || []);
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        setAppointments([]);
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [branch?.id, todayDate]);
+
+  useEffect(() => {
+    fetchReceptionData();
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchReceptionData]);
 
   const updateAppointmentStatus = async (appointmentId: string, newStatus: AppointmentStatus) => {
     setActionLoading(appointmentId);

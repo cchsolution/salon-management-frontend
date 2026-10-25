@@ -6,17 +6,24 @@ import { DashboardMetrics } from '../../types';
 
 export const AnalyticsReportsPage: React.FC = () => {
   const { salon, branch } = useAuth();
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(() => {
+    return (
+      api.getCached<DashboardMetrics>(branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/') ||
+      api.getCached<DashboardMetrics>('/analytics/metrics/')
+    );
+  });
+  const [isLoading, setIsLoading] = useState(() => !metrics);
 
   useEffect(() => {
     fetchMetrics();
-  }, [branch]);
+  }, [branch?.id]);
 
   const fetchMetrics = async () => {
-    setIsLoading(true);
+    if (!metrics) {
+      setIsLoading(true);
+    }
     try {
-      const url = branch ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
+      const url = branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
       const data = await api.get<DashboardMetrics>(url);
       setMetrics(data);
     } catch {
@@ -31,10 +38,11 @@ export const AnalyticsReportsPage: React.FC = () => {
     const url = `${API_BASE}/analytics/export/?type=${type}&salon_slug=${slug}`;
 
     
+    const authHeader = token ? (token.startsWith('Bearer ') || token.startsWith('Token ') ? token : `Bearer ${token}`) : '';
     // Trigger download with auth header
     fetch(url, {
       headers: {
-        Authorization: `Token ${token}`,
+        ...(authHeader ? { Authorization: authHeader } : {}),
       },
     })
       .then((res) => res.blob())

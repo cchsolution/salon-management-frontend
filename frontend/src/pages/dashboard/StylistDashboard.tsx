@@ -23,42 +23,54 @@ export const StylistDashboard: React.FC = () => {
   const [todayDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchStylistData = async () => {
+      setIsLoading(true);
+      try {
+        // 1. Fetch staff profiles to identify this stylist's staff ID
+        const staffRes = await api.get<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/', {
+          signal: controller.signal,
+        });
+        const staffList = Array.isArray(staffRes) ? staffRes : staffRes.results || [];
+        const currentStaff = staffList.find((s) => s.user === user?.id) || null;
+        setMyStaffProfile(currentStaff);
+
+        // 2. Fetch appointments for today
+        let url = `/appointments/bookings/?date=${todayDate}`;
+        if (currentStaff) {
+          url += `&staff=${currentStaff.id}`;
+        }
+        if (branch) {
+          url += `&branch=${branch.id}`;
+        }
+
+        const apptRes = await api.get<{ results?: Appointment[] } | Appointment[]>(url, {
+          signal: controller.signal,
+        });
+        const apptList = Array.isArray(apptRes) ? apptRes : apptRes.results || [];
+
+        // Extra client-side filter if backend didn't filter by staff
+        const filtered = currentStaff
+          ? apptList.filter((a) => a.staff === currentStaff.id || a.staff_details?.user === user?.id)
+          : apptList;
+
+        setAppointments(filtered);
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') {
+          setAppointments([]);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchStylistData();
-  }, [branch]);
 
-  const fetchStylistData = async () => {
-    setIsLoading(true);
-    try {
-      // 1. Fetch staff profiles to identify this stylist's staff ID
-      const staffRes = await api.get<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/');
-      const staffList = Array.isArray(staffRes) ? staffRes : staffRes.results || [];
-      const currentStaff = staffList.find((s) => s.user === user?.id) || null;
-      setMyStaffProfile(currentStaff);
-
-      // 2. Fetch appointments for today
-      let url = `/appointments/bookings/?date=${todayDate}`;
-      if (currentStaff) {
-        url += `&staff=${currentStaff.id}`;
-      }
-      if (branch) {
-        url += `&branch=${branch.id}`;
-      }
-
-      const apptRes = await api.get<{ results?: Appointment[] } | Appointment[]>(url);
-      const apptList = Array.isArray(apptRes) ? apptRes : apptRes.results || [];
-
-      // Extra client-side filter if backend didn't filter by staff
-      const filtered = currentStaff
-        ? apptList.filter((a) => a.staff === currentStaff.id || a.staff_details?.user === user?.id)
-        : apptList;
-
-      setAppointments(filtered);
-    } catch (err) {
-      setAppointments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return () => {
+      controller.abort();
+    };
+  }, [branch?.id]);
 
   const updateAppointmentStatus = async (appointmentId: string, newStatus: AppointmentStatus) => {
     setActionLoading(appointmentId);

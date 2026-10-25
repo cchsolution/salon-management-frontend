@@ -15,10 +15,13 @@ import { api } from '../../services/api';
 import { Customer } from '../../types';
 
 export const CustomersPage: React.FC = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    const c = api.getCached<{ results?: Customer[] } | Customer[]>('/crm/clients/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(() => customers.length === 0);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   // New Client Modal
@@ -34,7 +37,9 @@ export const CustomersPage: React.FC = () => {
   }, []);
 
   const fetchCustomers = async () => {
-    setIsLoading(true);
+    if (customers.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const data = await api.get<{ results?: Customer[] } | Customer[]>('/crm/clients/');
       const list = Array.isArray(data) ? data : data.results || [];

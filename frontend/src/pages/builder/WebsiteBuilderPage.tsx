@@ -53,17 +53,23 @@ import { BrandThemeEditor } from './section-editors/BrandThemeEditor';
 import { ResetSectionModal } from './section-editors/ResetSectionModal';
 
 export const WebsiteBuilderPage: React.FC = () => {
-  const { salon } = useAuth();
-  const [website, setWebsite] = useState<Website | null>(null);
-  const [theme, setTheme] = useState<WebsiteTheme | null>(null);
-  const [sections, setSections] = useState<WebsiteSection[]>([]);
+  const { salon, branches: authBranches } = useAuth();
+  const [website, setWebsite] = useState<Website | null>(() => api.getCached<Website>('/builder/site/current/'));
+  const [theme, setTheme] = useState<WebsiteTheme | null>(() => website?.theme || null);
+  const [sections, setSections] = useState<WebsiteSection[]>(() => website?.pages?.[0]?.sections || []);
   const [activeTab, setActiveTab] = useState<'sections' | 'theme'>('sections');
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(() => sections[0]?.id || null);
 
-  // Dynamic live catalog data for preview
-  const [services, setServices] = useState<Service[]>([]);
-  const [staff, setStaff] = useState<StaffProfile[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
+  // Dynamic live catalog data for preview (hydrated from cache or auth state)
+  const [services, setServices] = useState<Service[]>(() => {
+    const c = api.getCached<{ results?: Service[] } | Service[]>('/catalog/services/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [staff, setStaff] = useState<StaffProfile[]>(() => {
+    const c = api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [branches, setBranches] = useState<Branch[]>(() => authBranches || []);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
@@ -72,7 +78,7 @@ export const WebsiteBuilderPage: React.FC = () => {
 
   // Change tracking & operational states
   const [isDirty, setIsDirty] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => sections.length === 0);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [bannerMessage, setBannerMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -86,9 +92,14 @@ export const WebsiteBuilderPage: React.FC = () => {
   }, []);
 
   const fetchWebsiteData = async () => {
-    setIsLoading(true);
+    if (sections.length === 0) {
+      setIsLoading(true);
+    }
+
     try {
-      const data = await api.get<Website>('/builder/site/current/');
+      // 1. Fetch current salon website with theme & draft sections
+      let data = await api.get<Website>('/builder/site/current/');
+
       setWebsite(data);
       if (data.theme) {
         setTheme(data.theme);
@@ -107,24 +118,46 @@ export const WebsiteBuilderPage: React.FC = () => {
         });
       }
 
-      if (data.pages && data.pages.length > 0) {
-        const homeSections = data.pages[0].sections || [];
-        setSections(homeSections);
-        if (homeSections.length > 0 && !selectedSectionId) {
-          setSelectedSectionId(homeSections[0].id);
-        }
+      let homeSections = data.pages?.[0]?.sections || [];
+
+      // If page exists but has no sections yet, request with seed=true
+      if (homeSections.length === 0) {
+        try {
+          const seeded = await api.get<Website>('/builder/site/current/?seed=true');
+          if (seeded.pages?.[0]?.sections?.length) {
+            homeSections = seeded.pages[0].sections;
+            setWebsite(seeded);
+          }
+        } catch {}
       }
 
-      // Fetch live catalog, staff, and branches for real-time preview
-      if (salon?.slug) {
-        try {
-          const publicData = await api.get<any>(`/builder/public/${salon.slug}/`);
-          if (publicData.catalog?.services) setServices(publicData.catalog.services);
-          if (publicData.team) setStaff(publicData.team);
-          if (publicData.branches) setBranches(publicData.branches);
-        } catch {
-          // If public endpoint is not published yet, fallback gracefully
-        }
+      setSections(homeSections);
+      if (homeSections.length > 0) {
+        setSelectedSectionId((prev) => prev || homeSections[0].id);
+      }
+
+      // 2. Hydrate live preview dependencies in background (non-blocking)
+      if (authBranches && authBranches.length > 0) {
+        setBranches(authBranches);
+      } else {
+        api.get<{ results?: Branch[] } | Branch[]>('/branches/').then((b) => {
+          const list = Array.isArray(b) ? b : b?.results || [];
+          if (list.length > 0) setBranches(list);
+        }).catch(() => {});
+      }
+
+      if (services.length === 0) {
+        api.get<{ results?: Service[] } | Service[]>('/catalog/services/').then((svc) => {
+          const list = Array.isArray(svc) ? svc : svc?.results || [];
+          if (list.length > 0) setServices(list);
+        }).catch(() => {});
+      }
+
+      if (staff.length === 0) {
+        api.get<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/').then((st) => {
+          const list = Array.isArray(st) ? st : st?.results || [];
+          if (list.length > 0) setStaff(list);
+        }).catch(() => {});
       }
     } catch (err: any) {
       setBannerMessage({ type: 'error', text: err?.message || 'Failed to load website builder.' });

@@ -31,10 +31,22 @@ interface CartItem {
 export const PosBillingPage: React.FC = () => {
   const { branch, salon } = useAuth();
 
-  const [services, setServices] = useState<Service[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [staffList, setStaffList] = useState<StaffProfile[]>([]);
+  const [services, setServices] = useState<Service[]>(() => {
+    const c = api.getCached<{ results?: Service[] } | Service[]>('/catalog/services/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [products, setProducts] = useState<Product[]>(() => {
+    const c = api.getCached<{ results?: Product[] } | Product[]>('/inventory/products/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    const c = api.getCached<{ results?: Customer[] } | Customer[]>('/crm/clients/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
+  const [staffList, setStaffList] = useState<StaffProfile[]>(() => {
+    const c = api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/');
+    return Array.isArray(c) ? c : c?.results || [];
+  });
 
   // Cart
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -54,7 +66,7 @@ export const PosBillingPage: React.FC = () => {
 
   useEffect(() => {
     fetchCatalog();
-  }, [branch]);
+  }, [branch?.id]);
 
   const fetchCatalog = async () => {
     try {
