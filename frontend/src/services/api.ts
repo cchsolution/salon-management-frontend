@@ -326,7 +326,17 @@ async function request<T>(
       if (err instanceof ApiError) {
         throw err;
       }
-      throw new ApiError(err.message || 'Network request failed', 0, null);
+      const isConnectionError =
+        err.message === 'Failed to fetch' ||
+        err.name === 'TypeError' ||
+        err.message?.toLowerCase().includes('network') ||
+        err.message?.toLowerCase().includes('failed to fetch');
+
+      const message = isConnectionError
+        ? `Unable to connect to API server (${finalUrl}). Please ensure the backend is online and VITE_API_BASE_URL is configured.`
+        : err.message || 'Network request failed';
+
+      throw new ApiError(message, 0, null);
     }
   })();
 

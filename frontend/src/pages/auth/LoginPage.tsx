@@ -55,9 +55,9 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-lg animate-shake">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+          <div className="flex items-start gap-2.5 p-3 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-lg animate-shake">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span className="leading-relaxed break-words">{error}</span>
           </div>
         )}
 
