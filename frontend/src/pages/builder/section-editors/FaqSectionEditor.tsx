@@ -82,7 +82,7 @@ export const FaqSectionEditor: React.FC<FaqSectionEditorProps> = ({ content, onC
             value={content.subheading || ''}
             onChange={(e) => onChange('subheading', e.target.value)}
             placeholder="Everything you need to know about booking, visits, and hygiene."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
       </div>
@@ -179,7 +179,7 @@ export const FaqSectionEditor: React.FC<FaqSectionEditorProps> = ({ content, onC
                 value={currentFaq.answer || ''}
                 onChange={(e) => handleUpdate(activeIndex, 'answer', e.target.value)}
                 placeholder="Detailed answer explaining your salon policy or service details..."
-                className="input-field py-1 text-xs"
+                className="textarea-field py-1 text-xs"
               />
             </div>
           </div>

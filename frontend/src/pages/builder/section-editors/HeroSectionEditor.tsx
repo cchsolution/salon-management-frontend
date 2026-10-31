@@ -68,7 +68,7 @@ export const HeroSectionEditor: React.FC<HeroSectionEditorProps> = ({ content, o
             value={content.subheadline || ''}
             onChange={(e) => onChange('subheadline', e.target.value)}
             placeholder="Describe your salon's luxury experience and specialities..."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
       </div>
@@ -137,7 +137,7 @@ export const HeroSectionEditor: React.FC<HeroSectionEditorProps> = ({ content, o
               <select
                 value={content.primary_button_radius || 'rounded-xl'}
                 onChange={(e) => onChange('primary_button_radius', e.target.value)}
-                className="input-field py-1 text-[11px]"
+                className="select-field py-1 text-[11px]"
               >
                 <option value="rounded-none">Square</option>
                 <option value="rounded-md">Subtle (md)</option>
@@ -206,7 +206,7 @@ export const HeroSectionEditor: React.FC<HeroSectionEditorProps> = ({ content, o
               <select
                 value={content.secondary_button_radius || 'rounded-xl'}
                 onChange={(e) => onChange('secondary_button_radius', e.target.value)}
-                className="input-field py-1 text-[11px]"
+                className="select-field py-1 text-[11px]"
               >
                 <option value="rounded-none">Square</option>
                 <option value="rounded-md">Subtle (md)</option>
@@ -278,7 +278,7 @@ export const HeroSectionEditor: React.FC<HeroSectionEditorProps> = ({ content, o
             <select
               value={content.text_alignment || 'center'}
               onChange={(e) => onChange('text_alignment', e.target.value)}
-              className="input-field py-1 text-xs"
+              className="select-field py-1 text-xs"
             >
               <option value="left">Left Aligned</option>
               <option value="center">Centered</option>
@@ -290,7 +290,7 @@ export const HeroSectionEditor: React.FC<HeroSectionEditorProps> = ({ content, o
             <select
               value={content.hero_height || 'large'}
               onChange={(e) => onChange('hero_height', e.target.value)}
-              className="input-field py-1 text-xs"
+              className="select-field py-1 text-xs"
             >
               <option value="medium">Medium (500px)</option>
               <option value="large">Spacious (650px)</option>

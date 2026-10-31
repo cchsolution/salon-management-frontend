@@ -49,14 +49,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col w-64 bg-white dark:bg-[#171225] text-[var(--text-primary)] border-r border-[#E2E8F0] dark:border-[#332A46] transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col w-64 bg-white dark:bg-[#171225] text-[var(--text-primary)] border-r border-[#E2E8F0] dark:border-[#332A46] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] lg:translate-x-0 ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         }`}
       >
         {/* Salon / Platform Brand Header */}
-        <div className="flex items-center justify-between px-5 h-20 border-b border-[#E2E8F0] dark:border-[#332A46] bg-slate-50/60 dark:bg-[#171225]">
+        <div className="flex items-center justify-between px-5 h-20 border-b border-[#E2E8F0] dark:border-[#332A46] bg-slate-50/70 dark:bg-[#171225]/90 backdrop-blur-sm">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/80 flex items-center justify-center shadow-sm text-[#6D28D9] dark:text-[#8B5CF6] font-bold text-lg shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/80 flex items-center justify-center shadow-sm text-[#6D28D9] dark:text-[#8B5CF6] font-bold text-lg shrink-0 transition-transform hover:scale-105">
               {headerInitial}
             </div>
             <div className="flex-1 min-w-0">
@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <button
             onClick={onClose}
             aria-label="Close sidebar"
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -92,16 +92,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 end={item.to === '/dashboard'}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${
                     isActive
-                      ? 'bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] font-semibold border-l-4 border-[#6D28D9] dark:border-[#8B5CF6] shadow-sm'
-                      : 'text-[#64748B] dark:text-[#C4BFD0] hover:bg-slate-100/70 dark:hover:bg-[#211A32] hover:text-[#1E1B2E] dark:hover:text-white'
+                      ? 'bg-purple-50 dark:bg-purple-950/50 text-[#6D28D9] dark:text-[#8B5CF6] font-semibold border-l-4 border-[#6D28D9] dark:border-[#8B5CF6] shadow-sm translate-x-0.5'
+                      : 'text-[#64748B] dark:text-[#C4BFD0] hover:bg-slate-100/80 dark:hover:bg-[#211A32] hover:text-[#1E1B2E] dark:hover:text-white hover:translate-x-0.5'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#6D28D9] dark:text-[#8B5CF6]' : 'text-slate-400 dark:text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#6D28D9] dark:text-[#8B5CF6]' : 'text-slate-400 dark:text-slate-500'}`} />
                     <span className="truncate">{item.label}</span>
                   </>
                 )}

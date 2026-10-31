@@ -100,20 +100,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 sm:px-6 bg-white dark:bg-[#171225] border-b border-[#E2E8F0] dark:border-[#332A46] shadow-subtle transition-colors duration-200">
+    <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 sm:px-6 bg-white/95 dark:bg-[#171225]/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[#332A46] shadow-subtle transition-colors duration-200">
       {/* Left section: mobile hamburger & branch switcher */}
       <div className="flex items-center gap-3 sm:gap-4">
         <button
           onClick={onToggleSidebar}
           aria-label="Toggle navigation menu"
-          className="p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-lg lg:hidden transition-colors"
+          className="p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl lg:hidden transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {/* Branch Selector for Salon Roles */}
         {branches.length > 0 && user?.role !== 'SUPERADMIN' && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-[#211A32] rounded-lg border border-[#E2E8F0] dark:border-[#332A46] text-xs sm:text-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-[#211A32] rounded-xl border border-[#E2E8F0] dark:border-[#332A46] text-xs sm:text-sm hover:border-[#6D28D9]/40 transition-colors">
             <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#059669] dark:text-[#10B981] shrink-0" />
             <select
               value={branch?.id || ''}
@@ -121,7 +121,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
                 const found = branches.find((b) => b.id === e.target.value);
                 if (found) setBranch(found);
               }}
-              className="bg-transparent font-medium text-[#1E1B2E] dark:text-[#F8FAFC] focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate"
+              className="bg-transparent font-medium text-[#1E1B2E] dark:text-[#F8FAFC] focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate pr-1"
             >
               {branches.map((b) => (
                 <option key={b.id} value={b.id} className="bg-white dark:bg-[#171225] text-[#1E1B2E] dark:text-[#F8FAFC]">
@@ -134,7 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
 
         {/* Superadmin Platform Indicator */}
         {user?.role === 'SUPERADMIN' && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-950/40 rounded-lg border border-purple-200 dark:border-purple-800/60 text-xs text-[#6D28D9] dark:text-[#8B5CF6] font-semibold">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800/60 text-xs text-[#6D28D9] dark:text-[#8B5CF6] font-semibold">
             <Shield className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Platform Superadmin</span>
           </div>
@@ -146,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
         {onOpenQuickBooking && user?.role !== 'SUPERADMIN' && (
           <button
             onClick={onOpenQuickBooking}
-            className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-[#6D28D9] hover:bg-[#5B21B6] dark:bg-[#8B5CF6] dark:hover:bg-[#7C3AED] rounded-lg shadow-sm transition-all duration-150"
+            className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-[#6D28D9] hover:bg-[#5B21B6] dark:bg-[#8B5CF6] dark:hover:bg-[#7C3AED] rounded-xl shadow-sm transition-all duration-150 active:scale-[0.98] hover:shadow-md"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Appointment</span>
@@ -161,18 +161,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
             aria-label="View notifications"
-            className="relative p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-lg transition-colors"
+            className="relative p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl transition-colors active:scale-95"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-[#DC2626] rounded-full">
+              <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-[#DC2626] rounded-full animate-pulse">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-[#171225] rounded-xl shadow-xl border border-[#E2E8F0] dark:border-[#332A46] py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-[#171225] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#E2E8F0] dark:border-[#332A46] py-2 z-50 animate-scaleIn">
               <div className="flex items-center justify-between px-4 py-2 border-b border-[#E2E8F0] dark:border-[#332A46]">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#1E1B2E] dark:text-[#F8FAFC]">
                   Notifications
@@ -227,7 +227,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-lg transition-colors"
+            className="flex items-center gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl transition-colors active:scale-95"
           >
             <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6D28D9] dark:text-[#8B5CF6] font-bold flex items-center justify-center text-xs border border-purple-200 dark:border-purple-800">
               {user?.first_name?.[0] || user?.email?.[0] || 'R'}
@@ -240,18 +240,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
                 {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : 'User'}
               </span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-[#64748B] dark:text-[#C4BFD0]" />
+            <ChevronDown className={`w-3.5 h-3.5 text-[#64748B] dark:text-[#C4BFD0] transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#171225] rounded-xl shadow-xl border border-[#E2E8F0] dark:border-[#332A46] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#171225] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#E2E8F0] dark:border-[#332A46] py-1.5 z-50 animate-scaleIn">
               <div className="px-4 py-2.5 border-b border-[#E2E8F0] dark:border-[#332A46]">
                 <p className="text-xs font-semibold text-[#1E1B2E] dark:text-[#F8FAFC] truncate">{user?.full_name}</p>
                 <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0] truncate">{user?.email}</p>
               </div>
               <button
                 onClick={logout}
-                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#DC2626] hover:bg-[#DC2626]/10 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#DC2626] hover:bg-[#DC2626]/10 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>

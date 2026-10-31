@@ -13,6 +13,7 @@ import {
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Appointment, AppointmentStatus, StaffProfile } from '../../types';
+import { MetricCardSkeleton, AppointmentCardSkeleton } from '../../components/ui/Skeleton';
 
 export const StylistDashboard: React.FC = () => {
   const { user, salon, branch } = useAuth();
@@ -91,7 +92,7 @@ export const StylistDashboard: React.FC = () => {
   const upcomingCount = appointments.filter((a) => a.status === 'CONFIRMED' || a.status === 'PENDING').length;
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8 page-enter">
       {/* Page Title & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -109,87 +110,91 @@ export const StylistDashboard: React.FC = () => {
       </div>
 
       {/* KPI Cards: Stylist Specific (NO Financials/Revenue) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Today */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Today's Clients
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] flex items-center justify-center">
-              <User className="w-4 h-4" />
+      {isLoading ? (
+        <MetricCardSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Today */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                Today's Clients
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] flex items-center justify-center">
+                <User className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                {appointments.length}
+              </h3>
+              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
+                Scheduled for today ({todayDate})
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {appointments.length}
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
-              Scheduled for today ({todayDate})
-            </p>
-          </div>
-        </div>
 
-        {/* In Progress */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              In Service Now
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-[#D97706] flex items-center justify-center">
-              <PlayCircle className="w-4 h-4" />
+          {/* In Progress */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                In Service Now
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-[#D97706] flex items-center justify-center">
+                <PlayCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                {inProgressCount}
+              </h3>
+              <p className="text-xs text-[#D97706] mt-1.5 font-semibold">
+                Currently attending client
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {inProgressCount}
-            </h3>
-            <p className="text-xs text-[#D97706] mt-1.5 font-semibold">
-              Currently attending client
-            </p>
-          </div>
-        </div>
 
-        {/* Upcoming */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Upcoming Today
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-[#0284C7] dark:text-[#38BDF8] flex items-center justify-center">
-              <Clock className="w-4 h-4" />
+          {/* Upcoming */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                Upcoming Today
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-[#0284C7] dark:text-[#38BDF8] flex items-center justify-center">
+                <Clock className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                {upcomingCount}
+              </h3>
+              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
+                Pending client arrivals
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {upcomingCount}
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
-              Pending client arrivals
-            </p>
-          </div>
-        </div>
 
-        {/* Completed */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Completed Visits
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
+          {/* Completed */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                Completed Visits
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                {completedCount}
+              </h3>
+              <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold">
+                Finished successfully
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {completedCount}
-            </h3>
-            <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold">
-              Finished successfully
-            </p>
-          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content: Today's Appointments Queue & Profile Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -210,9 +215,8 @@ export const StylistDashboard: React.FC = () => {
           </div>
 
           {isLoading ? (
-            <div className="py-12 text-center text-xs text-[#64748B] dark:text-[#C4BFD0]">
-              <div className="w-7 h-7 border-3 border-[#6D28D9] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              Loading your appointments...
+            <div className="space-y-3">
+              <AppointmentCardSkeleton count={3} />
             </div>
           ) : appointments.length === 0 ? (
             <div className="py-12 text-center text-xs text-[#64748B] dark:text-[#C4BFD0] space-y-2">
@@ -223,7 +227,7 @@ export const StylistDashboard: React.FC = () => {
           ) : (
             <div className="divide-y divide-[#E2E8F0] dark:divide-[#332A46]">
               {appointments.map((appt) => (
-                <div key={appt.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div key={appt.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-[var(--surface-secondary)]/30 rounded-lg px-2 transition-colors">
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-[#1E1B2E] dark:text-[#F8FAFC]">
@@ -275,7 +279,7 @@ export const StylistDashboard: React.FC = () => {
                       <button
                         onClick={() => updateAppointmentStatus(appt.id, 'IN_PROGRESS')}
                         disabled={actionLoading === appt.id}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors"
+                        className="btn-primary btn-sm bg-[#0284C7] hover:bg-[#0369A1]"
                       >
                         <PlayCircle className="w-3.5 h-3.5" />
                         <span>Start Service</span>
@@ -285,7 +289,7 @@ export const StylistDashboard: React.FC = () => {
                       <button
                         onClick={() => updateAppointmentStatus(appt.id, 'COMPLETED')}
                         disabled={actionLoading === appt.id}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#059669] hover:bg-[#047857] rounded-lg transition-colors"
+                        className="btn-success btn-sm"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Mark Completed</span>
@@ -311,7 +315,7 @@ export const StylistDashboard: React.FC = () => {
 
           <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
             <div
-              className="w-12 h-12 rounded-xl text-white font-bold flex items-center justify-center text-lg shadow-sm shrink-0"
+              className="w-12 h-12 rounded-xl text-white font-bold flex items-center justify-center text-lg shadow-sm shrink-0 ring-2 ring-white/10"
               style={{ backgroundColor: myStaffProfile?.color_code || '#6D28D9' }}
             >
               {user?.first_name?.[0] || 'S'}

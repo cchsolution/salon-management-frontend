@@ -98,7 +98,7 @@ export const GallerySectionEditor: React.FC<GallerySectionEditorProps> = ({ cont
             value={content.subheading || ''}
             onChange={(e) => onChange('subheading', e.target.value)}
             placeholder="Real client results from our Himmatnagar and Ahmedabad studios."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
 
@@ -108,7 +108,7 @@ export const GallerySectionEditor: React.FC<GallerySectionEditorProps> = ({ cont
             <select
               value={content.grid_columns || 4}
               onChange={(e) => onChange('grid_columns', Number(e.target.value))}
-              className="input-field py-1 text-xs"
+              className="select-field py-1 text-xs"
             >
               <option value={2}>2 Columns (Showcase)</option>
               <option value={3}>3 Columns (Standard)</option>
@@ -121,7 +121,7 @@ export const GallerySectionEditor: React.FC<GallerySectionEditorProps> = ({ cont
             <select
               value={content.aspect_ratio || 'square'}
               onChange={(e) => onChange('aspect_ratio', e.target.value)}
-              className="input-field py-1 text-xs"
+              className="select-field py-1 text-xs"
             >
               <option value="square">Square 1:1</option>
               <option value="portrait">Portrait 3:4</option>
@@ -241,7 +241,7 @@ export const GallerySectionEditor: React.FC<GallerySectionEditorProps> = ({ cont
                 <select
                   value={currentActiveImg.category || 'Bridal & Makeup'}
                   onChange={(e) => handleUpdateImage(activeImageIndex, 'category', e.target.value)}
-                  className="input-field py-1 text-xs"
+                  className="select-field py-1 text-xs"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>

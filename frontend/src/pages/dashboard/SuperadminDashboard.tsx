@@ -14,6 +14,7 @@ import {
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Salon, Branch } from '../../types';
+import { TableSkeleton, MetricCardSkeleton } from '../../components/ui/Skeleton';
 
 export const SuperadminDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -51,7 +52,7 @@ export const SuperadminDashboard: React.FC = () => {
   const activeSalonsCount = salons.filter((s) => s.is_active).length;
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6 sm:space-y-8 page-enter">
       {/* Platform Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -69,88 +70,92 @@ export const SuperadminDashboard: React.FC = () => {
       </div>
 
       {/* Platform KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Registered Salons */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Registered Salons
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] flex items-center justify-center">
-              <Building2 className="w-4 h-4" />
+      {isLoading ? (
+        <MetricCardSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Registered Salons */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                Registered Salons
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] flex items-center justify-center">
+                <Building2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                {salons.length}
+              </h3>
+              <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold">
+                {activeSalonsCount} active organizations
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {salons.length}
-            </h3>
-            <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold">
-              {activeSalonsCount} active organizations
-            </p>
-          </div>
-        </div>
 
-        {/* Total Salon Branches */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Operational Branches
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
-              <MapPin className="w-4 h-4" />
+          {/* Total Salon Branches */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                Operational Branches
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
+                <MapPin className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                {branches.length}
+              </h3>
+              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
+                Across Gujarat & platform regions
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {branches.length}
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
-              Across Gujarat & platform regions
-            </p>
-          </div>
-        </div>
 
-        {/* Subscription Plans */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Enterprise Plans
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-[#D97706] flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
+          {/* Subscription Plans */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                Enterprise Plans
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-[#D97706] flex items-center justify-center">
+                <Sparkles className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+                {salons.filter((s) => s.subscription_plan === 'PRO' || s.subscription_plan === 'ENTERPRISE').length}
+              </h3>
+              <p className="text-xs text-[#D97706] mt-1.5 font-semibold">
+                PRO Tier active licenses
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              {salons.filter((s) => s.subscription_plan === 'PRO' || s.subscription_plan === 'ENTERPRISE').length}
-            </h3>
-            <p className="text-xs text-[#D97706] mt-1.5 font-semibold">
-              PRO Tier active licenses
-            </p>
-          </div>
-        </div>
 
-        {/* System Health */}
-        <div className="card-surface p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Platform Health
-            </span>
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
-              <CheckCircle className="w-4 h-4" />
+          {/* System Health */}
+          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                Platform Health
+              </span>
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
+                <CheckCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <h3 className="text-2xl font-serif font-bold text-[#059669] dark:text-[#10B981]">
+                99.98%
+              </h3>
+              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+                All services online
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-serif font-bold text-[#059669] dark:text-[#10B981]">
-              99.98%
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
-              All services online
-            </p>
-          </div>
         </div>
-      </div>
+      )}
 
       {/* Registered Salon Tenants Directory */}
       <div className="card-surface p-6">
@@ -172,10 +177,7 @@ export const SuperadminDashboard: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="py-12 text-center text-xs text-[#64748B] dark:text-[#C4BFD0]">
-            <div className="w-7 h-7 border-3 border-[#6D28D9] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            Loading platform salons...
-          </div>
+          <TableSkeleton rows={4} columns={6} />
         ) : salons.length === 0 ? (
           <div className="py-12 text-center text-xs text-[#64748B] dark:text-[#C4BFD0]">
             No registered salon organizations found.

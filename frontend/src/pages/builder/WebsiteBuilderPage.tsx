@@ -51,6 +51,7 @@ import { ContactSectionEditor } from './section-editors/ContactSectionEditor';
 import { FooterSectionEditor } from './section-editors/FooterSectionEditor';
 import { BrandThemeEditor } from './section-editors/BrandThemeEditor';
 import { ResetSectionModal } from './section-editors/ResetSectionModal';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 export const WebsiteBuilderPage: React.FC = () => {
   const { salon, branches: authBranches } = useAuth();
@@ -337,43 +338,43 @@ export const WebsiteBuilderPage: React.FC = () => {
     : services.filter((s) => s.category_name === selectedCategory);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] -m-4 sm:-m-6 lg:-m-8 bg-[var(--color-background)] overflow-hidden transition-colors duration-200">
+    <div className="flex flex-col h-[calc(100vh-80px)] -m-4 sm:-m-6 lg:-m-8 bg-[var(--background)] overflow-hidden transition-colors duration-200">
       {/* Top Builder Control Bar */}
-      <div className="h-16 px-4 sm:px-6 bg-[var(--color-surface)] border-b border-[var(--color-border)] flex items-center justify-between shrink-0 z-20 transition-colors">
+      <div className="h-16 px-4 sm:px-6 bg-[var(--surface)] border-b border-[var(--border)] flex items-center justify-between shrink-0 z-20 transition-colors">
         <div className="flex items-center gap-3">
-          <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <Globe className="w-5 h-5 text-[#6D28D9] dark:text-[#8B5CF6]" />
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-[var(--color-text-primary)]">
+              <h2 className="text-sm font-bold text-[var(--text-primary)]">
                 {salon?.name || 'Ruhi Beauty Salon'} Website Builder
               </h2>
               {/* Unsaved Changes Indicator */}
               {isDirty ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                   Unsaved Changes
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                  <CheckCircle2 className="w-3 h-3" /> All Saved
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  <CheckCircle2 className="w-3 h-3 text-[#059669]" /> All Saved
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-[var(--color-text-secondary)]">
+            <p className="text-[11px] text-[var(--text-secondary)]">
               Full Section Customization · Live Instant Preview · Multi-Tenant
             </p>
           </div>
         </div>
 
         {/* Responsive Viewport Toggles */}
-        <div className="hidden sm:flex items-center gap-1 bg-[var(--color-surface-secondary)] p-1 rounded-xl border border-[var(--color-border)]">
+        <div className="hidden sm:flex items-center gap-1 bg-[var(--surface-secondary)] p-1 rounded-xl border border-[var(--border)]">
           <button
             type="button"
             onClick={() => setViewport('desktop')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95 ${
               viewport === 'desktop'
-                ? 'bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-sm'
-                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                ? 'bg-[var(--surface)] text-[var(--text-primary)] shadow-sm'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
             title="Desktop 100%"
           >
@@ -383,10 +384,10 @@ export const WebsiteBuilderPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setViewport('tablet')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95 ${
               viewport === 'tablet'
-                ? 'bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-sm'
-                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                ? 'bg-[var(--surface)] text-[var(--text-primary)] shadow-sm'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
             title="Tablet 768px"
           >
@@ -396,10 +397,10 @@ export const WebsiteBuilderPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setViewport('mobile')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95 ${
               viewport === 'mobile'
-                ? 'bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-sm'
-                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                ? 'bg-[var(--surface)] text-[var(--text-primary)] shadow-sm'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
             title="Mobile 375px"
           >
@@ -415,9 +416,9 @@ export const WebsiteBuilderPage: React.FC = () => {
               href={`/s/${salon.slug}`}
               target="_blank"
               rel="noreferrer"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--color-text-primary)] bg-[var(--color-surface-secondary)] hover:bg-[var(--color-border)] rounded-xl transition"
+              className="hidden lg:inline-flex items-center gap-1.5 btn-secondary btn-sm"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <ExternalLink className="w-3.5 h-3.5 text-[#6D28D9] dark:text-[#8B5CF6]" />
               <span>Live Site</span>
             </a>
           )}
@@ -425,16 +426,16 @@ export const WebsiteBuilderPage: React.FC = () => {
             type="button"
             onClick={handleSaveDraft}
             disabled={isSaving}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-[var(--color-text-primary)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-secondary)] border border-[var(--color-border)] rounded-xl shadow-sm transition disabled:opacity-50"
+            className="btn-secondary btn-sm"
           >
-            <Save className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <Save className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981]" />
             <span>{isSaving ? 'Saving Draft...' : 'Save Draft'}</span>
           </button>
           <button
             type="button"
             onClick={handlePublishLive}
             disabled={isPublishing}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md transition disabled:opacity-50"
+            className="btn-primary btn-sm"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
             <span>{isPublishing ? 'Publishing...' : 'Publish to Live'}</span>
@@ -471,16 +472,16 @@ export const WebsiteBuilderPage: React.FC = () => {
       {/* Main Builder Work Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Sections & Theme Inspector */}
-        <div className="w-80 sm:w-96 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col shrink-0 overflow-hidden z-10 transition-colors">
+        <div className="w-80 sm:w-96 bg-[var(--surface)] border-r border-[var(--border)] flex flex-col shrink-0 overflow-hidden z-10 transition-colors">
           {/* Main Tabs */}
-          <div className="flex border-b border-[var(--color-border)]">
+          <div className="flex border-b border-[var(--border)]">
             <button
               type="button"
               onClick={() => setActiveTab('sections')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold transition-colors border-b-2 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all border-b-2 ${
                 activeTab === 'sections'
-                  ? 'border-purple-600 text-purple-600 dark:text-purple-400 bg-purple-50/30 dark:bg-purple-950/20'
-                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                  ? 'border-[#6D28D9] text-[#6D28D9] dark:text-[#8B5CF6] bg-purple-50/40 dark:bg-purple-950/20'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Layers className="w-3.5 h-3.5" /> Sections ({sections.length})
@@ -488,10 +489,10 @@ export const WebsiteBuilderPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('theme')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold transition-colors border-b-2 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all border-b-2 ${
                 activeTab === 'theme'
-                  ? 'border-purple-600 text-purple-600 dark:text-purple-400 bg-purple-50/30 dark:bg-purple-950/20'
-                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                  ? 'border-[#6D28D9] text-[#6D28D9] dark:text-[#8B5CF6] bg-purple-50/40 dark:bg-purple-950/20'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Palette className="w-3.5 h-3.5" /> Brand Theme
@@ -505,77 +506,85 @@ export const WebsiteBuilderPage: React.FC = () => {
                 {/* Section List with Order & Visibility */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
                       Homepage Sections
                     </span>
                     <span className="text-[10px] text-slate-400">Click section to edit</span>
                   </div>
 
-                  {sections.map((sec, idx) => (
-                    <div
-                      key={sec.id}
-                      onClick={() => setSelectedSectionId(sec.id)}
-                      className={`p-2.5 rounded-xl border text-xs flex items-center justify-between transition-all cursor-pointer ${
-                        selectedSectionId === sec.id
-                          ? 'bg-purple-50/70 border-purple-600 shadow-sm dark:bg-purple-950/40 dark:border-purple-500'
-                          : 'bg-[var(--color-surface)] border-[var(--color-border)] hover:border-purple-300 dark:hover:border-purple-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleSection(sec.id, sec.is_enabled);
-                          }}
-                          className={
-                            sec.is_enabled
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-slate-400 dark:text-slate-600'
-                          }
-                          title={sec.is_enabled ? 'Section is visible (click to hide)' : 'Section is hidden (click to show)'}
-                        >
-                          {sec.is_enabled ? (
-                            <ToggleRight className="w-5 h-5" />
-                          ) : (
-                            <ToggleLeft className="w-5 h-5" />
-                          )}
-                        </button>
-                        <span className="font-semibold text-[var(--color-text-primary)] capitalize">
-                          {sec.section_type.replace('_', ' ').toLowerCase()}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => handleReorder(idx, 'up')}
-                          disabled={idx === 0}
-                          className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-20"
-                          title="Move up"
-                        >
-                          <ArrowUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleReorder(idx, 'down')}
-                          disabled={idx === sections.length - 1}
-                          className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-20"
-                          title="Move down"
-                        >
-                          <ArrowDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                  {isLoading ? (
+                    <div className="space-y-2 py-1">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Skeleton key={i} className="h-10 rounded-xl w-full" />
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    sections.map((sec, idx) => (
+                      <div
+                        key={sec.id}
+                        onClick={() => setSelectedSectionId(sec.id)}
+                        className={`p-2.5 rounded-xl border text-xs flex items-center justify-between transition-all duration-150 cursor-pointer hover:-translate-y-0.5 active:scale-[0.99] ${
+                          selectedSectionId === sec.id
+                            ? 'bg-purple-50/70 border-[#6D28D9] shadow-sm dark:bg-purple-950/40 dark:border-[#8B5CF6] ring-1 ring-[#6D28D9]/20'
+                            : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#6D28D9]/40'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSection(sec.id, sec.is_enabled);
+                            }}
+                            className={
+                              sec.is_enabled
+                                ? 'text-[#059669] dark:text-[#10B981] transition-transform active:scale-90'
+                                : 'text-slate-400 dark:text-slate-600 transition-transform active:scale-90'
+                            }
+                            title={sec.is_enabled ? 'Section is visible (click to hide)' : 'Section is hidden (click to show)'}
+                          >
+                            {sec.is_enabled ? (
+                              <ToggleRight className="w-5 h-5" />
+                            ) : (
+                              <ToggleLeft className="w-5 h-5" />
+                            )}
+                          </button>
+                          <span className="font-semibold text-[var(--text-primary)] capitalize">
+                            {sec.section_type.replace('_', ' ').toLowerCase()}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => handleReorder(idx, 'up')}
+                            disabled={idx === 0}
+                            className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-colors"
+                            title="Move up"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleReorder(idx, 'down')}
+                            disabled={idx === sections.length - 1}
+                            className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-colors"
+                            title="Move down"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 {/* Selected Section Customization Panel */}
                 {selectedSection && (
-                  <div className="pt-4 border-t border-[var(--color-border)] space-y-4">
-                    <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)]">
+                  <div className="pt-4 border-t border-[var(--border)] space-y-4 animate-fade-in">
+                    <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
                       <div>
-                        <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider block">
+                        <span className="text-[11px] font-bold text-[#6D28D9] dark:text-[#8B5CF6] uppercase tracking-wider block">
                           Edit {selectedSection.section_type.replace('_', ' ')}
                         </span>
                         <span className="text-[10px] text-slate-500">
@@ -670,9 +679,9 @@ export const WebsiteBuilderPage: React.FC = () => {
         </div>
 
         {/* Right Side: Interactive Live Preview Frame */}
-        <div className="flex-1 overflow-y-auto bg-[var(--color-background)] p-4 md:p-8 flex justify-center transition-colors">
+        <div className="flex-1 overflow-y-auto bg-[var(--background)] p-4 md:p-8 flex justify-center transition-colors">
           <div
-            className={`bg-white text-slate-900 transition-all duration-300 shadow-2xl rounded-2xl overflow-y-auto border border-[var(--color-border)] flex flex-col ${
+            className={`bg-white text-slate-900 transition-all duration-300 ease-in-out shadow-2xl rounded-2xl overflow-y-auto border border-[var(--border)] flex flex-col ${
               viewport === 'mobile'
                 ? 'w-[375px] min-h-[667px]'
                 : viewport === 'tablet'
@@ -712,9 +721,41 @@ export const WebsiteBuilderPage: React.FC = () => {
 
             {/* Live Rendered Sections */}
             <div className="flex-1">
-              {sections
-                .filter((s) => s.is_enabled)
-                .map((sec) => {
+              {isLoading ? (
+                <div className="p-8 space-y-8 animate-fade-in">
+                  <div className="h-72 rounded-2xl bg-slate-100 dark:bg-slate-800 relative overflow-hidden flex flex-col items-center justify-center space-y-4 p-8 text-center">
+                    <Skeleton className="h-6 w-36 rounded-full" />
+                    <Skeleton className="h-10 w-3/4 rounded-xl" />
+                    <Skeleton className="h-4 w-1/2 rounded-lg" />
+                    <div className="flex gap-3 pt-2">
+                      <Skeleton className="h-9 w-32 rounded-xl" />
+                      <Skeleton className="h-9 w-28 rounded-xl" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-6 w-48 rounded-lg" />
+                      <Skeleton className="h-4 w-24 rounded-lg" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                          <Skeleton className="h-32 w-full rounded-xl" />
+                          <Skeleton className="h-5 w-3/4 rounded" />
+                          <Skeleton className="h-4 w-1/2 rounded" />
+                          <div className="pt-2 flex justify-between items-center">
+                            <Skeleton className="h-5 w-16 rounded" />
+                            <Skeleton className="h-8 w-20 rounded-lg" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                sections
+                  .filter((s) => s.is_enabled)
+                  .map((sec) => {
                   const content = sec.content || {};
 
                   // 1. HERO SECTION PREVIEW
@@ -1514,7 +1555,8 @@ export const WebsiteBuilderPage: React.FC = () => {
                   }
 
                   return null;
-                })}
+                })
+              )}
             </div>
           </div>
         </div>

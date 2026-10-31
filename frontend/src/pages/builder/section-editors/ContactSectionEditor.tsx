@@ -37,7 +37,7 @@ export const ContactSectionEditor: React.FC<ContactSectionEditorProps> = ({ cont
             value={content.subheading || ''}
             onChange={(e) => onChange('subheading', e.target.value)}
             placeholder="Conveniently located in Himmatnagar and Ahmedabad with ample customer parking."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
       </div>

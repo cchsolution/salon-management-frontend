@@ -165,20 +165,27 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] overflow-hidden flex flex-col max-h-[90vh] animate-scaleIn">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--surface-secondary)]">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#6D28D9] dark:text-[#8B5CF6]" />
-            <h2 className="text-lg font-serif font-bold text-[var(--text-primary)]">
-              Schedule New Appointment
-            </h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--surface-secondary)]/70">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 flex items-center justify-center text-[#6D28D9] dark:text-[#8B5CF6]">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-serif font-bold text-[var(--text-primary)]">
+                Schedule New Appointment
+              </h2>
+              <p className="text-[11px] text-[var(--text-secondary)]">
+                Assign client, treatment services, qualified stylist, and available time slot.
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-md hover:bg-[var(--border)] transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl hover:bg-[var(--border)] transition-colors active:scale-95"
           >
             <X className="w-5 h-5" />
           </button>
@@ -187,7 +194,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
           {error && (
-            <div className="flex items-center gap-2 p-3 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-md">
+            <div className="flex items-center gap-2 p-3 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-xl">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -200,11 +207,11 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-[var(--text-secondary)] mb-1">Select Existing Client</label>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Select Existing Client</label>
                 <select
                   value={selectedCustomer}
                   onChange={(e) => setSelectedCustomer(e.target.value)}
-                  className="input-field"
+                  className="select-field"
                 >
                   <option value="">-- Or enter new client below --</option>
                   {customers.map((c) => (
@@ -217,7 +224,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
               {!selectedCustomer && (
                 <>
                   <div>
-                    <label className="block text-xs text-[var(--text-secondary)] mb-1">New Client Name</label>
+                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">New Client Name</label>
                     <input
                       type="text"
                       placeholder="e.g. Ayesha Sheikh"
@@ -227,7 +234,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-[var(--text-secondary)] mb-1">Phone Number *</label>
+                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Phone Number *</label>
                     <input
                       type="tel"
                       placeholder="+91 98250 00000"
@@ -246,7 +253,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
             <label className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Select Services
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1 border border-[var(--border)] rounded-md bg-[var(--surface-secondary)]/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto p-1.5 border border-[var(--border)] rounded-xl bg-[var(--surface-secondary)]/40">
               {services.map((svc) => {
                 const isSelected = selectedServices.includes(svc.id);
                 return (
@@ -254,19 +261,19 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
                     type="button"
                     key={svc.id}
                     onClick={() => toggleService(svc.id)}
-                    className={`flex items-center justify-between p-2.5 rounded-md text-left text-xs transition-colors border ${
+                    className={`flex items-center justify-between p-3 rounded-xl text-left text-xs transition-all border ${
                       isSelected
-                        ? 'bg-purple-50 dark:bg-purple-950/40 border-[#6D28D9] dark:border-[#8B5CF6] text-[var(--text-primary)] font-semibold'
-                        : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:border-[#6D28D9]/40'
+                        ? 'bg-purple-50 dark:bg-purple-950/40 border-[#6D28D9] dark:border-[#8B5CF6] text-[var(--text-primary)] font-semibold shadow-sm ring-1 ring-[#6D28D9]/30'
+                        : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:border-[#6D28D9]/40 hover:bg-slate-50/50 dark:hover:bg-[#211A32]/40'
                     }`}
                   >
                     <div>
                       <p className="font-semibold text-[var(--text-primary)]">{svc.name}</p>
-                      <p className="text-[11px] text-[var(--text-secondary)]">
+                      <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
                         {svc.duration_minutes} mins · ₹{Number(svc.effective_price || svc.price).toLocaleString('en-IN')}
                       </p>
                     </div>
-                    {isSelected && <Check className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />}
+                    {isSelected && <Check className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6] shrink-0 ml-2" />}
                   </button>
                 );
               })}
@@ -282,7 +289,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
               <select
                 value={selectedStaff}
                 onChange={(e) => setSelectedStaff(e.target.value)}
-                className="input-field"
+                className="select-field"
               >
                 {staffList.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -301,8 +308,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
                 min={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setBookingDate(e.target.value)}
                 className="input-field"
-              >
-              </input>
+              />
             </div>
           </div>
 
@@ -312,11 +318,11 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
               <label className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
                 Available Start Time
               </label>
-              {isSlotLoading && <span className="text-xs text-[#6D28D9] dark:text-[#8B5CF6] font-medium">Checking slots...</span>}
+              {isSlotLoading && <span className="text-xs text-[#6D28D9] dark:text-[#8B5CF6] font-medium flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#6D28D9] animate-ping"></span> Checking slots...</span>}
             </div>
 
             {availableSlots.length === 0 ? (
-              <p className="text-xs text-[var(--text-secondary)] italic p-3 bg-[var(--surface-secondary)] rounded-md text-center">
+              <p className="text-xs text-[var(--text-secondary)] italic p-3 bg-[var(--surface-secondary)] rounded-xl text-center border border-[var(--border)]">
                 No slots available on this date. Please pick another date or stylist.
               </p>
             ) : (
@@ -328,7 +334,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
                       type="button"
                       key={slot}
                       onClick={() => setSelectedTime(slot)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-md border transition-all ${
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all active:scale-95 ${
                         isSelected
                           ? 'bg-[#059669] text-white border-[#059669] shadow-sm'
                           : 'bg-[var(--surface)] text-[var(--text-primary)] border-[var(--border)] hover:border-[#059669]'
@@ -352,7 +358,7 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
               placeholder="e.g. Client requested experienced stylist, sensitive scalp."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="input-field"
+              className="textarea-field"
             />
           </div>
 
@@ -361,14 +367,14 @@ export const QuickBookingModal: React.FC<QuickBookingModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="btn-ghost"
+              className="btn-ghost btn-md"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !selectedTime}
-              className="btn-primary"
+              className="btn-primary btn-md"
             >
               {isLoading ? 'Confirming...' : 'Book Appointment'}
             </button>

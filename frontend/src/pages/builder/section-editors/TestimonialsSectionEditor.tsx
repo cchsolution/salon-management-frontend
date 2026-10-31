@@ -89,7 +89,7 @@ export const TestimonialsSectionEditor: React.FC<TestimonialsSectionEditorProps>
             value={content.subheading || ''}
             onChange={(e) => onChange('subheading', e.target.value)}
             placeholder="Read verified reviews from clients who trust Ruhi Beauty Salon."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
       </div>
@@ -204,7 +204,7 @@ export const TestimonialsSectionEditor: React.FC<TestimonialsSectionEditorProps>
                 value={currentT.quote || ''}
                 onChange={(e) => handleUpdate(activeIndex, 'quote', e.target.value)}
                 placeholder="What did the client say about their hair, makeup, or spa experience?"
-                className="input-field py-1 text-xs"
+                className="textarea-field py-1 text-xs"
               />
             </div>
 
@@ -214,7 +214,7 @@ export const TestimonialsSectionEditor: React.FC<TestimonialsSectionEditorProps>
                 <select
                   value={currentT.rating || 5}
                   onChange={(e) => handleUpdate(activeIndex, 'rating', Number(e.target.value))}
-                  className="input-field py-1 text-xs font-semibold"
+                  className="select-field py-1 text-xs font-semibold"
                 >
                   <option value={5}>⭐⭐⭐⭐⭐ (5 Stars)</option>
                   <option value={4}>⭐⭐⭐⭐ (4 Stars)</option>

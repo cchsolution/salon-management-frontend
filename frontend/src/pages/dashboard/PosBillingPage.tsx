@@ -175,7 +175,7 @@ export const PosBillingPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
@@ -192,27 +192,27 @@ export const PosBillingPage: React.FC = () => {
           <div className="card-surface p-4 space-y-3">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               {/* Catalog Tabs */}
-              <div className="flex rounded-lg border border-[var(--border)] p-0.5 bg-[var(--surface-secondary)] w-full sm:w-auto">
+              <div className="flex rounded-xl border border-[var(--border)] p-0.5 bg-[var(--surface-secondary)] w-full sm:w-auto">
                 <button
                   onClick={() => setCatalogTab('all')}
-                  className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                    catalogTab === 'all' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)]'
+                  className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    catalogTab === 'all' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   All Items
                 </button>
                 <button
                   onClick={() => setCatalogTab('services')}
-                  className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                    catalogTab === 'services' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)]'
+                  className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    catalogTab === 'services' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   Services
                 </button>
                 <button
                   onClick={() => setCatalogTab('products')}
-                  className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                    catalogTab === 'products' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)]'
+                  className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    catalogTab === 'products' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   Retail Products
@@ -220,14 +220,14 @@ export const PosBillingPage: React.FC = () => {
               </div>
 
               {/* Search */}
-              <div className="relative w-full sm:w-52">
-                <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-[var(--text-secondary)]" />
+              <div className="relative w-full sm:w-56">
+                <Search className="absolute left-3 top-3 w-3.5 h-3.5 text-[var(--text-secondary)]" />
                 <input
                   type="text"
                   placeholder="Search catalog..."
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
-                  className="input-field pl-8"
+                  className="input-field pl-9"
                 />
               </div>
             </div>
@@ -241,16 +241,16 @@ export const PosBillingPage: React.FC = () => {
                     <button
                       key={`svc-${svc.id}`}
                       onClick={() => addToCart(svc, 'SERVICE')}
-                      className="p-3 bg-[var(--surface-secondary)]/50 hover:bg-purple-50 dark:hover:bg-purple-950/40 border border-[var(--border)] hover:border-[#6D28D9] rounded-xl text-left transition-all group flex flex-col justify-between"
+                      className="p-3 bg-[var(--surface-secondary)]/50 hover:bg-purple-50 dark:hover:bg-purple-950/40 border border-[var(--border)] hover:border-[#6D28D9] rounded-xl text-left transition-all active:scale-95 group flex flex-col justify-between"
                     >
                       <div>
                         <span className="flex items-center gap-1 text-[10px] font-bold text-[#6D28D9] dark:text-[#8B5CF6] uppercase">
                           <Scissors className="w-3 h-3" /> Service
                         </span>
                         <p className="text-xs font-bold text-[var(--text-primary)] mt-1 line-clamp-2">{svc.name}</p>
-                        <p className="text-[11px] text-[var(--text-secondary)]">{svc.duration_minutes} mins</p>
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{svc.duration_minutes} mins</p>
                       </div>
-                      <div className="mt-2 pt-2 border-t border-[var(--border)] flex items-center justify-between">
+                      <div className="mt-2.5 pt-2 border-t border-[var(--border)] flex items-center justify-between">
                         <span className="text-xs font-bold text-[var(--text-primary)]">₹{Number(svc.effective_price).toLocaleString('en-IN')}</span>
                         <Plus className="w-3.5 h-3.5 text-[#6D28D9] group-hover:scale-125 transition-transform" />
                       </div>
@@ -264,16 +264,16 @@ export const PosBillingPage: React.FC = () => {
                     <button
                       key={`prod-${prod.id}`}
                       onClick={() => addToCart(prod, 'PRODUCT')}
-                      className="p-3 bg-[var(--surface-secondary)]/50 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-[var(--border)] hover:border-[#059669] rounded-xl text-left transition-all group flex flex-col justify-between"
+                      className="p-3 bg-[var(--surface-secondary)]/50 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-[var(--border)] hover:border-[#059669] rounded-xl text-left transition-all active:scale-95 group flex flex-col justify-between"
                     >
                       <div>
                         <span className="flex items-center gap-1 text-[10px] font-bold text-[#059669] dark:text-[#10B981] uppercase">
                           <Package className="w-3 h-3" /> Retail
                         </span>
                         <p className="text-xs font-bold text-[var(--text-primary)] mt-1 line-clamp-2">{prod.name}</p>
-                        <p className="text-[11px] text-[var(--text-secondary)]">{prod.brand || 'Salon Care'}</p>
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{prod.brand || 'Salon Care'}</p>
                       </div>
-                      <div className="mt-2 pt-2 border-t border-[var(--border)] flex items-center justify-between">
+                      <div className="mt-2.5 pt-2 border-t border-[var(--border)] flex items-center justify-between">
                         <span className="text-xs font-bold text-[var(--text-primary)]">₹{Number(prod.selling_price).toLocaleString('en-IN')}</span>
                         <Plus className="w-3.5 h-3.5 text-[#059669] group-hover:scale-125 transition-transform" />
                       </div>
@@ -291,7 +291,9 @@ export const PosBillingPage: React.FC = () => {
                 <ShoppingCart className="w-5 h-5 text-[#6D28D9] dark:text-[#8B5CF6]" />
                 <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">Current Sale</h3>
               </div>
-              <span className="text-xs font-semibold text-[var(--text-secondary)]">{cart.length} items</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] border border-purple-200 dark:border-purple-800/40">
+                {cart.length} {cart.length === 1 ? 'item' : 'items'}
+              </span>
             </div>
 
             {/* Customer Picker */}
@@ -302,7 +304,7 @@ export const PosBillingPage: React.FC = () => {
               <select
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="input-field text-xs"
+                className="select-field !text-xs !py-1.5"
               >
                 <option value="">Walk-in Guest</option>
                 {customers.map((c) => (
@@ -395,9 +397,10 @@ export const PosBillingPage: React.FC = () => {
                   step="1"
                   value={discountAmount}
                   onChange={(e) => setDiscountAmount(e.target.value)}
-                  className="w-20 px-2 py-0.5 text-right border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] rounded focus:outline-none"
+                  className="w-24 px-2.5 py-1 text-right border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/20"
                 />
               </div>
+
               <div className="flex justify-between text-base font-serif font-bold text-[var(--text-primary)] pt-2 border-t border-[var(--border)]">
                 <span>Total Due</span>
                 <span className="text-[#059669] dark:text-[#10B981]">₹{total.toFixed(2)}</span>
@@ -406,7 +409,7 @@ export const PosBillingPage: React.FC = () => {
               <button
                 disabled={cart.length === 0}
                 onClick={() => setIsPayModalOpen(true)}
-                className="btn-primary w-full py-3 text-sm mt-3"
+                className="btn-primary btn-lg w-full mt-3 shadow-md"
               >
                 Proceed to Payment (₹{total.toFixed(2)})
               </button>
@@ -417,43 +420,53 @@ export const PosBillingPage: React.FC = () => {
 
       {/* Payment Selection Modal */}
       {isPayModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] p-6 space-y-5">
-            <h3 className="text-lg font-serif font-bold text-[var(--text-primary)]">
-              Collect Payment (₹{total.toFixed(2)})
-            </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-5 animate-scaleIn">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+              <h3 className="text-lg font-serif font-bold text-[var(--text-primary)]">
+                Collect Payment (₹{total.toFixed(2)})
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsPayModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">
-                Payment Method
+              <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                Select Payment Mode
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2.5">
                 {[
-                  { id: 'UPI', label: 'UPI / QR' },
-                  { id: 'CASH', label: 'Cash' },
-                  { id: 'CARD', label: 'Card' },
+                  { id: 'UPI', label: 'UPI / QR', icon: '⚡' },
+                  { id: 'CASH', label: 'Cash', icon: '💵' },
+                  { id: 'CARD', label: 'Card / POS', icon: '💳' },
                 ].map((m) => (
                   <button
                     key={m.id}
                     type="button"
                     onClick={() => setPaymentMethod(m.id as any)}
-                    className={`py-3 text-xs font-bold rounded-xl border transition-colors ${
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all active:scale-95 flex flex-col items-center gap-1 ${
                       paymentMethod === m.id
-                        ? 'bg-[#6D28D9] text-white border-[#6D28D9] shadow-sm'
-                        : 'bg-[var(--surface-secondary)] text-[var(--text-primary)] border-[var(--border)] hover:border-[#6D28D9]'
+                        ? 'bg-[#6D28D9] text-white border-[#6D28D9] shadow-md ring-2 ring-[#6D28D9]/30'
+                        : 'bg-[var(--surface-secondary)] text-[var(--text-primary)] border-[var(--border)] hover:border-[#6D28D9]/40 hover:bg-slate-100 dark:hover:bg-[#211A32]'
                     }`}
                   >
-                    {m.label}
+                    <span className="text-base">{m.icon}</span>
+                    <span>{m.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-[var(--border)]">
               <button
                 type="button"
                 onClick={() => setIsPayModalOpen(false)}
-                className="btn-ghost"
+                className="btn-ghost btn-md"
               >
                 Cancel
               </button>
@@ -461,7 +474,7 @@ export const PosBillingPage: React.FC = () => {
                 type="button"
                 disabled={isProcessing}
                 onClick={handleCompleteSale}
-                className="btn-secondary"
+                className="btn-secondary btn-md"
               >
                 {isProcessing ? 'Processing...' : 'Complete & Record Sale'}
               </button>
@@ -472,10 +485,10 @@ export const PosBillingPage: React.FC = () => {
 
       {/* Completed Invoice & Receipt Modal */}
       {completedInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-sm bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] p-6 space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center mx-auto border border-emerald-200 dark:border-emerald-800">
-              <CheckCircle2 className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 text-center animate-scaleIn">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center mx-auto border border-emerald-200 dark:border-emerald-800 shadow-sm">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
             <h3 className="text-lg font-serif font-bold text-[var(--text-primary)]">
               Payment Completed!
@@ -484,7 +497,7 @@ export const PosBillingPage: React.FC = () => {
               Invoice #{completedInvoice.invoice_number} has been settled and recorded.
             </p>
 
-            <div className="p-3 bg-[var(--surface-secondary)] rounded-xl text-xs space-y-1 text-left border border-[var(--border)]">
+            <div className="p-3.5 bg-[var(--surface-secondary)] rounded-xl text-xs space-y-1.5 text-left border border-[var(--border)]">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Amount Paid:</span>
                 <span className="font-bold text-[#059669] dark:text-[#10B981]">₹{completedInvoice.total_amount}</span>
@@ -499,16 +512,16 @@ export const PosBillingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2.5 pt-2">
               <button
                 onClick={() => window.print()}
-                className="btn-ghost flex-1 border border-[var(--border)]"
+                className="btn-outline btn-md flex-1"
               >
-                <Printer className="w-3.5 h-3.5 mr-1" /> Print
+                <Printer className="w-4 h-4 mr-1" /> Print
               </button>
               <button
                 onClick={() => setCompletedInvoice(null)}
-                className="btn-primary flex-1"
+                className="btn-primary btn-md flex-1"
               >
                 Done
               </button>

@@ -3,6 +3,7 @@ import { Package, Plus, AlertTriangle, Search, RefreshCw, IndianRupee } from 'lu
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Product } from '../../types';
+import { TableSkeleton } from '../../components/ui/Skeleton';
 
 export const InventoryPage: React.FC = () => {
   const { branch } = useAuth();
@@ -104,7 +105,7 @@ export const InventoryPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -118,7 +119,7 @@ export const InventoryPage: React.FC = () => {
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="btn-primary"
+          className="btn-primary btn-md"
         >
           <Plus className="w-4 h-4" />
           <span>Add Product</span>
@@ -128,23 +129,23 @@ export const InventoryPage: React.FC = () => {
       {/* Filter / Search Bar */}
       <div className="card-surface p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-secondary)]" />
+          <Search className="absolute left-3.5 top-3 w-4 h-4 text-[var(--text-secondary)]" />
           <input
             type="text"
             placeholder="Search by product name, SKU, brand..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input-field pl-9"
+            className="input-field pl-10"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setFilterLowStock(!filterLowStock)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border transition-all active:scale-95 ${
               filterLowStock
-                ? 'bg-amber-50 dark:bg-amber-950/40 border-[#D97706] text-[#D97706]'
-                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                ? 'bg-amber-50 dark:bg-amber-950/40 border-[#D97706] text-[#D97706] shadow-sm'
+                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-slate-400'
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
@@ -153,7 +154,7 @@ export const InventoryPage: React.FC = () => {
           <button
             onClick={fetchProducts}
             aria-label="Refresh inventory"
-            className="p-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] transition-colors"
+            className="p-2 border border-[var(--border)] rounded-xl text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] transition-colors active:scale-95"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -163,10 +164,7 @@ export const InventoryPage: React.FC = () => {
       {/* Products Table */}
       <div className="card-surface overflow-hidden">
         {isLoading ? (
-          <div className="p-12 text-center text-xs text-[var(--text-secondary)]">
-            <div className="w-8 h-8 border-3 border-[#6D28D9] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            Loading inventory items...
-          </div>
+          <TableSkeleton rows={6} columns={6} />
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-xs text-[var(--text-secondary)]">No inventory products found.</div>
         ) : (
@@ -194,7 +192,7 @@ export const InventoryPage: React.FC = () => {
                       <td className="py-4 px-4 text-[var(--text-secondary)]">{prod.brand || '—'}</td>
                       <td className="py-4 px-4">
                         <span
-                          className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
+                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md ${
                             prod.is_retail
                               ? 'bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] border border-purple-200 dark:border-purple-800/40'
                               : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border)]'
@@ -221,7 +219,7 @@ export const InventoryPage: React.FC = () => {
                       <td className="py-4 px-6 text-right">
                         <button
                           onClick={() => setAdjustingProduct(prod)}
-                          className="px-2.5 py-1 text-xs font-semibold text-[#059669] dark:text-[#10B981] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg transition-colors border border-emerald-200 dark:border-emerald-800/40"
+                          className="px-3 py-1.5 text-xs font-semibold text-[#059669] dark:text-[#10B981] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-xl transition-all border border-emerald-200 dark:border-emerald-800/40 active:scale-95"
                         >
                           Adjust Stock
                         </button>
@@ -237,12 +235,23 @@ export const InventoryPage: React.FC = () => {
 
       {/* Adjust Stock Modal */}
       {adjustingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] p-6 space-y-4">
-            <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
-              Adjust Stock: {adjustingProduct.name}
-            </h3>
-            <p className="text-xs text-[var(--text-secondary)]">Current Stock: {adjustingProduct.total_stock} {adjustingProduct.unit}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 animate-scaleIn">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+              <div>
+                <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
+                  Adjust Stock: {adjustingProduct.name}
+                </h3>
+                <p className="text-xs text-[var(--text-secondary)]">Current Stock: {adjustingProduct.total_stock} {adjustingProduct.unit}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAdjustingProduct(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
 
             <form onSubmit={handleAdjustStock} className="space-y-4 text-xs">
               <div>
@@ -263,7 +272,7 @@ export const InventoryPage: React.FC = () => {
                 <select
                   value={adjustmentReason}
                   onChange={(e) => setAdjustmentReason(e.target.value)}
-                  className="input-field"
+                  className="select-field"
                 >
                   <option value="PURCHASE_IN">Purchase Received (+)</option>
                   <option value="SALE_OUT">Manual Sale / Out (-)</option>
@@ -279,7 +288,7 @@ export const InventoryPage: React.FC = () => {
                   placeholder="Reason for adjustment, supplier po..."
                   value={adjustmentNotes}
                   onChange={(e) => setAdjustmentNotes(e.target.value)}
-                  className="input-field"
+                  className="textarea-field"
                 />
               </div>
 
@@ -287,13 +296,13 @@ export const InventoryPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAdjustingProduct(null)}
-                  className="btn-ghost"
+                  className="btn-ghost btn-md"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary"
+                  className="btn-primary btn-md"
                 >
                   Confirm Adjustment
                 </button>
@@ -305,9 +314,18 @@ export const InventoryPage: React.FC = () => {
 
       {/* Add Product Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] p-6 space-y-4">
-            <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">Add New Inventory Item</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 animate-scaleIn">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+              <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">Add New Inventory Item</h3>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
             <form onSubmit={handleCreateProduct} className="space-y-3 text-xs">
               <div>
                 <label className="block text-[var(--text-secondary)] font-semibold mb-1">Product Name *</label>
@@ -384,9 +402,9 @@ export const InventoryPage: React.FC = () => {
                     id="retailCheck"
                     checked={pIsRetail}
                     onChange={(e) => setPIsRetail(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#6D28D9] focus:ring-[#6D28D9]"
+                    className="w-4 h-4 rounded text-[#6D28D9] focus:ring-[#6D28D9] cursor-pointer"
                   />
-                  <label htmlFor="retailCheck" className="text-[var(--text-primary)] font-medium">
+                  <label htmlFor="retailCheck" className="text-[var(--text-primary)] font-medium cursor-pointer">
                     Available for Retail
                   </label>
                 </div>
@@ -396,13 +414,13 @@ export const InventoryPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="btn-ghost"
+                  className="btn-ghost btn-md"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary"
+                  className="btn-primary btn-md"
                 >
                   Save Product
                 </button>

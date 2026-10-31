@@ -116,7 +116,7 @@ export const AboutSectionEditor: React.FC<AboutSectionEditorProps> = ({ content,
             value={content.story || ''}
             onChange={(e) => onChange('story', e.target.value)}
             placeholder="Tell your clients what makes your treatments and salon unique..."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
 

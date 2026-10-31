@@ -40,10 +40,10 @@ export const LoginPage: React.FC = () => {
         <ThemeSwitcher />
       </div>
 
-      <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-xl border border-[var(--border)] p-6 sm:p-8 space-y-6">
+      <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-xl border border-[var(--border)] p-6 sm:p-8 space-y-6 animate-scale-in">
         {/* Brand Header */}
         <div className="text-center space-y-1">
-          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[#6D28D9] dark:text-[#8B5CF6] font-bold text-2xl flex items-center justify-center mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[#6D28D9] dark:text-[#8B5CF6] font-bold text-2xl flex items-center justify-center mx-auto shadow-sm ring-4 ring-purple-500/10">
             R
           </div>
           <h2 className="text-2xl font-serif font-bold text-[var(--text-primary)] pt-2">
@@ -55,7 +55,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-lg">
+          <div className="flex items-center gap-2 p-3 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-lg animate-shake">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -70,28 +70,28 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleQuickDemo('owner@ruhibeauty.local', 'Owner@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-colors text-xs"
+              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
             >
               👑 Salon Owner
             </button>
             <button
               type="button"
               onClick={() => handleQuickDemo('ayesha@ruhibeauty.local', 'Stylist@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-colors text-xs"
+              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
             >
               ✂️ Hair Stylist
             </button>
             <button
               type="button"
               onClick={() => handleQuickDemo('reception@ruhibeauty.local', 'Staff@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-colors text-xs"
+              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
             >
               📋 Receptionist
             </button>
             <button
               type="button"
               onClick={() => handleQuickDemo('admin@luxesalon.local', 'Admin@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-colors text-xs"
+              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
             >
               🛡️ Superadmin
             </button>

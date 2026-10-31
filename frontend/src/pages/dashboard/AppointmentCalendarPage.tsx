@@ -15,6 +15,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Appointment, AppointmentStatus, StaffProfile } from '../../types';
 import { QuickBookingModal } from '../../components/QuickBookingModal';
+import { AppointmentCardSkeleton } from '../../components/ui/Skeleton';
 
 export const AppointmentCalendarPage: React.FC = () => {
   const { branch, user } = useAuth();
@@ -161,7 +162,7 @@ export const AppointmentCalendarPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -176,7 +177,7 @@ export const AppointmentCalendarPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsBookingOpen(true)}
-            className="btn-primary"
+            className="btn-primary btn-md"
           >
             <Plus className="w-4 h-4" />
             <span>New Booking</span>
@@ -191,7 +192,7 @@ export const AppointmentCalendarPage: React.FC = () => {
           <button
             onClick={() => changeDateBy(-1)}
             aria-label="Previous day"
-            className="p-1.5 border border-[var(--border)] hover:bg-[var(--surface-secondary)] rounded-md text-[var(--text-secondary)]"
+            className="p-2 border border-[var(--border)] hover:bg-[var(--surface-secondary)] rounded-xl text-[var(--text-secondary)] transition-colors active:scale-95"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -201,19 +202,19 @@ export const AppointmentCalendarPage: React.FC = () => {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] bg-[var(--surface)] border border-[var(--border)] rounded-md px-2.5 py-1 focus:outline-none"
+              className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] bg-[var(--surface)] border border-[var(--border)] rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/20"
             />
           </div>
           <button
             onClick={() => changeDateBy(1)}
             aria-label="Next day"
-            className="p-1.5 border border-[var(--border)] hover:bg-[var(--surface-secondary)] rounded-md text-[var(--text-secondary)]"
+            className="p-2 border border-[var(--border)] hover:bg-[var(--surface-secondary)] rounded-xl text-[var(--text-secondary)] transition-colors active:scale-95"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-            className="px-2.5 py-1 text-xs font-semibold text-[#6D28D9] dark:text-[#8B5CF6] bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100/80 rounded-md border border-purple-200 dark:border-purple-800"
+            className="px-3 py-1.5 text-xs font-semibold text-[#6D28D9] dark:text-[#8B5CF6] bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100/80 rounded-xl border border-purple-200 dark:border-purple-800 transition-colors active:scale-95"
           >
             Today
           </button>
@@ -223,14 +224,14 @@ export const AppointmentCalendarPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           {/* Stylist Filter */}
           {user?.role === 'STYLIST' ? (
-            <div className="text-xs px-2.5 py-1.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] font-semibold border border-purple-200 dark:border-purple-800">
+            <div className="text-xs px-3 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] font-semibold border border-purple-200 dark:border-purple-800">
               My Schedule
             </div>
           ) : (
             <select
               value={selectedStaffFilter}
               onChange={(e) => setSelectedStaffFilter(e.target.value)}
-              className="text-xs border border-[var(--border)] rounded-md px-2.5 py-1.5 bg-[var(--surface)] text-[var(--text-primary)] focus:outline-none"
+              className="select-field !py-1.5 !text-xs w-auto min-w-[130px]"
             >
               <option value="">All Stylists</option>
               {staffList.map((s) => (
@@ -245,7 +246,7 @@ export const AppointmentCalendarPage: React.FC = () => {
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
-            className="text-xs border border-[var(--border)] rounded-md px-2.5 py-1.5 bg-[var(--surface)] text-[var(--text-primary)] focus:outline-none"
+            className="select-field !py-1.5 !text-xs w-auto min-w-[130px]"
           >
             <option value="">All Statuses</option>
             <option value="CONFIRMED">Confirmed</option>
@@ -255,19 +256,19 @@ export const AppointmentCalendarPage: React.FC = () => {
           </select>
 
           {/* Toggle Mode */}
-          <div className="flex rounded-md border border-[var(--border)] p-0.5 bg-[var(--surface-secondary)]">
+          <div className="flex rounded-xl border border-[var(--border)] p-0.5 bg-[var(--surface-secondary)]">
             <button
               onClick={() => setViewMode('day')}
-              className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
-                viewMode === 'day' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)]'
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                viewMode === 'day' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               Timeline
             </button>
             <button
               onClick={() => setViewMode('agenda')}
-              className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
-                viewMode === 'agenda' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)]'
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                viewMode === 'agenda' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               Agenda
@@ -278,10 +279,7 @@ export const AppointmentCalendarPage: React.FC = () => {
 
       {/* Appointment Slots / Timeline */}
       {isLoading ? (
-        <div className="card-surface p-12 text-center">
-          <div className="w-8 h-8 border-3 border-[#6D28D9] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs text-[var(--text-secondary)] mt-3">Loading calendar bookings...</p>
-        </div>
+        <AppointmentCardSkeleton count={6} />
       ) : appointments.length === 0 ? (
         <div className="card-surface p-12 text-center">
           <CalendarIcon className="w-12 h-12 text-purple-300 dark:text-purple-800 mx-auto" />
@@ -293,18 +291,18 @@ export const AppointmentCalendarPage: React.FC = () => {
           </p>
           <button
             onClick={() => setIsBookingOpen(true)}
-            className="mt-4 btn-primary"
+            className="mt-4 btn-primary btn-md"
           >
             Create New Appointment
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {appointments.map((appt) => (
             <div
               key={appt.id}
               onClick={() => setSelectedAppt(appt)}
-              className="card-surface p-5 hover:border-[#6D28D9]/40 transition-all cursor-pointer flex flex-col justify-between"
+              className="card-surface p-5 hover:border-[#6D28D9]/40 hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -376,8 +374,8 @@ export const AppointmentCalendarPage: React.FC = () => {
 
       {/* Appointment Detail Slide-Over Modal */}
       {selectedAppt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] p-6 space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-5 animate-scaleIn">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
               <div>
                 <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
@@ -390,7 +388,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               <button
                 onClick={() => setSelectedAppt(null)}
                 aria-label="Close"
-                className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-md hover:bg-[var(--surface-secondary)]"
+                className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl hover:bg-[var(--surface-secondary)] transition-colors active:scale-95"
               >
                 ✕
               </button>
@@ -423,7 +421,7 @@ export const AppointmentCalendarPage: React.FC = () => {
                 <span className="font-semibold text-[var(--text-primary)] block mb-1">Booked Services:</span>
                 <div className="space-y-1">
                   {selectedAppt.items?.map((it, i) => (
-                    <div key={i} className="flex justify-between py-1.5 px-2 bg-[var(--surface-secondary)] rounded-md">
+                    <div key={i} className="flex justify-between py-1.5 px-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
                       <span className="text-[var(--text-primary)]">{it.service_name} ({it.duration_minutes}m)</span>
                       <span className="font-bold text-[var(--text-primary)]">₹{Number(it.price || 0).toLocaleString('en-IN')}</span>
                     </div>
@@ -442,7 +440,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               {selectedAppt.status !== 'CANCELLED' && selectedAppt.status !== 'COMPLETED' && (
                 <button
                   onClick={() => handleUpdateStatus(selectedAppt.id, 'CANCELLED')}
-                  className="px-3 py-1.5 text-xs font-semibold text-[#DC2626] bg-red-50 dark:bg-red-950/40 hover:bg-red-100/80 rounded-md"
+                  className="btn-danger-outline btn-sm"
                 >
                   Cancel Booking
                 </button>
@@ -450,7 +448,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               {selectedAppt.status === 'CONFIRMED' && (
                 <button
                   onClick={() => handleUpdateStatus(selectedAppt.id, 'IN_PROGRESS')}
-                  className="px-3 py-1.5 text-xs font-semibold text-white bg-[#6D28D9] hover:bg-[#5B21B6] rounded-md"
+                  className="btn-primary btn-sm"
                 >
                   Mark In Progress
                 </button>
@@ -458,7 +456,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               {selectedAppt.status !== 'COMPLETED' && (
                 <button
                   onClick={() => handleUpdateStatus(selectedAppt.id, 'COMPLETED')}
-                  className="px-3 py-1.5 text-xs font-semibold text-white bg-[#059669] hover:bg-[#047857] rounded-md shadow-sm"
+                  className="btn-secondary btn-sm"
                 >
                   Mark Completed
                 </button>

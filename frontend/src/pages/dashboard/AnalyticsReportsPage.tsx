@@ -3,6 +3,7 @@ import { Download, IndianRupee } from 'lucide-react';
 import { api, API_BASE } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardMetrics } from '../../types';
+import { TableSkeleton } from '../../components/ui/Skeleton';
 
 export const AnalyticsReportsPage: React.FC = () => {
   const { salon, branch } = useAuth();
@@ -55,7 +56,7 @@ export const AnalyticsReportsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -67,17 +68,17 @@ export const AnalyticsReportsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => handleExportCsv('invoices')}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-[var(--text-primary)] bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--surface-secondary)] rounded-lg shadow-sm transition-colors"
+            className="btn-outline btn-md"
           >
             <Download className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
             <span>Export Invoices CSV</span>
           </button>
           <button
             onClick={() => handleExportCsv('staff_commission')}
-            className="btn-primary"
+            className="btn-primary btn-md"
           >
             <Download className="w-4 h-4" />
             <span>Export Commissions CSV</span>
@@ -97,21 +98,19 @@ export const AnalyticsReportsPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="p-8 text-center text-xs text-[var(--text-secondary)]">
-            Loading analytics metrics...
-          </div>
+          <TableSkeleton rows={5} columns={7} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-[var(--surface-secondary)] text-[var(--text-secondary)] uppercase tracking-wider font-bold border-b border-[var(--border)]">
                 <tr>
-                  <th className="py-3 px-4">Staff Member</th>
-                  <th className="py-3 px-4">Title</th>
-                  <th className="py-3 px-4">Branch</th>
-                  <th className="py-3 px-4">Completed Appointments</th>
-                  <th className="py-3 px-4">Revenue Generated</th>
-                  <th className="py-3 px-4">Commission Rate</th>
-                  <th className="py-3 px-4 text-right">Commission Earned</th>
+                  <th className="py-3.5 px-4">Staff Member</th>
+                  <th className="py-3.5 px-4">Title</th>
+                  <th className="py-3.5 px-4">Branch</th>
+                  <th className="py-3.5 px-4">Completed Appointments</th>
+                  <th className="py-3.5 px-4">Revenue Generated</th>
+                  <th className="py-3.5 px-4">Commission Rate</th>
+                  <th className="py-3.5 px-4 text-right">Commission Earned</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">

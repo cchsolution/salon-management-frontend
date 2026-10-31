@@ -29,6 +29,7 @@ import {
   resolveImageUrl,
   handleImageFallback,
 } from '../../constants/defaultWebsiteData';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 export const SalonStorefrontPage: React.FC = () => {
   const { salonSlug } = useParams<{ salonSlug: string }>();
@@ -154,10 +155,56 @@ export const SalonStorefrontPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--color-background)]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-[var(--color-text-primary)]">Loading Salon Storefront...</p>
+      <div className="min-h-screen bg-[var(--background)] animate-fade-in">
+        {/* Header Skeleton */}
+        <div className="h-20 border-b border-[var(--border)] px-6 flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-10 h-10 rounded-xl" />
+            <div className="space-y-1">
+              <Skeleton className="w-36 h-5 rounded" />
+              <Skeleton className="w-24 h-3 rounded" />
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-6">
+            <Skeleton className="w-16 h-4 rounded" />
+            <Skeleton className="w-16 h-4 rounded" />
+            <Skeleton className="w-16 h-4 rounded" />
+            <Skeleton className="w-32 h-9 rounded-xl" />
+          </div>
+        </div>
+
+        {/* Hero Section Skeleton */}
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="h-96 rounded-3xl bg-[var(--surface-secondary)]/50 border border-[var(--border)] flex flex-col items-center justify-center p-8 space-y-4 text-center">
+            <Skeleton className="h-6 w-44 rounded-full" />
+            <Skeleton className="h-12 w-2/3 rounded-xl" />
+            <Skeleton className="h-5 w-1/2 rounded" />
+            <div className="flex gap-3 pt-3">
+              <Skeleton className="h-10 w-36 rounded-xl" />
+              <Skeleton className="h-10 w-32 rounded-xl" />
+            </div>
+          </div>
+        </div>
+
+        {/* Services Grid Skeleton */}
+        <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-8 w-48 rounded-lg" />
+            <Skeleton className="h-5 w-24 rounded" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] space-y-4">
+                <Skeleton className="h-44 w-full rounded-xl" />
+                <Skeleton className="h-6 w-3/4 rounded" />
+                <Skeleton className="h-4 w-1/2 rounded" />
+                <div className="pt-2 flex justify-between items-center">
+                  <Skeleton className="h-6 w-20 rounded" />
+                  <Skeleton className="h-9 w-28 rounded-xl" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -1023,37 +1070,37 @@ export const SalonStorefrontPage: React.FC = () => {
 
       {/* Interactive Self-Booking Modal */}
       {isBookModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[var(--color-border)] p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay">
+          <div className="modal-container max-w-lg p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             {bookingConfirmed ? (
-              <div className="text-center py-8 space-y-3">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+              <div className="text-center py-8 space-y-3 animate-scale-in">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-[#059669] flex items-center justify-center mx-auto shadow-sm">
                   <Check className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-[var(--color-text-primary)]" style={{ fontFamily: headingFont }}>
+                <h3 className="text-xl font-bold text-[var(--text-primary)]" style={{ fontFamily: headingFont }}>
                   Appointment Confirmed!
                 </h3>
-                <p className="text-xs text-[var(--color-text-secondary)] max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs text-[var(--text-secondary)] max-w-sm mx-auto leading-relaxed">
                   Thank you, {clientName}! We have reserved your appointment on {bookingDate} at {selectedSlot}. A confirmation has been registered with {salon.name}.
                 </p>
                 <button
                   type="button"
                   onClick={() => setIsBookModalOpen(false)}
-                  className="mt-4 px-6 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-full shadow transition"
+                  className="btn-primary mt-4 px-6 py-2.5 text-xs font-bold rounded-full shadow"
                 >
                   Done
                 </button>
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border)]">
-                  <h3 className="text-base font-bold text-[var(--color-text-primary)]" style={{ fontFamily: headingFont }}>
+                <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+                  <h3 className="text-base font-bold text-[var(--text-primary)]" style={{ fontFamily: headingFont }}>
                     Book Treatment Online
                   </h3>
                   <button
                     type="button"
                     onClick={() => setIsBookModalOpen(false)}
-                    className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                   >
                     ✕
                   </button>
@@ -1061,7 +1108,7 @@ export const SalonStorefrontPage: React.FC = () => {
 
                 <form onSubmit={handleSelfBook} className="space-y-4 text-xs">
                   <div>
-                    <label className="block text-[var(--color-text-primary)] font-semibold mb-1">
+                    <label className="block text-[var(--text-primary)] font-semibold mb-1">
                       Selected Treatment
                     </label>
                     <select
@@ -1070,7 +1117,7 @@ export const SalonStorefrontPage: React.FC = () => {
                         const found = services.find((s) => s.id === e.target.value);
                         if (found) setSelectedService(found);
                       }}
-                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-sm font-medium focus:outline-none"
+                      className="select-field text-sm font-medium"
                     >
                       {services.map((s) => (
                         <option key={s.id} value={s.id}>
@@ -1082,11 +1129,11 @@ export const SalonStorefrontPage: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[var(--color-text-primary)] font-semibold mb-1">Branch</label>
+                      <label className="block text-[var(--text-primary)] font-semibold mb-1">Branch</label>
                       <select
                         value={selectedBranch}
                         onChange={(e) => setSelectedBranch(e.target.value)}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs focus:outline-none"
+                        className="select-field text-xs"
                       >
                         {branches.map((b) => (
                           <option key={b.id} value={b.id}>
@@ -1097,11 +1144,11 @@ export const SalonStorefrontPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[var(--color-text-primary)] font-semibold mb-1">Stylist</label>
+                      <label className="block text-[var(--text-primary)] font-semibold mb-1">Stylist</label>
                       <select
                         value={selectedStaff}
                         onChange={(e) => setSelectedStaff(e.target.value)}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs focus:outline-none"
+                        className="select-field text-xs"
                       >
                         {team.map((stf) => (
                           <option key={stf.id} value={stf.id}>
@@ -1113,20 +1160,20 @@ export const SalonStorefrontPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[var(--color-text-primary)] font-semibold mb-1">Date</label>
+                    <label className="block text-[var(--text-primary)] font-semibold mb-1">Date</label>
                     <input
                       type="date"
                       value={bookingDate}
                       min={new Date().toISOString().split('T')[0]}
                       onChange={(e) => setBookingDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs focus:outline-none"
+                      className="input-field"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[var(--color-text-primary)] font-semibold mb-1">Available Time Slot</label>
+                    <label className="block text-[var(--text-primary)] font-semibold mb-1">Available Time Slot</label>
                     {availableSlots.length === 0 ? (
-                      <p className="text-xs text-[var(--color-text-secondary)] italic p-2.5 bg-[var(--color-background)] rounded-xl">
+                      <p className="text-xs text-[var(--text-secondary)] italic p-2.5 bg-[var(--surface-secondary)] rounded-xl">
                         No open time slots on this date.
                       </p>
                     ) : (
@@ -1136,10 +1183,10 @@ export const SalonStorefrontPage: React.FC = () => {
                             key={slot}
                             type="button"
                             onClick={() => setSelectedSlot(slot)}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-150 active:scale-95 ${
                               selectedSlot === slot
-                                ? 'bg-purple-600 text-white border-purple-600 shadow'
-                                : 'bg-white text-[var(--color-text-primary)] border-[var(--color-border)] hover:border-purple-400'
+                                ? 'bg-[#6D28D9] text-white border-[#6D28D9] shadow-sm'
+                                : 'bg-[var(--surface)] text-[var(--text-primary)] border-[var(--border)] hover:border-[#6D28D9]/40'
                             }`}
                           >
                             {slot}
@@ -1149,14 +1196,14 @@ export const SalonStorefrontPage: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-[var(--color-border)]">
-                    <label className="block text-[var(--color-text-primary)] font-semibold">Your Contact Details</label>
+                  <div className="space-y-2 pt-2 border-t border-[var(--border)]">
+                    <label className="block text-[var(--text-primary)] font-semibold">Your Contact Details</label>
                     <input
                       type="text"
                       placeholder="Your Full Name *"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs focus:outline-none"
+                      className="input-field"
                       required
                     />
                     <div className="grid grid-cols-2 gap-2">
@@ -1165,7 +1212,7 @@ export const SalonStorefrontPage: React.FC = () => {
                         placeholder="Phone Number (+91 98...) *"
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs focus:outline-none"
+                        className="input-field"
                         required
                       />
                       <input
@@ -1173,7 +1220,7 @@ export const SalonStorefrontPage: React.FC = () => {
                         placeholder="Email Address"
                         value={clientEmail}
                         onChange={(e) => setClientEmail(e.target.value)}
-                        className="w-full px-3 py-2 border border-[var(--color-border)] rounded-xl text-xs focus:outline-none"
+                        className="input-field"
                       />
                     </div>
                   </div>
@@ -1182,7 +1229,7 @@ export const SalonStorefrontPage: React.FC = () => {
                     <button
                       type="submit"
                       disabled={isSubmittingBooking || !selectedSlot}
-                      className="w-full py-3 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-xl shadow-md transition"
+                      className="btn-primary w-full py-3 text-xs font-bold shadow-md"
                     >
                       {isSubmittingBooking ? 'Confirming...' : 'Confirm Appointment'}
                     </button>

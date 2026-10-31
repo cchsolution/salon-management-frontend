@@ -98,7 +98,7 @@ export const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 page-enter">
       {/* Page Title */}
       <div>
         <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
@@ -110,7 +110,7 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {saveSuccess && (
-        <div className="p-3 text-xs text-[#059669] dark:text-[#10B981] bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg font-semibold">
+        <div className="p-3 text-xs text-[#059669] dark:text-[#10B981] bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg font-semibold animate-fade-in">
           Salon settings saved successfully!
         </div>
       )}
@@ -134,14 +134,14 @@ export const SettingsPage: React.FC = () => {
                 key={opt.mode}
                 type="button"
                 onClick={() => setThemeMode(opt.mode)}
-                className={`p-4 rounded-xl border text-left transition-all relative ${
+                className={`p-4 rounded-xl border text-left transition-all duration-200 relative hover:-translate-y-0.5 ${
                   isSelected
-                    ? 'bg-purple-50/60 dark:bg-purple-950/40 border-[#6D28D9] dark:border-[#8B5CF6] shadow-sm'
-                    : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#6D28D9]/40'
+                    ? 'bg-purple-50/70 dark:bg-purple-950/40 border-[#6D28D9] dark:border-[#8B5CF6] shadow-sm ring-1 ring-[#6D28D9]/30'
+                    : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#6D28D9]/40 hover:shadow-sm'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#6D28D9] text-white' : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)]'}`}>
+                  <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-[#6D28D9] text-white shadow-sm' : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)]'}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   {isSelected && <Check className="w-4 h-4 text-[#059669] dark:text-[#10B981]" />}
@@ -223,7 +223,7 @@ export const SettingsPage: React.FC = () => {
             rows={2}
             value={salonAddress}
             onChange={(e) => setSalonAddress(e.target.value)}
-            className="input-field"
+            className="textarea-field"
           />
         </div>
 
@@ -251,16 +251,16 @@ export const SettingsPage: React.FC = () => {
           </div>
           <button
             onClick={() => setIsBranchModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#059669] dark:text-[#10B981] bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100/60 rounded-lg border border-emerald-200 dark:border-emerald-800"
+            className="btn-secondary btn-sm"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-[#059669]" />
             <span>Add Branch</span>
           </button>
         </div>
 
         <div className="divide-y divide-[var(--border)]">
           {branches.map((b) => (
-            <div key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[var(--surface-secondary)]/30 rounded-lg px-2 transition-colors">
               <div>
                 <p className="font-bold text-[var(--text-primary)] flex items-center gap-2">
                   {b.name}
@@ -283,8 +283,8 @@ export const SettingsPage: React.FC = () => {
 
       {/* Add Branch Modal */}
       {isBranchModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] p-6 space-y-4">
+        <div className="modal-overlay">
+          <div className="modal-container max-w-md p-6 space-y-4">
             <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">Add New Branch</h3>
             <form onSubmit={handleCreateBranch} className="space-y-3 text-xs">
               <div>
@@ -317,7 +317,7 @@ export const SettingsPage: React.FC = () => {
                   placeholder="e.g. Shop 4-5, Shivalik Complex, Motipura..."
                   value={bAddress}
                   onChange={(e) => setBAddress(e.target.value)}
-                  className="input-field"
+                  className="textarea-field"
                   required
                 />
               </div>

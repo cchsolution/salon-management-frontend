@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { Customer } from '../../types';
+import { TableSkeleton } from '../../components/ui/Skeleton';
 
 export const CustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>(() => {
@@ -83,7 +84,7 @@ export const CustomersPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -97,7 +98,7 @@ export const CustomersPage: React.FC = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="btn-primary"
+          className="btn-primary btn-md"
         >
           <Plus className="w-4 h-4" />
           <span>Add Client</span>
@@ -107,13 +108,13 @@ export const CustomersPage: React.FC = () => {
       {/* Search & Tag Filter Bar */}
       <div className="card-surface p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-secondary)]" />
+          <Search className="absolute left-3.5 top-3 w-4 h-4 text-[var(--text-secondary)]" />
           <input
             type="text"
             placeholder="Search by name, phone, or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-field pl-9"
+            className="input-field pl-10"
           />
         </div>
 
@@ -122,10 +123,10 @@ export const CustomersPage: React.FC = () => {
             <button
               key={tag}
               onClick={() => setSelectedTag(tag)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-150 active:scale-95 ${
                 selectedTag === tag
                   ? 'bg-[#6D28D9] dark:bg-[#8B5CF6] text-white shadow-sm'
-                  : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-slate-400'
               }`}
             >
               {tag ? `#${tag}` : 'All Clients'}
@@ -137,10 +138,7 @@ export const CustomersPage: React.FC = () => {
       {/* Clients Table */}
       <div className="card-surface overflow-hidden">
         {isLoading ? (
-          <div className="p-12 text-center">
-            <div className="w-8 h-8 border-3 border-[#6D28D9] border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">Loading client directory...</p>
-          </div>
+          <TableSkeleton rows={6} columns={7} />
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-xs text-[var(--text-secondary)]">
             No customers match your search criteria.
@@ -317,9 +315,18 @@ export const CustomersPage: React.FC = () => {
 
       {/* Add Client Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] p-6 space-y-4">
-            <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">New Client Profile</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 animate-scaleIn">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+              <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">New Client Profile</h3>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
             <form onSubmit={handleCreateCustomer} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -375,7 +382,7 @@ export const CustomersPage: React.FC = () => {
                   placeholder="Allergies, beverage preferences, favorite formulas..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="input-field"
+                  className="textarea-field"
                 />
               </div>
 
@@ -383,13 +390,13 @@ export const CustomersPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="btn-ghost"
+                  className="btn-ghost btn-md"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary"
+                  className="btn-primary btn-md"
                 >
                   Save Client
                 </button>

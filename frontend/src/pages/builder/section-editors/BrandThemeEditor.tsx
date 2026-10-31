@@ -44,10 +44,10 @@ export const BrandThemeEditor: React.FC<BrandThemeEditorProps> = ({ theme, onCha
               <div
                 key={preset.id}
                 onClick={() => handleApplyPreset(preset)}
-                className={`p-2.5 rounded-xl border cursor-pointer transition ${
+                className={`p-2.5 rounded-xl border cursor-pointer transition-all duration-150 hover:-translate-y-0.5 active:scale-[0.99] ${
                   isSelected
-                    ? 'border-purple-600 bg-purple-50/70 dark:bg-purple-950/40 shadow-sm'
-                    : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:border-slate-300'
+                    ? 'border-purple-600 bg-purple-50/70 dark:bg-purple-950/40 shadow-sm ring-1 ring-purple-500/20'
+                    : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-xs'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
@@ -214,7 +214,7 @@ export const BrandThemeEditor: React.FC<BrandThemeEditorProps> = ({ theme, onCha
           <select
             value={theme.font_heading || 'Playfair Display'}
             onChange={(e) => onChange({ ...theme, font_heading: e.target.value })}
-            className="input-field py-1.5 text-xs font-serif"
+            className="select-field py-1.5 text-xs font-serif"
           >
             {TYPOGRAPHY_OPTIONS.headings.map((h) => (
               <option key={h.value} value={h.value}>
@@ -231,7 +231,7 @@ export const BrandThemeEditor: React.FC<BrandThemeEditorProps> = ({ theme, onCha
           <select
             value={theme.font_body || 'Inter'}
             onChange={(e) => onChange({ ...theme, font_body: e.target.value })}
-            className="input-field py-1.5 text-xs"
+            className="select-field py-1.5 text-xs"
           >
             {TYPOGRAPHY_OPTIONS.bodies.map((b) => (
               <option key={b.value} value={b.value}>
@@ -248,7 +248,7 @@ export const BrandThemeEditor: React.FC<BrandThemeEditorProps> = ({ theme, onCha
           <select
             value={theme.button_border_radius || 'rounded-xl'}
             onChange={(e) => onChange({ ...theme, button_border_radius: e.target.value })}
-            className="input-field py-1.5 text-xs"
+            className="select-field py-1.5 text-xs"
           >
             <option value="rounded-none">Sharp Corners (0px)</option>
             <option value="rounded-md">Subtle (6px)</option>

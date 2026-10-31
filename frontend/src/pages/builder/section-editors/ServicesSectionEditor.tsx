@@ -55,7 +55,7 @@ export const ServicesSectionEditor: React.FC<ServicesSectionEditorProps> = ({
             value={content.subheading || ''}
             onChange={(e) => onChange('subheading', e.target.value)}
             placeholder="Crafted with premium dermatological and hair-nourishing botanicals in Indian Rupees."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
       </div>
@@ -72,7 +72,7 @@ export const ServicesSectionEditor: React.FC<ServicesSectionEditorProps> = ({
             <select
               value={content.grid_columns || 3}
               onChange={(e) => onChange('grid_columns', Number(e.target.value))}
-              className="input-field py-1 text-xs"
+              className="select-field py-1 text-xs"
             >
               <option value={2}>2 Columns (Spacious)</option>
               <option value={3}>3 Columns (Standard)</option>
@@ -85,7 +85,7 @@ export const ServicesSectionEditor: React.FC<ServicesSectionEditorProps> = ({
             <select
               value={content.card_style || 'elevated'}
               onChange={(e) => onChange('card_style', e.target.value)}
-              className="input-field py-1 text-xs"
+              className="select-field py-1 text-xs"
             >
               <option value="elevated">Elevated (Shadow & Clean)</option>
               <option value="bordered">Bordered (Crisp Outline)</option>

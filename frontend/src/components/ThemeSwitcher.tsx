@@ -37,7 +37,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false })
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle theme mode"
-        className="p-2 rounded-lg text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/40"
+        className="p-2 rounded-xl text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/40 active:scale-95"
       >
         <CurrentIcon className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
         {!compact && (
@@ -48,8 +48,8 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false })
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-36 origin-top-right rounded-xl bg-white dark:bg-[#171225] border border-[#E2E8F0] dark:border-[#332A46] shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+        <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-2xl bg-white dark:bg-[#171225] border border-[#E2E8F0] dark:border-[#332A46] shadow-dropdown dark:shadow-dropdown-dark py-1.5 z-50 animate-scaleIn">
+          <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
             Appearance
           </div>
           {options.map((opt) => {
@@ -68,8 +68,8 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false })
                     : 'text-[#64748B] dark:text-[#C4BFD0] hover:bg-slate-50 dark:hover:bg-[#211A32] hover:text-[#1E1B2E] dark:hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <Icon className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-2.5">
+                  <Icon className="w-4 h-4" />
                   <span>{opt.label}</span>
                 </div>
                 {isSelected && <Check className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981]" />}

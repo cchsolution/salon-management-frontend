@@ -129,14 +129,20 @@
 
 /* Centralized Component Utilities */
 @layer components {
-  /* Buttons */
+  /* ========================================================
+     BUTTONS — Complete Modern SaaS Suite
+     ======================================================== */
+  .btn-base {
+    @apply inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-150 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98];
+  }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply btn-base text-white shadow-sm;
     background-color: var(--primary);
-    color: #FFFFFF;
   }
   .btn-primary:hover:not(:disabled) {
     background-color: var(--primary-dark);
+    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
   }
   .dark .btn-primary {
     background-color: var(--primary);
@@ -144,15 +150,16 @@
   }
   .dark .btn-primary:hover:not(:disabled) {
     background-color: var(--primary-light);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply btn-base text-white shadow-sm;
     background-color: var(--secondary);
-    color: #FFFFFF;
   }
   .btn-secondary:hover:not(:disabled) {
     background-color: var(--secondary-dark);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
   }
   .dark .btn-secondary {
     background-color: var(--secondary);
@@ -160,19 +167,29 @@
   }
   .dark .btn-secondary:hover:not(:disabled) {
     background-color: var(--secondary-light);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
   }
 
   .btn-accent {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply btn-base text-white shadow-sm;
     background-color: var(--secondary);
-    color: #FFFFFF;
   }
   .btn-accent:hover:not(:disabled) {
     background-color: var(--secondary-dark);
   }
 
+  .btn-outline {
+    @apply btn-base bg-transparent border shadow-sm;
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background-color: var(--surface-secondary);
+    border-color: var(--border);
+  }
+
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-all duration-150 bg-transparent disabled:opacity-50;
+    @apply btn-base bg-transparent border-transparent;
     color: var(--text-secondary);
   }
   .btn-ghost:hover:not(:disabled) {
@@ -180,54 +197,216 @@
     color: var(--text-primary);
   }
 
-  /* Cards */
+  .btn-danger {
+    @apply btn-base text-white shadow-sm bg-red-600 hover:bg-red-700 active:bg-red-800;
+  }
+
+  .btn-danger-outline {
+    @apply btn-base bg-transparent border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30;
+  }
+
+  .btn-success {
+    @apply btn-base text-white shadow-sm bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800;
+  }
+
+  /* Button Sizes */
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .btn-md {
+    @apply px-4 py-2 text-xs sm:text-sm;
+  }
+  .btn-lg {
+    @apply px-5 py-2.5 text-sm sm:text-base;
+  }
+  .btn-icon {
+    @apply p-2 rounded-xl inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)];
+  }
+
+  /* ========================================================
+     CARDS & CONTAINERS
+     ======================================================== */
   .card-surface {
     background-color: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background-color 0.2s ease;
   }
   .card-surface:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  }
+  .dark .card-surface {
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.25);
+  }
+  .dark .card-surface:hover {
+    box-shadow: 0 6px 18px 0 rgba(0, 0, 0, 0.45);
   }
 
-  /* Form Inputs */
+  .card-interactive {
+    @apply card-surface cursor-pointer;
+  }
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    border-color: rgba(109, 40, 217, 0.35);
+  }
+  .dark .card-interactive:hover {
+    border-color: rgba(139, 92, 246, 0.45);
+  }
+
+  /* ========================================================
+     FORM CONTROLS — Inputs & Dropdowns
+     ======================================================== */
   .input-field {
-    @apply w-full px-3.5 py-2 text-sm rounded-md transition-colors focus:outline-none;
+    @apply w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl transition-all duration-150 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500;
     background-color: var(--surface);
     border: 1px solid var(--border);
     color: var(--text-primary);
   }
   .input-field:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.15);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
   }
   .dark .input-field:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+  }
+  .input-field:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--surface-secondary);
   }
 
-  /* Status Badges */
+  /* Native Select Dropdown Redesign: Custom SVG chevron and consistent padding */
+  .select-field {
+    @apply w-full pl-3.5 pr-10 py-2 text-xs sm:text-sm rounded-xl transition-all duration-150 focus:outline-none cursor-pointer appearance-none;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+  }
+  .select-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+  }
+  .dark .select-field {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23c4bfd0'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+  }
+  .dark .select-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+  }
+
+  .textarea-field {
+    @apply w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl transition-all duration-150 focus:outline-none resize-y placeholder:text-slate-400 dark:placeholder:text-slate-500;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+  .textarea-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+  }
+  .dark .textarea-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+  }
+
+  /* ========================================================
+     DROPDOWN MENUS & POPOVERS
+     ======================================================== */
+  .dropdown-panel {
+    @apply absolute bg-white dark:bg-[#171225] rounded-2xl border border-[#E2E8F0] dark:border-[#332A46] shadow-dropdown dark:shadow-dropdown-dark py-2 z-50 animate-scaleIn;
+  }
+  .dropdown-item {
+    @apply w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-slate-50 dark:hover:bg-[#211A32] transition-colors rounded-lg text-left;
+  }
+  .dropdown-item.active {
+    @apply text-[#6D28D9] dark:text-[#8B5CF6] bg-purple-50 dark:bg-purple-950/40 font-semibold;
+  }
+
+  /* ========================================================
+     MODALS & DIALOGS
+     ======================================================== */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn;
+  }
+  .modal-container {
+    @apply w-full max-h-[90vh] bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] overflow-hidden flex flex-col animate-scaleIn;
+  }
+
+  /* ========================================================
+     STATUS BADGES
+     ======================================================== */
   .badge-success {
     @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
     background-color: rgba(5, 150, 105, 0.12);
     color: var(--secondary);
+    border: 1px solid rgba(5, 150, 105, 0.25);
   }
   .badge-warning {
     @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
     background-color: rgba(217, 119, 6, 0.12);
     color: var(--warning);
+    border: 1px solid rgba(217, 119, 6, 0.25);
   }
   .badge-error {
     @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
     background-color: rgba(220, 38, 38, 0.12);
     color: var(--error);
+    border: 1px solid rgba(220, 38, 38, 0.25);
   }
   .badge-info {
     @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
     background-color: rgba(109, 40, 217, 0.12);
     color: var(--primary);
+    border: 1px solid rgba(109, 40, 217, 0.25);
+  }
+
+  /* ========================================================
+     SKELETON SHIMMER SYSTEM
+     ======================================================== */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: #E2E8F0;
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite linear;
+  }
+  .dark .skeleton-shimmer {
+    background-color: #211A32;
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+}
+
+/* Page entrance utility */
+.page-enter {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

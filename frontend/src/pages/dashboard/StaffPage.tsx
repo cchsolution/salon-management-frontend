@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { StaffProfile } from '../../types';
+import { StaffCardSkeleton } from '../../components/ui/Skeleton';
 
 export const StaffPage: React.FC = () => {
   const { branch } = useAuth();
@@ -31,7 +32,7 @@ export const StaffPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
@@ -44,10 +45,7 @@ export const StaffPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="card-surface p-12 text-center text-xs text-[var(--text-secondary)]">
-          <div className="w-8 h-8 border-3 border-[#6D28D9] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          Loading team members...
-        </div>
+        <StaffCardSkeleton count={6} />
       ) : staffList.length === 0 ? (
         <div className="card-surface p-12 text-center text-xs text-[var(--text-secondary)]">
           No staff members found.
@@ -57,12 +55,12 @@ export const StaffPage: React.FC = () => {
           {staffList.map((stf) => (
             <div
               key={stf.id}
-              className="card-surface p-6 hover:border-[#6D28D9]/40 transition-all flex flex-col justify-between"
+              className="card-surface p-6 hover:border-[#6D28D9]/40 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-12 h-12 rounded-full text-white font-bold flex items-center justify-center text-base shadow-sm border border-[var(--border)]"
+                    className="w-12 h-12 rounded-full text-white font-bold flex items-center justify-center text-base shadow-sm border border-[var(--border)] ring-2 ring-white/10"
                     style={{ backgroundColor: stf.color_code || '#6D28D9' }}
                   >
                     {stf.user_details?.first_name?.[0] || 'S'}
@@ -100,7 +98,7 @@ export const StaffPage: React.FC = () => {
               <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between text-xs">
                 <span className="text-[var(--text-secondary)]">Stylist Accent:</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3.5 h-3.5 rounded-full border border-[var(--border)]" style={{ backgroundColor: stf.color_code || '#6D28D9' }}></span>
+                  <span className="w-3.5 h-3.5 rounded-full border border-[var(--border)] shadow-sm" style={{ backgroundColor: stf.color_code || '#6D28D9' }}></span>
                   <span className="font-mono text-[11px] text-[var(--text-secondary)]">{stf.color_code || '#6D28D9'}</span>
                 </div>
               </div>

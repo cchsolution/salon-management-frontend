@@ -71,7 +71,7 @@ export const TeamSectionEditor: React.FC<TeamSectionEditorProps> = ({
             value={content.subheading || ''}
             onChange={(e) => onChange('subheading', e.target.value)}
             placeholder="Certified master hair colorists, beauticians, and bridal makeup specialists."
-            className="input-field py-1.5 text-xs"
+            className="textarea-field py-1.5 text-xs"
           />
         </div>
 

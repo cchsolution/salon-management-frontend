@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { Salon, Branch } from '../../types';
+import { CardGridSkeleton } from '../../components/ui/Skeleton';
 
 export const SuperadminSalonsPage: React.FC = () => {
   const [salons, setSalons] = useState<Salon[]>([]);
@@ -53,7 +54,7 @@ export const SuperadminSalonsPage: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -78,10 +79,7 @@ export const SuperadminSalonsPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="card-surface p-12 text-center text-xs text-[var(--text-secondary)]">
-          <div className="w-7 h-7 border-3 border-[#6D28D9] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          Loading salon organizations...
-        </div>
+        <CardGridSkeleton count={6} columns="3" />
       ) : filteredSalons.length === 0 ? (
         <div className="card-surface p-12 text-center text-xs text-[var(--text-secondary)]">
           No salon organizations matching your query.
@@ -93,7 +91,7 @@ export const SuperadminSalonsPage: React.FC = () => {
             return (
               <div
                 key={salon.id}
-                className="card-surface p-6 flex flex-col justify-between hover:border-[#6D28D9]/40 transition-all space-y-4"
+                className="card-surface p-6 flex flex-col justify-between hover:border-[#6D28D9]/40 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-1 transition-all duration-200 space-y-4"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">
@@ -160,7 +158,7 @@ export const SuperadminSalonsPage: React.FC = () => {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#059669] dark:text-[#10B981] bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100/80 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors"
                   >
                     <span>Storefront</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               </div>
