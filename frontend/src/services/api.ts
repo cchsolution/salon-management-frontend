@@ -1,26 +1,33 @@
-// Production Render Backend URL
-const PRODUCTION_API_URL = 'https://salon-management-e1ag.onrender.com';
+// Active Vercel backend deployment fallback
+const PRODUCTION_BACKEND_URL = 'https://salon-management-backend-7xj0qfafq.vercel.app';
 
 // Base API URL configuration:
-// 1. If VITE_API_BASE_URL environment variable is provided, use it.
-// 2. In production builds (e.g. deployed on Vercel), default to the deployed Render backend URL.
-// 3. In local development (npm run dev), default to '/api' (proxied by Vite to http://127.0.0.1:8000).
+// 1. In browser environments where the app is hosted on Vercel / custom domains (e.g. salon-app.cchsolution.com),
+//    always route through the same-origin relative '/api' proxy.
+//    This completely eliminates CORS preflight failures and cross-origin blocking!
+// 2. In local development (npm run dev), '/api' is proxied by Vite to http://127.0.0.1:8000.
+// 3. If an explicit custom VITE_API_BASE_URL is provided, use it unless it is the defunct Render URL.
 const getApiBaseUrl = (): string => {
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
-  let targetUrl: string;
-
-  if (envUrl && envUrl.trim() !== '') {
-    targetUrl = envUrl.trim();
-  } else if (import.meta.env.PROD) {
-    targetUrl = PRODUCTION_API_URL;
-  } else {
-    return '/api';
+  if (typeof window !== 'undefined') {
+    const { hostname } = window.location;
+    if (
+      hostname === 'salon-app.cchsolution.com' ||
+      hostname.endsWith('.cchsolution.com') ||
+      hostname.endsWith('.vercel.app') ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1'
+    ) {
+      return '/api';
+    }
   }
 
-  // Strip trailing slashes
-  const cleanUrl = targetUrl.replace(/\/+$/, '');
-  // Ensure the URL ends with exactly one '/api'
-  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && envUrl.trim() !== '' && !envUrl.includes('onrender.com')) {
+    const cleanUrl = envUrl.trim().replace(/\/+$/, '');
+    return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+  }
+
+  return '/api';
 };
 
 export const API_BASE = getApiBaseUrl();
