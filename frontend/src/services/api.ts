@@ -295,14 +295,28 @@ async function request<T>(
           handleUnauthorized();
         }
 
+        let entries = '';
+        if (typeof data === 'object' && data !== null) {
+          entries = Object.entries(data)
+            .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`)
+            .filter((s) => s.trim().length > 0)
+            .join(' | ');
+        }
+
         const errorMsg =
           data.error ||
           data.detail ||
-          (typeof data === 'object'
-            ? Object.entries(data)
-                .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(' ') : v}`)
-                .join(' | ')
-            : 'An unexpected error occurred.');
+          entries ||
+          (response.status === 401
+            ? 'Invalid email or password.'
+            : response.status === 405
+            ? `Method Not Allowed (405) for ${cleanEndpoint}. Please verify backend route.`
+            : response.status === 404
+            ? `API endpoint not found (404) at ${finalUrl}`
+            : response.status >= 500
+            ? `Backend server error (${response.status}). Please check backend logs.`
+            : 'An unexpected response was received from the server.');
+
         throw new ApiError(errorMsg, response.status, data);
       }
 
