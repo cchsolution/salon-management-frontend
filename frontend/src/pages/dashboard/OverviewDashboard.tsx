@@ -16,6 +16,7 @@ import { StylistDashboard } from './StylistDashboard';
 import { ReceptionistDashboard } from './ReceptionistDashboard';
 import { SuperadminDashboard } from './SuperadminDashboard';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 // Client-side cache for loaded metrics to eliminate skeleton flicker on tab switching
 const metricsCache = new Map<string, DashboardMetrics>();
@@ -83,8 +84,18 @@ const OwnerOverviewDashboard: React.FC = () => {
 
     fetchMetrics();
 
+    // Listen to appointment changes for instant dashboard synchronization
+    const handleApptSync = () => {
+      metricsCache.delete(currentKey);
+      fetchMetrics();
+    };
+    window.addEventListener('appointment:created', handleApptSync);
+    window.addEventListener('appointment:updated', handleApptSync);
+
     return () => {
       controller.abort();
+      window.removeEventListener('appointment:created', handleApptSync);
+      window.removeEventListener('appointment:updated', handleApptSync);
     };
   }, [branch?.id]);
 
@@ -155,13 +166,13 @@ const OwnerOverviewDashboard: React.FC = () => {
               </div>
             ) : (
               <>
-                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                  ₹{Number(summary.today_revenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">
+                  {formatINR(summary.today_revenue || 0)}
                 </h3>
                 <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5 flex items-center gap-1.5">
                   <span className="text-[#059669] dark:text-[#10B981] font-semibold flex items-center">
                     <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
-                    Total: ₹{Number(summary.total_revenue || 0).toLocaleString('en-IN')}
+                    Total: {formatINR(summary.total_revenue || 0)}
                   </span>
                 </p>
               </>
@@ -313,7 +324,7 @@ const OwnerOverviewDashboard: React.FC = () => {
                   <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative">
                     {/* Tooltip */}
                     <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-[#1E1B2E] text-white dark:bg-white dark:text-[#1E1B2E] text-[10px] font-semibold py-1.5 px-2.5 rounded shadow-lg pointer-events-none whitespace-nowrap z-20">
-                      ₹{day.revenue.toLocaleString('en-IN')} · {day.appointments} bookings
+                      {formatINR(day.revenue)} · {day.appointments} bookings
                     </div>
                     {/* Bar — Deep Purple with Light Purple gradient */}
                     <div
@@ -363,7 +374,7 @@ const OwnerOverviewDashboard: React.FC = () => {
                       <p className="text-[10px] text-[#64748B] dark:text-[#C4BFD0]">{svc.bookings} appointments</p>
                     </div>
                   </div>
-                  <span className="font-bold text-[#059669] dark:text-[#10B981] shrink-0">₹{svc.revenue.toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-[#059669] dark:text-[#10B981] shrink-0 tabular-nums">{formatINR(svc.revenue)}</span>
                 </div>
               ))
             ) : (
@@ -404,9 +415,9 @@ const OwnerOverviewDashboard: React.FC = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">₹{Number(staff.revenue_generated || 0).toLocaleString('en-IN')}</p>
-                    <p className="text-[11px] text-[#059669] dark:text-[#10B981] font-semibold">
-                      Comm: ₹{Number(staff.commission_earned || 0).toLocaleString('en-IN')} ({staff.commission_rate}%)
+                    <p className="font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">{formatINR(staff.revenue_generated || 0)}</p>
+                    <p className="text-[11px] text-[#059669] dark:text-[#10B981] font-semibold tabular-nums">
+                      Comm: {formatINR(staff.commission_earned || 0)} ({staff.commission_rate}%)
                     </p>
                   </div>
                 </div>
@@ -444,7 +455,7 @@ const OwnerOverviewDashboard: React.FC = () => {
                     <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0]">{txn.customer_name} · {txn.date}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">₹{Number(txn.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                    <p className="font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">{formatINR(txn.amount || 0)}</p>
                     <span
                       className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                         txn.status === 'PAID'

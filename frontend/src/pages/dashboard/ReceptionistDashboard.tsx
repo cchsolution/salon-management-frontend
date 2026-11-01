@@ -74,10 +74,18 @@ export const ReceptionistDashboard: React.FC = () => {
   useEffect(() => {
     fetchReceptionData();
 
+    const handleSync = () => {
+      fetchReceptionData();
+    };
+    window.addEventListener('appointment:created', handleSync);
+    window.addEventListener('appointment:updated', handleSync);
+
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      window.removeEventListener('appointment:created', handleSync);
+      window.removeEventListener('appointment:updated', handleSync);
     };
   }, [fetchReceptionData]);
 

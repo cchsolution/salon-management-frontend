@@ -24,7 +24,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBooking }) => {
-  const { user, branch, branches, setBranch, logout } = useAuth();
+  const { salon, user, branch, branches, setBranch, logout } = useAuth();
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -101,27 +101,39 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 sm:px-6 bg-white/95 dark:bg-[#171225]/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[#332A46] shadow-subtle transition-colors duration-200">
-      {/* Left section: mobile hamburger & branch switcher */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      {/* Left section: mobile hamburger, salon brand pill & branch switcher */}
+      <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
         <button
           onClick={onToggleSidebar}
           aria-label="Toggle navigation menu"
-          className="p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl lg:hidden transition-colors"
+          className="p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl lg:hidden transition-colors shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
 
+        {/* Salon Brand Pill for Salon Roles */}
+        {user?.role !== 'SUPERADMIN' && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50/80 dark:bg-purple-950/30 rounded-xl border border-purple-200/60 dark:border-purple-800/40 shrink-0">
+            <div className="w-6 h-6 rounded-lg bg-[#6D28D9] text-white flex items-center justify-center text-xs font-bold font-serif shadow-xs">
+              {salon?.name ? salon.name[0] : 'R'}
+            </div>
+            <span className="text-xs font-bold text-[#1E1B2E] dark:text-[#F8FAFC] font-serif truncate max-w-[120px] sm:max-w-[180px]">
+              {salon?.name || 'Ruhi Beauty Salon'}
+            </span>
+          </div>
+        )}
+
         {/* Branch Selector for Salon Roles */}
         {branches.length > 0 && user?.role !== 'SUPERADMIN' && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-[#211A32] rounded-xl border border-[#E2E8F0] dark:border-[#332A46] text-xs sm:text-sm hover:border-[#6D28D9]/40 transition-colors">
-            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#059669] dark:text-[#10B981] shrink-0" />
+          <div className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 dark:bg-[#211A32] rounded-xl border border-[#E2E8F0] dark:border-[#332A46] text-xs hover:border-[#6D28D9]/40 transition-colors shrink-0">
+            <MapPin className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981] shrink-0" />
             <select
               value={branch?.id || ''}
               onChange={(e) => {
                 const found = branches.find((b) => b.id === e.target.value);
                 if (found) setBranch(found);
               }}
-              className="bg-transparent font-medium text-[#1E1B2E] dark:text-[#F8FAFC] focus:outline-none cursor-pointer max-w-[140px] sm:max-w-none truncate pr-1"
+              className="bg-transparent font-medium text-[#1E1B2E] dark:text-[#F8FAFC] focus:outline-none cursor-pointer max-w-[110px] sm:max-w-[160px] truncate pr-1"
             >
               {branches.map((b) => (
                 <option key={b.id} value={b.id} className="bg-white dark:bg-[#171225] text-[#1E1B2E] dark:text-[#F8FAFC]">
@@ -146,7 +158,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
         {onOpenQuickBooking && user?.role !== 'SUPERADMIN' && (
           <button
             onClick={onOpenQuickBooking}
-            className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-[#6D28D9] hover:bg-[#5B21B6] dark:bg-[#8B5CF6] dark:hover:bg-[#7C3AED] rounded-xl shadow-sm transition-all duration-150 active:scale-[0.98] hover:shadow-md"
+            className="btn-primary btn-sm hidden sm:inline-flex items-center gap-1.5 shadow-sm font-bold"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Appointment</span>

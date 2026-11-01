@@ -3,6 +3,7 @@ import { Award, Plus, Tag, Check, Calendar, IndianRupee } from 'lucide-react';
 import { api } from '../../services/api';
 import { MembershipPlan, Coupon } from '../../types';
 import { CardGridSkeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 export const LoyaltyOffersPage: React.FC = () => {
   const [plans, setPlans] = useState<MembershipPlan[]>(() => {
@@ -122,12 +123,12 @@ export const LoyaltyOffersPage: React.FC = () => {
                       {c.code}
                     </span>
                     <span className="text-xs font-bold text-[#059669] dark:text-[#10B981] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40">
-                      {c.discount_type === 'PERCENTAGE' ? `${c.discount_value}% OFF` : `₹${c.discount_value} OFF`}
+                      {c.discount_type === 'PERCENTAGE' ? `${c.discount_value}% OFF` : `${formatINR(c.discount_value)} OFF`}
                     </span>
                   </div>
                   <p className="text-xs text-[var(--text-primary)] mt-2 font-medium">{c.description || 'Special client promo'}</p>
                   <div className="mt-3 text-[11px] text-[var(--text-secondary)] space-y-1 pt-2 border-t border-[var(--border)]">
-                    <p className="flex justify-between"><span>Min Spend:</span> <span className="font-semibold text-[var(--text-primary)]">₹{c.min_spend}</span></p>
+                    <p className="flex justify-between"><span>Min Spend:</span> <span className="font-semibold text-[var(--text-primary)] tabular-nums">{formatINR(c.min_spend || 0)}</span></p>
                     <p className="flex justify-between"><span>Valid until:</span> <span className="font-medium text-[var(--text-primary)]">{c.valid_to}</span></p>
                     <p className="flex justify-between"><span>Redeemed:</span> <span className="font-semibold text-[#059669] dark:text-[#10B981]">{c.used_count} times</span></p>
                   </div>
@@ -157,8 +158,8 @@ export const LoyaltyOffersPage: React.FC = () => {
                     {p.tier}
                   </span>
                 </div>
-                <p className="text-2xl font-serif font-bold text-[var(--text-primary)] mt-2">
-                  ₹{Number(p.price).toLocaleString('en-IN')}
+                <p className="text-2xl font-serif font-bold text-[var(--text-primary)] mt-2 tabular-nums">
+                  {formatINR(p.price)}
                   <span className="text-xs font-normal text-[var(--text-secondary)]">/{(p.billing_cycle || 'month').toLowerCase()}</span>
                 </p>
                 <p className="text-xs text-[var(--text-secondary)] mt-2">{p.description}</p>

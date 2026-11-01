@@ -21,7 +21,7 @@ import {
   Youtube,
   Image as ImageIcon,
 } from 'lucide-react';
-import { api } from '../../services/api';
+import { api, clearApiCache } from '../../services/api';
 import { Service, ServiceCategory, StaffProfile, Branch, Salon, WebsiteTheme } from '../../types';
 import {
   DEFAULT_ASSETS,
@@ -30,6 +30,7 @@ import {
   handleImageFallback,
 } from '../../constants/defaultWebsiteData';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 export const SalonStorefrontPage: React.FC = () => {
   const { salonSlug } = useParams<{ salonSlug: string }>();
@@ -122,7 +123,7 @@ export const SalonStorefrontPage: React.FC = () => {
 
     setIsSubmittingBooking(true);
     try {
-      await api.post('/appointments/bookings/', {
+      const createdAppt = await api.post('/appointments/bookings/', {
         salon_id: salon?.id,
         branch_id: selectedBranch,
         staff_id: selectedStaff,
@@ -135,6 +136,9 @@ export const SalonStorefrontPage: React.FC = () => {
         notes: clientNotes,
         booking_source: 'ONLINE',
       });
+      clearApiCache('/appointments/');
+      clearApiCache('/analytics/metrics/');
+      window.dispatchEvent(new CustomEvent('appointment:created', { detail: createdAppt }));
       setBookingConfirmed(true);
     } catch (err: any) {
       alert(err.message || 'Failed to complete booking. Please choose another slot.');
@@ -581,8 +585,8 @@ export const SalonStorefrontPage: React.FC = () => {
                         {content.show_prices !== false && (
                           <div>
                             <span className="text-[10px] text-[var(--color-text-secondary)] block">Price</span>
-                            <span className="text-xl font-bold font-mono" style={{ color: secondaryColor }}>
-                              ₹{svc.effective_price}
+                            <span className="text-xl font-bold font-serif tabular-nums" style={{ color: secondaryColor }}>
+                              {formatINR(svc.effective_price)}
                             </span>
                           </div>
                         )}
@@ -1121,7 +1125,7 @@ export const SalonStorefrontPage: React.FC = () => {
                     >
                       {services.map((s) => (
                         <option key={s.id} value={s.id}>
-                          {s.name} (₹{s.effective_price} · {s.duration_minutes}m)
+                          {s.name} ({formatINR(s.effective_price)} · {s.duration_minutes}m)
                         </option>
                       ))}
                     </select>

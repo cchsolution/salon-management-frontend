@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Product } from '../../types';
 import { TableSkeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 export const InventoryPage: React.FC = () => {
   const { branch } = useAuth();
@@ -202,8 +203,8 @@ export const InventoryPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-4 px-4">
-                        <p className="font-bold text-[var(--text-primary)]">₹{Number(prod.selling_price || 0).toLocaleString('en-IN')}</p>
-                        <p className="text-[10px] text-[var(--text-secondary)]">Cost: ₹{Number(prod.purchase_price || 0).toLocaleString('en-IN')}</p>
+                        <p className="font-bold text-[var(--text-primary)] tabular-nums">{formatINR(prod.selling_price || 0)}</p>
+                        <p className="text-[10px] text-[var(--text-secondary)] tabular-nums">Cost: {formatINR(prod.purchase_price || 0)}</p>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">

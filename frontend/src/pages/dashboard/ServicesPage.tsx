@@ -15,6 +15,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Service, ServiceCategory, StaffProfile } from '../../types';
 import { CardGridSkeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 export const ServicesPage: React.FC = () => {
   const { hasPermission } = useAuth();
@@ -235,12 +236,11 @@ export const ServicesPage: React.FC = () => {
                     <Clock className="w-3.5 h-3.5 text-[#6D28D9] dark:text-[#8B5CF6]" />
                     {svc.duration_minutes} mins
                   </span>
-                  <span className="flex items-center gap-1 font-bold text-[var(--text-primary)]">
-                    <IndianRupee className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981]" />
-                    ₹{Number(svc.effective_price || svc.price).toLocaleString('en-IN')}
+                  <span className="flex items-center gap-1 font-bold text-[var(--text-primary)] tabular-nums">
+                    {formatINR(svc.effective_price || svc.price)}
                     {svc.discount_price && (
                       <span className="line-through text-[var(--text-secondary)] font-normal ml-1">
-                        ₹{Number(svc.price).toLocaleString('en-IN')}
+                        {formatINR(svc.price)}
                       </span>
                     )}
                   </span>

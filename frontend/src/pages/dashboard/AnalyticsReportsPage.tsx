@@ -4,6 +4,7 @@ import { api, API_BASE } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardMetrics } from '../../types';
 import { TableSkeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 export const AnalyticsReportsPage: React.FC = () => {
   const { salon, branch } = useAuth();
@@ -120,10 +121,10 @@ export const AnalyticsReportsPage: React.FC = () => {
                     <td className="py-3.5 px-4 text-[var(--text-secondary)]">{s.title}</td>
                     <td className="py-3.5 px-4 text-[var(--text-secondary)]">{s.branch}</td>
                     <td className="py-3.5 px-4 text-[var(--text-primary)] font-semibold">{s.appointments_count}</td>
-                    <td className="py-3.5 px-4 font-semibold text-[var(--text-primary)]">₹{Number(s.revenue_generated || 0).toLocaleString('en-IN')}</td>
+                    <td className="py-3.5 px-4 font-semibold text-[var(--text-primary)] tabular-nums">{formatINR(s.revenue_generated || 0)}</td>
                     <td className="py-3.5 px-4 text-[var(--text-secondary)]">{s.commission_rate}%</td>
-                    <td className="py-3.5 px-4 text-right font-bold text-[#059669] dark:text-[#10B981]">
-                      ₹{Number(s.commission_earned || 0).toLocaleString('en-IN')}
+                    <td className="py-3.5 px-4 text-right font-bold text-[#059669] dark:text-[#10B981] tabular-nums">
+                      {formatINR(s.commission_earned || 0)}
                     </td>
                   </tr>
                 ))}
@@ -151,7 +152,7 @@ export const AnalyticsReportsPage: React.FC = () => {
                 <p className="font-bold text-[var(--text-primary)] text-sm">{b.name}</p>
                 <p className="text-xs text-[var(--text-secondary)]">{b.city} Studio · {b.appointments} total bookings</p>
               </div>
-              <p className="text-lg font-serif font-bold text-[#059669] dark:text-[#10B981]">₹{Number(b.revenue || 0).toLocaleString('en-IN')}</p>
+              <p className="text-lg font-serif font-bold text-[#059669] dark:text-[#10B981] tabular-nums">{formatINR(b.revenue || 0)}</p>
             </div>
           ))}
         </div>

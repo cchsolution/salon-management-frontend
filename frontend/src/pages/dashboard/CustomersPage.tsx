@@ -14,6 +14,7 @@ import {
 import { api } from '../../services/api';
 import { Customer } from '../../types';
 import { TableSkeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 export const CustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>(() => {
@@ -212,8 +213,8 @@ export const CustomersPage: React.FC = () => {
                     <td className="py-4 px-4 font-semibold text-[var(--text-primary)]">
                       {c.visit_count} visits
                     </td>
-                    <td className="py-4 px-4 font-bold text-[#059669] dark:text-[#10B981]">
-                      ₹{Number(c.total_spend || 0).toLocaleString('en-IN')}
+                    <td className="py-4 px-4 font-bold text-[#059669] dark:text-[#10B981] tabular-nums">
+                      {formatINR(c.total_spend || 0)}
                     </td>
                     <td className="py-4 px-4">
                       <span className="flex items-center gap-1 text-[#6D28D9] dark:text-[#8B5CF6] font-bold">
@@ -234,80 +235,136 @@ export const CustomersPage: React.FC = () => {
         )}
       </div>
 
-      {/* Customer Detail Slide-Over */}
+      {/* Customer Detail Slide-Over Drawer */}
       {selectedCustomer && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-[var(--surface)] h-full shadow-2xl p-6 overflow-y-auto space-y-6 border-l border-[var(--border)]">
-            <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-purple-100 text-[#6D28D9] dark:bg-purple-950/60 dark:text-[#8B5CF6] font-bold flex items-center justify-center text-base border border-purple-200 dark:border-purple-800">
-                  {selectedCustomer.first_name[0]}
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md bg-[var(--surface)] h-full shadow-2xl flex flex-col border-l border-[var(--border)] animate-slide-left">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--surface-secondary)]/50 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-xl bg-purple-100 text-[#6D28D9] dark:bg-purple-950/60 dark:text-[#8B5CF6] font-bold flex items-center justify-center text-base border border-purple-200 dark:border-purple-800 shrink-0">
+                  {selectedCustomer.first_name?.[0] || 'C'}
                 </div>
-                <div>
-                  <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
+                <div className="min-w-0">
+                  <h3 className="text-base font-serif font-bold text-[var(--text-primary)] truncate">
                     {selectedCustomer.full_name}
                   </h3>
-                  <p className="text-xs text-[var(--text-secondary)]">{selectedCustomer.phone}</p>
+                  <p className="text-xs text-[var(--text-secondary)] truncate">{selectedCustomer.phone}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                aria-label="Close"
-                className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-md hover:bg-[var(--surface-secondary)]"
+                aria-label="Close drawer"
+                className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--border)] transition-colors active:scale-95"
               >
                 ✕
               </button>
             </div>
 
-            {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-2 text-center p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] text-xs">
-              <div>
-                <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase">Total Spend</p>
-                <p className="font-bold text-[#059669] dark:text-[#10B981] mt-0.5">₹{Number(selectedCustomer.total_spend || 0).toLocaleString('en-IN')}</p>
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              {/* Quick Metrics */}
+              <div className="grid grid-cols-3 gap-2.5 text-center p-3.5 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] text-xs">
+                <div className="p-1">
+                  <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-wider">Total Spend</p>
+                  <p className="font-bold text-[#059669] dark:text-[#10B981] mt-1 tabular-nums text-sm font-serif">
+                    {formatINR(selectedCustomer.total_spend || 0)}
+                  </p>
+                </div>
+                <div className="p-1 border-x border-[var(--border)]">
+                  <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-wider">Visits</p>
+                  <p className="font-bold text-[var(--text-primary)] mt-1 tabular-nums text-sm font-serif">
+                    {selectedCustomer.visit_count || 0}
+                  </p>
+                </div>
+                <div className="p-1">
+                  <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-wider">Points</p>
+                  <p className="font-bold text-[#6D28D9] dark:text-[#8B5CF6] mt-1 tabular-nums text-sm font-serif">
+                    {selectedCustomer.loyalty_points || 0}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase">Visits</p>
-                <p className="font-bold text-[var(--text-primary)] mt-0.5">{selectedCustomer.visit_count}</p>
-              </div>
-              <div>
-                <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase">Points</p>
-                <p className="font-bold text-[#6D28D9] dark:text-[#8B5CF6] mt-0.5">{selectedCustomer.loyalty_points}</p>
-              </div>
-            </div>
 
-            {/* Confidential Notes */}
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-2">
-                Stylist & Service Notes
-              </h4>
-              <div className="p-3 bg-[var(--surface-secondary)] border border-[var(--border)] rounded-xl text-xs text-[var(--text-primary)]">
-                {selectedCustomer.notes || 'No special notes recorded.'}
-              </div>
-            </div>
-
-            {/* Activity Timeline */}
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3">
-                Recent Activity Timeline
-              </h4>
-              <div className="space-y-3 relative before:absolute before:inset-0 before:left-3 before:w-0.5 before:bg-[var(--border)]">
-                {selectedCustomer.recent_activities && selectedCustomer.recent_activities.length > 0 ? (
-                  selectedCustomer.recent_activities.map((act) => (
-                    <div key={act.id} className="relative flex items-start gap-3 pl-6 text-xs">
-                      <span className="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#059669] border-2 border-[var(--surface)] shadow-sm"></span>
-                      <div>
-                        <p className="font-semibold text-[var(--text-primary)]">{act.title}</p>
-                        <p className="text-[var(--text-secondary)] text-[11px] mt-0.5">{act.description}</p>
-                        <span className="text-[10px] text-[var(--text-secondary)] mt-1 block">
-                          {new Date(act.created_at).toLocaleDateString('en-IN')}
-                        </span>
-                      </div>
+              {/* Contact Information */}
+              <div className="space-y-2.5">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Contact Details
+                </h4>
+                <div className="p-3.5 bg-[var(--surface-secondary)]/60 border border-[var(--border)] rounded-xl space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)] flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5" /> Phone:
+                    </span>
+                    <span className="font-semibold text-[var(--text-primary)]">{selectedCustomer.phone}</span>
+                  </div>
+                  {selectedCustomer.email && (
+                    <div className="flex items-center justify-between border-t border-[var(--border)] pt-2">
+                      <span className="text-[var(--text-secondary)] flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5" /> Email:
+                      </span>
+                      <span className="font-semibold text-[var(--text-primary)] truncate max-w-[200px]">{selectedCustomer.email}</span>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-[var(--text-secondary)] pl-6">No recorded activity yet.</p>
-                )}
+                  )}
+                  {selectedCustomer.city && (
+                    <div className="flex items-center justify-between border-t border-[var(--border)] pt-2">
+                      <span className="text-[var(--text-secondary)]">City:</span>
+                      <span className="font-semibold text-[var(--text-primary)]">{selectedCustomer.city}</span>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Confidential Stylist Notes */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Stylist & Treatment Notes
+                </h4>
+                <div className="p-3.5 bg-[var(--surface-secondary)]/60 border border-[var(--border)] rounded-xl text-xs text-[var(--text-primary)] leading-relaxed">
+                  {selectedCustomer.notes || 'No special styling notes recorded yet.'}
+                </div>
+              </div>
+
+              {/* Activity Timeline */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Recent Activity Timeline
+                </h4>
+                <div className="space-y-3 relative before:absolute before:inset-0 before:left-3 before:w-0.5 before:bg-[var(--border)]">
+                  {selectedCustomer.recent_activities && selectedCustomer.recent_activities.length > 0 ? (
+                    selectedCustomer.recent_activities.map((act) => (
+                      <div key={act.id} className="relative flex items-start gap-3 pl-7 text-xs">
+                        <span className="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#059669] border-2 border-[var(--surface)] shadow-xs"></span>
+                        <div className="bg-[var(--surface-secondary)]/50 p-2.5 rounded-xl border border-[var(--border)] w-full">
+                          <p className="font-semibold text-[var(--text-primary)]">{act.title}</p>
+                          <p className="text-[var(--text-secondary)] text-[11px] mt-0.5">{act.description}</p>
+                          <span className="text-[10px] text-[var(--text-secondary)] mt-1.5 block">
+                            {new Date(act.created_at).toLocaleDateString('en-IN', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="pl-7 py-2 text-xs text-[var(--text-secondary)] italic">
+                      No customer activities recorded yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Drawer Footer with Prominent Close Button */}
+            <div className="p-4 border-t border-[var(--border)] bg-[var(--surface-secondary)]/70 shrink-0 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedCustomer(null)}
+                className="btn-outline btn-md w-full justify-center font-bold"
+              >
+                Close Customer Profile
+              </button>
             </div>
           </div>
         </div>

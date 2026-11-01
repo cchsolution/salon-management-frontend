@@ -67,32 +67,25 @@ export const LoginPage: React.FC = () => {
           <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
             1-Click Demo Login (Gujarat Salon)
           </span>
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-3 gap-1.5">
             <button
               type="button"
               onClick={() => handleQuickDemo('owner@ruhibeauty.local', 'Owner@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
+              className="px-2 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-center truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
             >
               👑 Salon Owner
             </button>
             <button
               type="button"
-              onClick={() => handleQuickDemo('ayesha@ruhibeauty.local', 'Stylist@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
-            >
-              ✂️ Hair Stylist
-            </button>
-            <button
-              type="button"
               onClick={() => handleQuickDemo('reception@ruhibeauty.local', 'Staff@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
+              className="px-2 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-center truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
             >
               📋 Receptionist
             </button>
             <button
               type="button"
               onClick={() => handleQuickDemo('admin@luxesalon.local', 'Admin@123')}
-              className="px-2.5 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-left truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
+              className="px-2 py-2 font-semibold text-[var(--text-primary)] bg-[var(--surface)] hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg border border-[var(--border)] hover:border-[#6D28D9]/40 text-center truncate transition-all duration-150 hover:-translate-y-0.5 active:scale-95 text-xs shadow-xs"
             >
               🛡️ Superadmin
             </button>

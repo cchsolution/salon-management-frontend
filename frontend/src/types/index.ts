@@ -105,6 +105,22 @@ export interface Service {
   qualified_staff_details?: StaffProfile[];
 }
 
+export interface ServiceStyle {
+  id: string;
+  salon: string;
+  service: string;
+  service_name?: string;
+  name: string;
+  slug: string;
+  description?: string;
+  extra_price: string | number;
+  extra_duration_minutes: number;
+  image?: string | null;
+  is_active: boolean;
+  qualified_staff?: string[];
+  qualified_staff_details?: StaffProfile[];
+}
+
 export interface CustomerActivity {
   id: string;
   activity_type: string;

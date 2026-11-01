@@ -118,74 +118,96 @@
   body {
     background-color: var(--background);
     color: var(--text-primary);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Crimson Text', Georgia, serif;
+    font-feature-settings: "tnum" 1;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
   
-  h1, h2, h3, h4, .font-serif {
-    font-family: 'Playfair Display', Georgia, serif;
+  h1, h2, h3, h4, h5, h6, .font-serif, .font-sans, .font-heading {
+    font-family: 'Crimson Text', Georgia, serif;
+  }
+
+  .tabular-nums, .price-display, .amount-display {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
   }
 }
 
 /* Centralized Component Utilities */
 @layer components {
   /* ========================================================
-     BUTTONS — Complete Modern SaaS Suite
+     BUTTONS — Complete Modern Elevated SaaS Suite
+     Inspired by modern tactile SaaS physics
      ======================================================== */
   .btn-base {
-    @apply inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-150 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98];
+    @apply relative inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] active:translate-y-0.5;
+    font-family: 'Crimson Text', Georgia, serif;
   }
 
   .btn-primary {
-    @apply btn-base text-white shadow-sm;
-    background-color: var(--primary);
+    @apply btn-base text-white;
+    background: linear-gradient(180deg, #7C3AED 0%, #6D28D9 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 3px 10px -2px rgba(109, 40, 217, 0.35);
   }
   .btn-primary:hover:not(:disabled) {
-    background-color: var(--primary-dark);
-    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
+    background: linear-gradient(180deg, #8B5CF6 0%, #7C3AED 100%);
+    transform: translateY(-1.5px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -2px rgba(109, 40, 217, 0.45);
   }
   .dark .btn-primary {
-    background-color: var(--primary);
-    color: #FFFFFF;
+    background: linear-gradient(180deg, #8B5CF6 0%, #7C3AED 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 12px -2px rgba(139, 92, 246, 0.4);
   }
   .dark .btn-primary:hover:not(:disabled) {
-    background-color: var(--primary-light);
-    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+    background: linear-gradient(180deg, #A78BFA 0%, #8B5CF6 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 20px -2px rgba(139, 92, 246, 0.55);
   }
 
   .btn-secondary {
-    @apply btn-base text-white shadow-sm;
-    background-color: var(--secondary);
+    @apply btn-base text-white;
+    background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 3px 10px -2px rgba(5, 150, 105, 0.35);
   }
   .btn-secondary:hover:not(:disabled) {
-    background-color: var(--secondary-dark);
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    background: linear-gradient(180deg, #34D399 0%, #10B981 100%);
+    transform: translateY(-1.5px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -2px rgba(5, 150, 105, 0.45);
   }
   .dark .btn-secondary {
-    background-color: var(--secondary);
-    color: #FFFFFF;
+    background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 3px 12px -2px rgba(16, 185, 129, 0.4);
   }
   .dark .btn-secondary:hover:not(:disabled) {
-    background-color: var(--secondary-light);
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    background: linear-gradient(180deg, #34D399 0%, #10B981 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 20px -2px rgba(16, 185, 129, 0.55);
   }
 
   .btn-accent {
-    @apply btn-base text-white shadow-sm;
-    background-color: var(--secondary);
+    @apply btn-base text-white;
+    background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 3px 10px -2px rgba(5, 150, 105, 0.35);
   }
   .btn-accent:hover:not(:disabled) {
-    background-color: var(--secondary-dark);
+    background: linear-gradient(180deg, #34D399 0%, #10B981 100%);
+    transform: translateY(-1.5px);
   }
 
   .btn-outline {
-    @apply btn-base bg-transparent border shadow-sm;
+    @apply btn-base bg-[var(--surface)] border;
     border-color: var(--border);
     color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .btn-outline:hover:not(:disabled) {
     background-color: var(--surface-secondary);
-    border-color: var(--border);
+    border-color: #6D28D9;
+    color: #6D28D9;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px -2px rgba(109, 40, 217, 0.15);
+  }
+  .dark .btn-outline:hover:not(:disabled) {
+    border-color: #8B5CF6;
+    color: #8B5CF6;
   }
 
   .btn-ghost {
@@ -198,15 +220,36 @@
   }
 
   .btn-danger {
-    @apply btn-base text-white shadow-sm bg-red-600 hover:bg-red-700 active:bg-red-800;
+    @apply btn-base text-white;
+    background: linear-gradient(180deg, #EF4444 0%, #DC2626 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 3px 10px -2px rgba(220, 38, 38, 0.35);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: linear-gradient(180deg, #F87171 0%, #EF4444 100%);
+    transform: translateY(-1.5px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -2px rgba(220, 38, 38, 0.45);
   }
 
   .btn-danger-outline {
-    @apply btn-base bg-transparent border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30;
+    @apply btn-base bg-transparent border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400;
+  }
+  .btn-danger-outline:hover:not(:disabled) {
+    @apply bg-red-50 dark:bg-red-950/30;
+    transform: translateY(-1px);
   }
 
   .btn-success {
-    @apply btn-base text-white shadow-sm bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800;
+    @apply btn-base text-white;
+    background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 3px 10px -2px rgba(5, 150, 105, 0.35);
+  }
+  .btn-success:hover:not(:disabled) {
+    background: linear-gradient(180deg, #34D399 0%, #10B981 100%);
+    transform: translateY(-1.5px);
+  }
+
+  .btn-icon {
+    @apply p-2 sm:p-2.5 rounded-xl aspect-square inline-flex items-center justify-center transition-all duration-150 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] border border-transparent hover:border-[var(--border)] active:scale-95;
   }
 
   /* Button Sizes */
@@ -219,6 +262,7 @@
   .btn-lg {
     @apply px-5 py-2.5 text-sm sm:text-base;
   }
+
   .btn-icon {
     @apply p-2 rounded-xl inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)];
   }
@@ -424,4 +468,31 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
+}
+
+/* ========================================================
+   PRINT STYLES FOR POS BILLS & RECEIPTS
+   ======================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, aside, nav, .no-print, button, .modal-backdrop {
+    display: none !important;
+  }
+  .print-area {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    z-index: 99999 !important;
+  }
 }

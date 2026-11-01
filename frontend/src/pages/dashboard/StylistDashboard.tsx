@@ -68,8 +68,16 @@ export const StylistDashboard: React.FC = () => {
 
     fetchStylistData();
 
+    const handleSync = () => {
+      fetchStylistData();
+    };
+    window.addEventListener('appointment:created', handleSync);
+    window.addEventListener('appointment:updated', handleSync);
+
     return () => {
       controller.abort();
+      window.removeEventListener('appointment:created', handleSync);
+      window.removeEventListener('appointment:updated', handleSync);
     };
   }, [branch?.id]);
 

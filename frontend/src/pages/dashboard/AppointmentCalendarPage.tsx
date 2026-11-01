@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Appointment, AppointmentStatus, StaffProfile } from '../../types';
 import { QuickBookingModal } from '../../components/QuickBookingModal';
 import { AppointmentCardSkeleton } from '../../components/ui/Skeleton';
+import { formatINR } from '../../utils/currency';
 
 export const AppointmentCalendarPage: React.FC = () => {
   const { branch, user } = useAuth();
@@ -108,6 +109,19 @@ export const AppointmentCalendarPage: React.FC = () => {
 
     return () => {
       isMounted = false;
+    };
+  }, [selectedDate, branch?.id, selectedStaffFilter, selectedStatusFilter]);
+
+  // Synchronize instantly when appointments are created or modified elsewhere
+  useEffect(() => {
+    const handleSync = () => {
+      fetchAppointments();
+    };
+    window.addEventListener('appointment:created', handleSync);
+    window.addEventListener('appointment:updated', handleSync);
+    return () => {
+      window.removeEventListener('appointment:created', handleSync);
+      window.removeEventListener('appointment:updated', handleSync);
     };
   }, [selectedDate, branch?.id, selectedStaffFilter, selectedStatusFilter]);
 
@@ -341,7 +355,7 @@ export const AppointmentCalendarPage: React.FC = () => {
 
               {/* Card Footer */}
               <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between text-xs">
-                <span className="font-bold text-[var(--text-primary)]">₹{Number(appt.total_amount || 0).toLocaleString('en-IN')}</span>
+                <span className="font-bold text-[var(--text-primary)] tabular-nums">{formatINR(appt.total_amount || 0)}</span>
                 <div className="flex items-center gap-1.5">
                   {appt.status === 'CONFIRMED' && (
                     <button
@@ -374,8 +388,8 @@ export const AppointmentCalendarPage: React.FC = () => {
 
       {/* Appointment Detail Slide-Over Modal */}
       {selectedAppt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-lg bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-5 animate-scaleIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-5 animate-scale-in">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
               <div>
                 <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
@@ -394,25 +408,25 @@ export const AppointmentCalendarPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="flex justify-between py-1 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)]">Client:</span>
-                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.customer_details?.full_name}</span>
+            <div className="space-y-1 text-xs">
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
+                <span className="text-[var(--text-secondary)] font-medium">Client:</span>
+                <span className="font-bold text-[var(--text-primary)] break-words">{selectedAppt.customer_details?.full_name || 'Walk-in Client'}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)]">Phone:</span>
-                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.customer_details?.phone}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
+                <span className="text-[var(--text-secondary)] font-medium">Phone:</span>
+                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.customer_details?.phone || 'Not provided'}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)]">Stylist:</span>
-                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.staff_details?.user_details?.full_name}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
+                <span className="text-[var(--text-secondary)] font-medium">Stylist:</span>
+                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.staff_details?.user_details?.full_name || selectedAppt.staff_details?.title}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)]">Branch:</span>
-                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.branch_details?.name}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
+                <span className="text-[var(--text-secondary)] font-medium">Branch:</span>
+                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.branch_details?.name || 'Main Branch'}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)]">Status:</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
+                <span className="text-[var(--text-secondary)] font-medium">Status:</span>
                 <div>{statusBadge(selectedAppt.status)}</div>
               </div>
 
@@ -423,15 +437,15 @@ export const AppointmentCalendarPage: React.FC = () => {
                   {selectedAppt.items?.map((it, i) => (
                     <div key={i} className="flex justify-between py-1.5 px-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
                       <span className="text-[var(--text-primary)]">{it.service_name} ({it.duration_minutes}m)</span>
-                      <span className="font-bold text-[var(--text-primary)]">₹{Number(it.price || 0).toLocaleString('en-IN')}</span>
+                      <span className="font-bold text-[var(--text-primary)] tabular-nums">{formatINR(it.price || 0)}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex justify-between py-2 text-sm font-bold border-t border-[var(--border)]">
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-t border-[var(--border)] text-sm font-bold">
                 <span className="text-[var(--text-primary)]">Total Amount:</span>
-                <span className="text-[#059669] dark:text-[#10B981]">₹{Number(selectedAppt.total_amount || 0).toLocaleString('en-IN')}</span>
+                <span className="text-[#059669] dark:text-[#10B981] tabular-nums font-serif text-base">{formatINR(selectedAppt.total_amount || 0)}</span>
               </div>
             </div>
 
