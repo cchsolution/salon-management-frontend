@@ -1,14 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://salon-management-backend-7xj0qfafq.vercel.app/api/:path*"
-    },
-    {
-      "source": "/media/:path*",
-      "destination": "https://salon-management-backend-7xj0qfafq.vercel.app/media/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

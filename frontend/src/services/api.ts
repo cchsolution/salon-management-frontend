@@ -1,33 +1,26 @@
-// Active Vercel backend deployment fallback
-const PRODUCTION_BACKEND_URL = 'https://salon-management-backend-7xj0qfafq.vercel.app';
+// Default active backend deployment URL
+const DEFAULT_BACKEND_URL = 'https://salon-management-backend-7xj0qfafq.vercel.app';
 
 // Base API URL configuration:
-// 1. In browser environments where the app is hosted on Vercel / custom domains (e.g. salon-app.cchsolution.com),
-//    always route through the same-origin relative '/api' proxy.
-//    This completely eliminates CORS preflight failures and cross-origin blocking!
-// 2. In local development (npm run dev), '/api' is proxied by Vite to http://127.0.0.1:8000.
-// 3. If an explicit custom VITE_API_BASE_URL is provided, use it unless it is the defunct Render URL.
+// 1. If VITE_API_BASE_URL environment variable is provided, use it.
+// 2. In production builds, default to DEFAULT_BACKEND_URL.
+// 3. In local development (npm run dev), default to '/api' (proxied by Vite to http://127.0.0.1:8000).
 const getApiBaseUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    const { hostname } = window.location;
-    if (
-      hostname === 'salon-app.cchsolution.com' ||
-      hostname.endsWith('.cchsolution.com') ||
-      hostname.endsWith('.vercel.app') ||
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1'
-    ) {
-      return '/api';
-    }
-  }
-
   const envUrl = import.meta.env.VITE_API_BASE_URL;
+  let targetUrl: string;
+
   if (envUrl && envUrl.trim() !== '' && !envUrl.includes('onrender.com')) {
-    const cleanUrl = envUrl.trim().replace(/\/+$/, '');
-    return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+    targetUrl = envUrl.trim();
+  } else if (import.meta.env.PROD) {
+    targetUrl = DEFAULT_BACKEND_URL;
+  } else {
+    return '/api';
   }
 
-  return '/api';
+  // Strip trailing slashes
+  const cleanUrl = targetUrl.replace(/\/+$/, '');
+  // Ensure the URL ends with exactly one '/api'
+  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
 };
 
 export const API_BASE = getApiBaseUrl();
@@ -339,8 +332,9 @@ async function request<T>(
         err.message?.toLowerCase().includes('network') ||
         err.message?.toLowerCase().includes('failed to fetch');
 
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const message = isConnectionError
-        ? `Unable to connect to API server (${finalUrl}). Please ensure the backend is online and VITE_API_BASE_URL is configured.`
+        ? `Unable to connect to API server (${finalUrl}). This is typically caused by CORS blocking requests from '${origin}' or the backend being offline.`
         : err.message || 'Network request failed';
 
       throw new ApiError(message, 0, null);
