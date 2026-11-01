@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   User as UserIcon,
   Sparkles,
-  Shield
+  Shield,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -28,9 +29,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const branchRef = useRef<HTMLDivElement>(null);
 
   const lastFetchTimeRef = useRef<number>(0);
 
@@ -70,6 +73,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
       }
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setIsProfileOpen(false);
+      }
+      if (branchRef.current && !branchRef.current.contains(e.target as Node)) {
+        setIsBranchOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -123,24 +129,58 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
           </div>
         )}
 
-        {/* Branch Selector for Salon Roles */}
+        {/* Custom Branch Selector for Salon Roles */}
         {branches.length > 0 && user?.role !== 'SUPERADMIN' && (
-          <div className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 dark:bg-[#211A32] rounded-xl border border-[#E2E8F0] dark:border-[#332A46] text-xs hover:border-[#6D28D9]/40 transition-colors shrink-0">
-            <MapPin className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981] shrink-0" />
-            <select
-              value={branch?.id || ''}
-              onChange={(e) => {
-                const found = branches.find((b) => b.id === e.target.value);
-                if (found) setBranch(found);
-              }}
-              className="bg-transparent font-medium text-[#1E1B2E] dark:text-[#F8FAFC] focus:outline-none cursor-pointer max-w-[110px] sm:max-w-[160px] truncate pr-1"
+          <div className="relative" ref={branchRef}>
+            <button
+              type="button"
+              onClick={() => setIsBranchOpen(!isBranchOpen)}
+              className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 dark:bg-[#211A32] rounded-xl border border-[#E2E8F0] dark:border-[#332A46] text-xs hover:border-[#6D28D9]/40 transition-colors shrink-0 cursor-pointer active:scale-95"
             >
-              {branches.map((b) => (
-                <option key={b.id} value={b.id} className="bg-white dark:bg-[#171225] text-[#1E1B2E] dark:text-[#F8FAFC]">
-                  {b.name} ({b.city})
-                </option>
-              ))}
-            </select>
+              <MapPin className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981] shrink-0" />
+              <span className="font-medium text-[#1E1B2E] dark:text-[#F8FAFC] max-w-[110px] sm:max-w-[160px] truncate">
+                {branch?.name || 'Select Branch'}
+              </span>
+              <ChevronDown className={`w-3 h-3 text-[#64748B] dark:text-[#C4BFD0] transition-transform duration-200 shrink-0 ${isBranchOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isBranchOpen && (
+              <div className="absolute left-0 mt-1.5 w-60 bg-white dark:bg-[#171225] rounded-2xl border border-[#E2E8F0] dark:border-[#332A46] shadow-dropdown dark:shadow-dropdown-dark py-1.5 z-50 animate-scaleIn">
+                <div className="px-3.5 py-1.5 border-b border-[#E2E8F0] dark:border-[#332A46] text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+                  Select Salon Branch
+                </div>
+                <div className="max-h-60 overflow-y-auto divide-y divide-[#E2E8F0]/40 dark:divide-[#332A46]/40 p-1">
+                  {branches.map((b) => {
+                    const isSelected = b.id === branch?.id;
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => {
+                          setBranch(b);
+                          setIsBranchOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl transition-colors text-left ${
+                          isSelected
+                            ? 'bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] font-semibold'
+                            : 'text-[#1E1B2E] dark:text-[#F8FAFC] hover:bg-slate-50 dark:hover:bg-[#211A32]'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="truncate font-medium">{b.name}</p>
+                          <p className="text-[10px] text-[#64748B] dark:text-[#C4BFD0] truncate">
+                            {b.city ? `${b.city} · ` : ''}{b.address}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <Check className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981] shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

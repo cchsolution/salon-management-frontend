@@ -30,6 +30,7 @@ import {
   handleImageFallback,
 } from '../../constants/defaultWebsiteData';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
 
 export const SalonStorefrontPage: React.FC = () => {
@@ -1115,51 +1116,45 @@ export const SalonStorefrontPage: React.FC = () => {
                     <label className="block text-[var(--text-primary)] font-semibold mb-1">
                       Selected Treatment
                     </label>
-                    <select
+                    <CustomSelect
                       value={selectedService?.id || ''}
-                      onChange={(e) => {
-                        const found = services.find((s) => s.id === e.target.value);
+                      onChange={(val) => {
+                        const found = services.find((s) => s.id === val);
                         if (found) setSelectedService(found);
                       }}
-                      className="select-field text-sm font-medium"
-                    >
-                      {services.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} ({formatINR(s.effective_price)} · {s.duration_minutes}m)
-                        </option>
-                      ))}
-                    </select>
+                      options={services.map((s) => ({
+                        value: s.id,
+                        label: s.name,
+                        sublabel: `${formatINR(s.effective_price)} · ${s.duration_minutes} mins`,
+                      }))}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[var(--text-primary)] font-semibold mb-1">Branch</label>
-                      <select
+                      <CustomSelect
                         value={selectedBranch}
-                        onChange={(e) => setSelectedBranch(e.target.value)}
-                        className="select-field text-xs"
-                      >
-                        {branches.map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setSelectedBranch}
+                        options={branches.map((b) => ({
+                          value: b.id,
+                          label: b.name,
+                        }))}
+                        size="sm"
+                      />
                     </div>
 
                     <div>
                       <label className="block text-[var(--text-primary)] font-semibold mb-1">Stylist</label>
-                      <select
+                      <CustomSelect
                         value={selectedStaff}
-                        onChange={(e) => setSelectedStaff(e.target.value)}
-                        className="select-field text-xs"
-                      >
-                        {team.map((stf) => (
-                          <option key={stf.id} value={stf.id}>
-                            {stf.user_details?.full_name || stf.title}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setSelectedStaff}
+                        options={team.map((stf) => ({
+                          value: stf.id,
+                          label: stf.user_details?.full_name || stf.title,
+                        }))}
+                        size="sm"
+                      />
                     </div>
                   </div>
 

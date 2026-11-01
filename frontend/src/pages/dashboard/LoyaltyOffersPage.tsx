@@ -3,6 +3,7 @@ import { Award, Plus, Tag, Check, Calendar, IndianRupee } from 'lucide-react';
 import { api } from '../../services/api';
 import { MembershipPlan, Coupon } from '../../types';
 import { CardGridSkeleton } from '../../components/ui/Skeleton';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
 
 export const LoyaltyOffersPage: React.FC = () => {
@@ -209,14 +210,14 @@ export const LoyaltyOffersPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[var(--text-secondary)] font-semibold mb-1">Discount Type</label>
-                  <select
+                  <CustomSelect
                     value={discType}
-                    onChange={(e) => setDiscType(e.target.value as any)}
-                    className="select-field"
-                  >
-                    <option value="PERCENTAGE">Percentage (%)</option>
-                    <option value="FIXED">Fixed Amount (₹)</option>
-                  </select>
+                    onChange={(v) => setDiscType(v as any)}
+                    options={[
+                      { value: 'PERCENTAGE', label: 'Percentage (%)' },
+                      { value: 'FIXED', label: 'Fixed Amount (₹)' },
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] font-semibold mb-1">Discount Value</label>

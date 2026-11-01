@@ -137,11 +137,42 @@
 @layer components {
   /* ========================================================
      BUTTONS — Complete Modern Elevated SaaS Suite
-     Inspired by modern tactile SaaS physics
+     Inspired by modern tactile SaaS physics & Uiverse mighty-moose-66
      ======================================================== */
   .btn-base {
-    @apply relative inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] active:translate-y-0.5;
+    @apply relative inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] active:translate-y-0.5 overflow-hidden;
     font-family: 'Crimson Text', Georgia, serif;
+  }
+
+  /* Uiverse mighty-moose-66 luminous shine sweep */
+  .btn-primary::after,
+  .btn-secondary::after,
+  .btn-accent::after,
+  .btn-success::after,
+  .btn-danger::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      60deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 70%
+    );
+    transform: rotate(25deg) translateY(-140%);
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+
+  .btn-primary:hover:not(:disabled)::after,
+  .btn-secondary:hover:not(:disabled)::after,
+  .btn-accent:hover:not(:disabled)::after,
+  .btn-success:hover:not(:disabled)::after,
+  .btn-danger:hover:not(:disabled)::after {
+    transform: rotate(25deg) translateY(140%);
   }
 
   .btn-primary {

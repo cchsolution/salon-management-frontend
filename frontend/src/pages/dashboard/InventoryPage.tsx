@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Product } from '../../types';
 import { TableSkeleton } from '../../components/ui/Skeleton';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
 
 export const InventoryPage: React.FC = () => {
@@ -270,16 +271,16 @@ export const InventoryPage: React.FC = () => {
 
               <div>
                 <label className="block text-[var(--text-secondary)] font-semibold mb-1">Movement Type</label>
-                <select
+                <CustomSelect
                   value={adjustmentReason}
-                  onChange={(e) => setAdjustmentReason(e.target.value)}
-                  className="select-field"
-                >
-                  <option value="PURCHASE_IN">Purchase Received (+)</option>
-                  <option value="SALE_OUT">Manual Sale / Out (-)</option>
-                  <option value="SERVICE_USAGE">Used in Salon Service (-)</option>
-                  <option value="ADJUSTMENT">Reconciliation Adjustment</option>
-                </select>
+                  onChange={setAdjustmentReason}
+                  options={[
+                    { value: 'PURCHASE_IN', label: 'Purchase Received (+)', badge: 'Stock In' },
+                    { value: 'SALE_OUT', label: 'Manual Sale / Out (-)', badge: 'Stock Out' },
+                    { value: 'SERVICE_USAGE', label: 'Used in Salon Service (-)' },
+                    { value: 'ADJUSTMENT', label: 'Reconciliation Adjustment' },
+                  ]}
+                />
               </div>
 
               <div>

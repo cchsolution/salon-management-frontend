@@ -25,6 +25,7 @@ import { api, clearApiCache } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Product, Customer, Invoice, PaymentMethod } from '../../types';
 import { formatINR } from '../../utils/currency';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 
 interface CartItem {
   id: string; // unique cart uuid
@@ -204,10 +205,14 @@ export const PosBillingPage: React.FC = () => {
       const invoicePayload = {
         branch: branch?.id,
         customer: selectedCustomerId || null,
+        discount_type: discountType === 'PERCENT' ? 'PERCENTAGE' : 'FIXED',
+        discount_value: parseFloat(discountValue) || 0,
         discount_amount: calculatedDiscount,
         notes: billingNotes.trim() || undefined,
         items: cart.map((item) => ({
           item_type: 'PRODUCT',
+          product: item.product_id,
+          product_id: item.product_id,
           service: null,
           item_name: item.name,
           quantity: item.quantity,
@@ -437,18 +442,21 @@ export const PosBillingPage: React.FC = () => {
               <label className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
                 Bill To Client (Optional)
               </label>
-              <select
+              <CustomSelect
                 value={selectedCustomerId}
-                onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="select-field !text-xs !py-2"
-              >
-                <option value="">Walk-in Guest / Retail Customer</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name} ({c.phone})
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedCustomerId}
+                searchable
+                placeholder="Walk-in Guest / Retail Customer"
+                options={[
+                  { value: '', label: 'Walk-in Guest / Retail Customer' },
+                  ...customers.map((c) => ({
+                    value: c.id,
+                    label: c.full_name,
+                    sublabel: c.phone,
+                  })),
+                ]}
+                size="sm"
+              />
             </div>
 
             {/* Cart Items List */}

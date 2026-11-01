@@ -15,6 +15,7 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Service, ServiceCategory, StaffProfile } from '../../types';
 import { CardGridSkeleton } from '../../components/ui/Skeleton';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
 
 export const ServicesPage: React.FC = () => {
@@ -301,17 +302,14 @@ export const ServicesPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[var(--text-secondary)] font-semibold mb-1">Category</label>
-                  <select
+                  <CustomSelect
                     value={svcCategory}
-                    onChange={(e) => setSvcCategory(e.target.value)}
-                    className="select-field"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSvcCategory}
+                    options={categories.map((c) => ({
+                      value: c.id,
+                      label: c.name,
+                    }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] font-semibold mb-1">Duration (Minutes)</label>

@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Appointment, AppointmentStatus, StaffProfile } from '../../types';
 import { QuickBookingModal } from '../../components/QuickBookingModal';
 import { AppointmentCardSkeleton } from '../../components/ui/Skeleton';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
 
 export const AppointmentCalendarPage: React.FC = () => {
@@ -242,32 +243,35 @@ export const AppointmentCalendarPage: React.FC = () => {
               My Schedule
             </div>
           ) : (
-            <select
+            <CustomSelect
               value={selectedStaffFilter}
-              onChange={(e) => setSelectedStaffFilter(e.target.value)}
-              className="select-field !py-1.5 !text-xs w-auto min-w-[130px]"
-            >
-              <option value="">All Stylists</option>
-              {staffList.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.user_details?.full_name || s.title}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedStaffFilter}
+              options={[
+                { value: '', label: 'All Stylists' },
+                ...staffList.map((s) => ({
+                  value: s.id,
+                  label: s.user_details?.full_name || s.title,
+                })),
+              ]}
+              size="sm"
+              className="w-40"
+            />
           )}
 
           {/* Status Filter */}
-          <select
+          <CustomSelect
             value={selectedStatusFilter}
-            onChange={(e) => setSelectedStatusFilter(e.target.value)}
-            className="select-field !py-1.5 !text-xs w-auto min-w-[130px]"
-          >
-            <option value="">All Statuses</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
+            onChange={setSelectedStatusFilter}
+            options={[
+              { value: '', label: 'All Statuses' },
+              { value: 'CONFIRMED', label: 'Confirmed', badge: 'Active' },
+              { value: 'IN_PROGRESS', label: 'In Progress' },
+              { value: 'COMPLETED', label: 'Completed' },
+              { value: 'CANCELLED', label: 'Cancelled' },
+            ]}
+            size="sm"
+            className="w-36"
+          />
 
           {/* Toggle Mode */}
           <div className="flex rounded-xl border border-[var(--border)] p-0.5 bg-[var(--surface-secondary)]">
