@@ -1063,7 +1063,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
 
                     <div className="grid grid-cols-[130px_1fr] gap-2 items-center pt-1 text-sm font-bold">
                       <span className="text-[var(--text-primary)]">Total Price:</span>
-                      <span className="text-[#059669] dark:text-[#10B981] tabular-nums font-serif text-base">
+                      <span className="text-[#059669] dark:text-[#10B981] tabular-nums font-sans font-bold text-base">
                         {formatINR(totalPrice)}
                       </span>
                     </div>

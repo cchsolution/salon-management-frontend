@@ -581,7 +581,7 @@ export const PosBillingPage: React.FC = () => {
               {/* Total Due */}
               <div className="flex justify-between items-center text-sm font-bold text-[var(--text-primary)] pt-2 border-t border-[var(--border)]">
                 <span>Total Payable</span>
-                <span className="text-lg font-serif text-[#059669] dark:text-[#10B981] tabular-nums">
+                <span className="text-lg font-sans font-bold text-[#059669] dark:text-[#10B981] tabular-nums">
                   {formatINR(totalAmountDue)}
                 </span>
               </div>

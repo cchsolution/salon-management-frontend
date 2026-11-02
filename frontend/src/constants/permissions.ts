@@ -1,15 +1,15 @@
 import {
   LayoutDashboard,
-  Calendar,
+  CalendarDays,
   Scissors,
   Users,
   UserCheck,
-  CreditCard,
+  Receipt,
   Package,
   Award,
   Globe,
   BarChart3,
-  Settings,
+  Settings2,
   Building2,
   LucideIcon
 } from 'lucide-react';
@@ -133,19 +133,19 @@ export interface NavItemConfig {
 
 export const ALL_NAV_ITEMS: Record<string, NavItemConfig> = {
   dashboard: { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  calendar: { label: 'Appointments', to: '/dashboard/calendar', icon: Calendar, permission: 'VIEW_APPOINTMENTS' },
-  myCalendar: { label: 'My Appointments', to: '/dashboard/calendar', icon: Calendar, permission: 'VIEW_APPOINTMENTS' },
+  calendar: { label: 'Appointments', to: '/dashboard/calendar', icon: CalendarDays, permission: 'VIEW_APPOINTMENTS' },
+  myCalendar: { label: 'My Appointments', to: '/dashboard/calendar', icon: CalendarDays, permission: 'VIEW_APPOINTMENTS' },
   services: { label: 'Services', to: '/dashboard/services', icon: Scissors, permission: 'VIEW_SERVICES' },
   myServices: { label: 'My Services', to: '/dashboard/services', icon: Scissors, permission: 'VIEW_SERVICES' },
   clients: { label: 'Customers / CRM', to: '/dashboard/clients', icon: Users, permission: 'VIEW_CLIENTS' },
   myClients: { label: 'My Customers', to: '/dashboard/clients', icon: Users, permission: 'VIEW_CLIENTS' },
   staff: { label: 'Staff & Shifts', to: '/dashboard/staff', icon: UserCheck, permission: 'MANAGE_STAFF' },
-  pos: { label: 'POS & Billing', to: '/dashboard/pos', icon: CreditCard, permission: 'MANAGE_POS' },
+  pos: { label: 'POS & Billing', to: '/dashboard/pos', icon: Receipt, permission: 'MANAGE_POS' },
   inventory: { label: 'Inventory', to: '/dashboard/inventory', icon: Package, permission: 'MANAGE_INVENTORY' },
   loyalty: { label: 'Loyalty & Offers', to: '/dashboard/loyalty', icon: Award, permission: 'MANAGE_LOYALTY' },
   builder: { label: 'Website Builder', to: '/dashboard/builder', icon: Globe, permission: 'MANAGE_WEBSITE_BUILDER' },
   reports: { label: 'Reports & Analytics', to: '/dashboard/reports', icon: BarChart3, permission: 'VIEW_REPORTS' },
-  settings: { label: 'Salon Settings', to: '/dashboard/settings', icon: Settings, permission: 'MANAGE_SETTINGS' },
+  settings: { label: 'Salon Settings', to: '/dashboard/settings', icon: Settings2, permission: 'MANAGE_SETTINGS' },
   salons: { label: 'Salon Organizations', to: '/dashboard/salons', icon: Building2, permission: 'MANAGE_PLATFORM_SALONS' },
 };
 

@@ -118,13 +118,24 @@
   body {
     background-color: var(--background);
     color: var(--text-primary);
-    font-family: 'Crimson Text', Georgia, serif;
+    font-family: 'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: "tnum" 1;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
   
-  h1, h2, h3, h4, h5, h6, .font-serif, .font-sans, .font-heading {
-    font-family: 'Crimson Text', Georgia, serif;
+  /* Display Font: DM Serif Display ONLY for major headings and brand presentation */
+  .font-display, .font-heading {
+    font-family: 'DM Serif Display', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  .font-serif {
+    font-family: 'DM Serif Display', Georgia, serif;
+  }
+
+  /* Main UI Font: Lato for general typography, forms, tables, and UI */
+  .font-sans, .font-body {
+    font-family: 'Lato', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   .tabular-nums, .price-display, .amount-display {
@@ -140,8 +151,8 @@
      Inspired by modern tactile SaaS physics & Uiverse mighty-moose-66
      ======================================================== */
   .btn-base {
-    @apply relative inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] active:translate-y-0.5 overflow-hidden;
-    font-family: 'Crimson Text', Georgia, serif;
+    @apply relative inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] active:translate-y-0 overflow-hidden;
+    font-family: 'Lato', system-ui, -apple-system, sans-serif;
   }
 
   /* Uiverse mighty-moose-66 luminous shine sweep */
@@ -279,23 +290,32 @@
     transform: translateY(-1.5px);
   }
 
-  .btn-icon {
-    @apply p-2 sm:p-2.5 rounded-xl aspect-square inline-flex items-center justify-center transition-all duration-150 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] border border-transparent hover:border-[var(--border)] active:scale-95;
-  }
-
   /* Button Sizes */
   .btn-sm {
-    @apply px-3 py-1.5 text-xs;
+    @apply px-3 py-1.5 text-xs h-8;
   }
   .btn-md {
-    @apply px-4 py-2 text-xs sm:text-sm;
+    @apply px-4 py-2 text-xs sm:text-sm h-10;
   }
   .btn-lg {
-    @apply px-5 py-2.5 text-sm sm:text-base;
+    @apply px-5 py-2.5 text-sm sm:text-base h-12;
   }
 
   .btn-icon {
-    @apply p-2 rounded-xl inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)];
+    @apply p-2 rounded-xl aspect-square inline-flex items-center justify-center transition-all duration-150 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-secondary)] border border-transparent hover:border-[var(--border)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)];
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-base,
+    .btn-primary::after,
+    .btn-secondary::after,
+    .btn-accent::after,
+    .btn-success::after,
+    .btn-danger::after {
+      transition: none !important;
+      transform: none !important;
+      animation: none !important;
+    }
   }
 
   /* ========================================================

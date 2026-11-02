@@ -9,6 +9,23 @@ export const DashboardLayout: React.FC = () => {
   const { user, isLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('luxe_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('luxe_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   if (isLoading) {
     return (
@@ -28,10 +45,19 @@ export const DashboardLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text-primary)] flex transition-colors duration-200">
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleCollapse}
+      />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+        }`}
+      >
         <Navbar
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onOpenQuickBooking={() => setIsQuickBookingOpen(true)}

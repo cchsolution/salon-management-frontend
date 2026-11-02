@@ -586,7 +586,7 @@ export const SalonStorefrontPage: React.FC = () => {
                         {content.show_prices !== false && (
                           <div>
                             <span className="text-[10px] text-[var(--color-text-secondary)] block">Price</span>
-                            <span className="text-xl font-bold font-serif tabular-nums" style={{ color: secondaryColor }}>
+                            <span className="text-xl font-bold font-sans tabular-nums" style={{ color: secondaryColor }}>
                               {formatINR(svc.effective_price)}
                             </span>
                           </div>

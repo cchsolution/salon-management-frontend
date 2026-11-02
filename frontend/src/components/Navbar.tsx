@@ -279,27 +279,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-2 p-1.5 hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl transition-colors active:scale-95"
+            className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl transition-colors active:scale-98 border border-transparent hover:border-[#E2E8F0] dark:hover:border-[#332A46]"
+            aria-label="User profile menu"
+            aria-expanded={isProfileOpen}
           >
-            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6D28D9] dark:text-[#8B5CF6] font-bold flex items-center justify-center text-xs border border-purple-200 dark:border-purple-800">
+            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6D28D9] dark:text-[#8B5CF6] font-bold flex items-center justify-center text-xs border border-purple-200 dark:border-purple-800 shrink-0 shadow-xs">
               {user?.first_name?.[0] || user?.email?.[0] || 'R'}
             </div>
-            <div className="hidden md:block text-left text-xs">
-              <p className="font-semibold text-[#1E1B2E] dark:text-[#F8FAFC] truncate max-w-[120px]">
+            <div className="hidden md:flex flex-col text-left">
+              <span className="text-xs font-bold text-[#1E1B2E] dark:text-[#F8FAFC] truncate max-w-[130px] font-sans leading-tight">
                 {user?.full_name || user?.username}
-              </p>
-              <span className={`inline-block px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider ${getRoleBadgeClasses(user?.role)}`}>
+              </span>
+              <span className={`inline-block mt-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider leading-none w-fit font-sans ${getRoleBadgeClasses(user?.role)}`}>
                 {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : 'User'}
               </span>
             </div>
-            <ChevronDown className={`w-3.5 h-3.5 text-[#64748B] dark:text-[#C4BFD0] transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 ml-0.5 transition-transform duration-200 shrink-0 ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#171225] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#E2E8F0] dark:border-[#332A46] py-1.5 z-50 animate-scaleIn">
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#171225] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#E2E8F0] dark:border-[#332A46] py-1.5 z-50 animate-scaleIn font-sans">
               <div className="px-4 py-2.5 border-b border-[#E2E8F0] dark:border-[#332A46]">
-                <p className="text-xs font-semibold text-[#1E1B2E] dark:text-[#F8FAFC] truncate">{user?.full_name}</p>
-                <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0] truncate">{user?.email}</p>
+                <p className="text-xs font-bold text-[#1E1B2E] dark:text-[#F8FAFC] truncate">{user?.full_name || user?.username}</p>
+                <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0] truncate mt-0.5">{user?.email}</p>
               </div>
               <button
                 onClick={logout}

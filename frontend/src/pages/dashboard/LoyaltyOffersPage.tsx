@@ -159,7 +159,7 @@ export const LoyaltyOffersPage: React.FC = () => {
                     {p.tier}
                   </span>
                 </div>
-                <p className="text-2xl font-serif font-bold text-[var(--text-primary)] mt-2 tabular-nums">
+                <p className="text-2xl font-sans font-bold text-[var(--text-primary)] mt-2 tabular-nums">
                   {formatINR(p.price)}
                   <span className="text-xs font-normal text-[var(--text-secondary)]">/{(p.billing_cycle || 'month').toLowerCase()}</span>
                 </p>

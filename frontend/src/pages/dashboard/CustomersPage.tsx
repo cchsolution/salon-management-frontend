@@ -267,19 +267,19 @@ export const CustomersPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-2.5 text-center p-3.5 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] text-xs">
                 <div className="p-1">
                   <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-wider">Total Spend</p>
-                  <p className="font-bold text-[#059669] dark:text-[#10B981] mt-1 tabular-nums text-sm font-serif">
+                  <p className="font-bold text-[#059669] dark:text-[#10B981] mt-1 tabular-nums text-sm font-sans">
                     {formatINR(selectedCustomer.total_spend || 0)}
                   </p>
                 </div>
                 <div className="p-1 border-x border-[var(--border)]">
                   <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-wider">Visits</p>
-                  <p className="font-bold text-[var(--text-primary)] mt-1 tabular-nums text-sm font-serif">
+                  <p className="font-bold text-[var(--text-primary)] mt-1 tabular-nums text-sm font-sans">
                     {selectedCustomer.visit_count || 0}
                   </p>
                 </div>
                 <div className="p-1">
                   <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-wider">Points</p>
-                  <p className="font-bold text-[#6D28D9] dark:text-[#8B5CF6] mt-1 tabular-nums text-sm font-serif">
+                  <p className="font-bold text-[#6D28D9] dark:text-[#8B5CF6] mt-1 tabular-nums text-sm font-sans">
                     {selectedCustomer.loyalty_points || 0}
                   </p>
                 </div>

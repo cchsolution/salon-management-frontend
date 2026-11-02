@@ -166,7 +166,7 @@ const OwnerOverviewDashboard: React.FC = () => {
               </div>
             ) : (
               <>
-                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">
+                <h3 className="text-2xl font-sans font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">
                   {formatINR(summary.today_revenue || 0)}
                 </h3>
                 <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5 flex items-center gap-1.5">

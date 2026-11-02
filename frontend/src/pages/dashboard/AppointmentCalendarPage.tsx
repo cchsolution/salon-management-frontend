@@ -449,7 +449,7 @@ export const AppointmentCalendarPage: React.FC = () => {
 
               <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-t border-[var(--border)] text-sm font-bold">
                 <span className="text-[var(--text-primary)]">Total Amount:</span>
-                <span className="text-[#059669] dark:text-[#10B981] tabular-nums font-serif text-base">{formatINR(selectedAppt.total_amount || 0)}</span>
+                <span className="text-[#059669] dark:text-[#10B981] tabular-nums font-sans font-bold text-base">{formatINR(selectedAppt.total_amount || 0)}</span>
               </div>
             </div>
 

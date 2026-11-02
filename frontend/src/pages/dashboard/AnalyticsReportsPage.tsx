@@ -152,7 +152,7 @@ export const AnalyticsReportsPage: React.FC = () => {
                 <p className="font-bold text-[var(--text-primary)] text-sm">{b.name}</p>
                 <p className="text-xs text-[var(--text-secondary)]">{b.city} Studio · {b.appointments} total bookings</p>
               </div>
-              <p className="text-lg font-serif font-bold text-[#059669] dark:text-[#10B981] tabular-nums">{formatINR(b.revenue || 0)}</p>
+              <p className="text-lg font-sans font-bold text-[#059669] dark:text-[#10B981] tabular-nums">{formatINR(b.revenue || 0)}</p>
             </div>
           ))}
         </div>
