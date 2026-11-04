@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Calendar,
@@ -22,6 +23,7 @@ import { api, clearApiCache } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Service, ServiceCategory, ServiceStyle, StaffProfile, Customer } from '../../types';
 import { formatINR } from '../../utils/currency';
+import { formatDuration } from '../../utils/formatDuration';
 import {
   useCategories,
   useServices,
@@ -384,11 +386,40 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
     return isoStr;
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = origOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col max-h-[92vh] animate-scale-in">
+  return createPortal(
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col max-h-[92vh] animate-scale-in"
+      >
         {/* Wizard Header */}
         <div className="px-5 py-4 border-b border-[var(--border)] bg-gradient-to-r from-blue-50/50 to-emerald-50/30 dark:from-blue-950/20 dark:to-emerald-950/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -842,7 +873,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                                   {svc.name}
                                 </p>
                                 <p className="text-[11px] text-[var(--text-secondary)] line-clamp-1 mt-0.5">
-                                  {svc.description || `${svc.duration_minutes} mins treatment`}
+                                  {svc.description || `${formatDuration(svc.duration_minutes)} treatment`}
                                 </p>
                               </div>
                               <div
@@ -858,7 +889,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                             <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--border)] text-[11px]">
                               <span className="text-[var(--text-secondary)] flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                {svc.duration_minutes} mins
+                                {formatDuration(svc.duration_minutes)}
                               </span>
                               <span className="font-bold text-[var(--text-primary)] tabular-nums">
                                 {formatINR(svc.effective_price || svc.price)}
@@ -870,14 +901,20 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                     )}
                   </div>
 
-                  {/* Selected Services Counter */}
-                  <div className="flex items-center justify-between p-2.5 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] text-xs">
-                    <span className="text-[var(--text-secondary)]">
-                      {selectedServiceIds.length} service(s) selected
+                  {/* Full-width Selected Services Summary Bar (Phase 6.6) */}
+                  <div className="w-full mt-3 p-3 bg-[#EEF2FF] dark:bg-[#1E294B] rounded-xl border border-[#0A24E9]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs shrink-0">
+                    <span className="font-bold text-xs text-[#0A24E9] dark:text-[#60A5FA]">
+                      {selectedServiceIds.length} {selectedServiceIds.length === 1 ? 'service' : 'services'} selected
                     </span>
-                    <span className="font-bold text-[#0A24E9] dark:text-[#4D68FF]">
-                      Est. Duration: {totalDurationMinutes} mins · Total: {formatINR(totalPrice)}
-                    </span>
+                    <div className="flex items-center gap-3 text-xs font-semibold">
+                      <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
+                        <Clock className="w-3.5 h-3.5 text-[#0A24E9] dark:text-[#60A5FA]" />
+                        <span>Duration: <strong className="text-[var(--text-primary)]">{formatDuration(totalDurationMinutes)}</strong></span>
+                      </span>
+                      <span className="text-[#059669] dark:text-[#10B981] font-bold text-sm tabular-nums">
+                        Total: {formatINR(totalPrice)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -964,7 +1001,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                               <div>
                                 <p className="font-semibold text-[var(--text-primary)]">{sty.name}</p>
                                 <p className="text-[10px] text-[var(--text-secondary)]">
-                                  +{sty.extra_duration_minutes}m · +{formatINR(sty.extra_price)}
+                                  +{formatDuration(sty.extra_duration_minutes)} · +{formatINR(sty.extra_price)}
                                 </p>
                               </div>
                               {isStyleSelected && (
@@ -1115,7 +1152,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                     <div className="grid grid-cols-[130px_1fr] gap-2 items-center border-b border-[var(--border)] pb-2">
                       <span className="text-[var(--text-secondary)] font-medium">Date & Time:</span>
                       <span className="font-bold text-[#0A24E9] dark:text-[#4D68FF]">
-                        {formatDisplayDate(bookingDate)} at {selectedSlot} ({totalDurationMinutes} mins)
+                        {formatDisplayDate(bookingDate)} at {selectedSlot} ({formatDuration(totalDurationMinutes)})
                       </span>
                     </div>
 
@@ -1201,7 +1238,8 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

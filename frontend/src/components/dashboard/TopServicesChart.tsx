@@ -159,9 +159,10 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
                   strokeWidth={strokeWidth}
                 />
 
-                {/* Donut Slices with Smooth Transitions */}
+                {/* Donut Slices with Stable Ring & Smooth Highlight without geometry changes */}
                 {slices.map((slice) => {
                   const isHovered = hoveredIdx === slice.idx;
+                  const isOtherHovered = hoveredIdx !== null && !isHovered;
                   return (
                     <circle
                       key={slice.idx}
@@ -170,11 +171,15 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
                       r={radius}
                       fill="transparent"
                       stroke={slice.color}
-                      strokeWidth={isHovered ? strokeWidth + 6 : strokeWidth}
+                      strokeWidth={strokeWidth}
                       strokeDasharray={slice.strokeDasharray}
                       strokeDashoffset={slice.strokeDashoffset}
                       strokeLinecap="round"
-                      className="cursor-pointer transition-all duration-200 ease-out"
+                      style={{
+                        opacity: isOtherHovered ? 0.45 : 1,
+                        filter: isHovered ? 'brightness(1.08)' : 'none',
+                      }}
+                      className="cursor-pointer transition-opacity duration-200 ease-out"
                       onMouseEnter={() => setHoveredIdx(slice.idx)}
                       onMouseLeave={() => setHoveredIdx(null)}
                       onTouchStart={() => setHoveredIdx(slice.idx)}

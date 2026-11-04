@@ -6,10 +6,12 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
-  Store
+  Store,
+  Scissors
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getNavigationForRole } from '../constants/permissions';
+import { useDashboardMetrics } from '../hooks/useQueries';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,20 +26,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed = false,
   onToggleCollapse,
 }) => {
-  const { salon, user } = useAuth();
+  const { salon, user, branch } = useAuth();
+  const { data: metrics } = useDashboardMetrics(branch?.id);
+  const todayApptsCount = metrics?.summary?.today_appointments ?? 0;
 
   const navItems = getNavigationForRole(user?.role);
 
   // Determine role-based header copy
   let headerTitle = salon?.name || 'Ruhi Beauty Salon';
   let headerSubtitle = 'Live Salon Studio';
-  let headerInitial = salon?.name ? salon.name[0] : 'R';
   let sectionTitle = 'Salon Navigation';
 
   if (user?.role === 'SUPERADMIN') {
     headerTitle = 'LuxeSalon Platform';
     headerSubtitle = 'Platform Superadmin';
-    headerInitial = '🛡️';
     sectionTitle = 'Administration';
   } else if (user?.role === 'STYLIST') {
     headerSubtitle = 'Stylist Workspace';
@@ -70,8 +72,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
         >
           <div className="flex items-center gap-3 min-w-0">
+            {/* Fixed Professional Salon Theme Logo (Phase 1) */}
             <div className="w-10 h-10 rounded-xl bg-[#2868ff] text-white flex items-center justify-center shadow-sm font-bold text-lg shrink-0">
-              {headerInitial}
+              {user?.role === 'SUPERADMIN' ? (
+                <Shield className="w-5 h-5 text-white" />
+              ) : (
+                <Scissors className="w-5 h-5 text-white" />
+              )}
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
@@ -168,10 +175,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </div>
                     )}
 
-                    {/* Shopeers Soft Pill Counter Badge (e.g. for Appointments/Orders) */}
+                    {/* Dynamic Pill Counter Badge (e.g. for Appointments/Calendar) */}
                     {!isCollapsed && item.to === '/dashboard/calendar' && (
                       <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#ECFDF5] dark:bg-[#142A1D] text-[#059669] dark:text-[#34D399] border border-[#A7F3D0]/60 tabular-nums shrink-0">
-                        3
+                        {todayApptsCount}
                       </span>
                     )}
                   </>

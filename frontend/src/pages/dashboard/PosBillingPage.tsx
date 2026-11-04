@@ -415,6 +415,11 @@ export const PosBillingPage: React.FC = () => {
   // Step 1 -> Step 2: Review Bill
   // Important: DOES NOT create invoice yet!
   const handleGoToReview = () => {
+    if (!selectedCustomerId) {
+      setStockError('Please select a registered customer to proceed to review the bill.');
+      return;
+    }
+
     if (cart.length === 0) {
       setStockError('Please select at least one retail product to add to the cart before proceeding.');
       return;
@@ -503,11 +508,17 @@ export const PosBillingPage: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       invalidateProducts();
-      let msg = err.message || 'Failed to generate invoice.';
+      const data = err?.response?.data;
+      let msg = data?.detail || data?.message || err?.message || 'Failed to generate invoice.';
+      if (typeof data === 'object' && !data?.detail && !data?.message) {
+        msg = Object.entries(data)
+          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+          .join('; ');
+      }
       if (msg.includes('Insufficient stock')) {
         msg = `${msg} Please update inventory before billing.`;
       }
-      setStockError(msg);
+      setStockError(`Server Error (${err?.response?.status || '500'}): ${msg}`);
     } finally {
       setIsProcessing(false);
     }
@@ -821,19 +832,27 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                             );
                           }
                         }}
-                        className={`p-3 bg-[var(--surface-secondary)]/50 border rounded-xl text-left transition-all flex flex-col justify-between group cursor-pointer ${
+                        className={`p-3 border rounded-xl text-left transition-all flex flex-col justify-between group ${
                           isOut
-                            ? 'opacity-65 border-red-200 dark:border-red-900/40 hover:border-red-400 bg-red-50/20'
+                            ? 'opacity-85 border-slate-300 dark:border-slate-700 bg-[var(--surface-secondary)]/70 cursor-not-allowed'
                             : isMaxInCart
-                            ? 'border-amber-200 dark:border-amber-900/40 hover:border-amber-400 bg-amber-50/10'
-                            : 'border-[var(--border)] hover:border-[#0A24E9]/50 hover:bg-[#EEF2FF] dark:hover:bg-[#1E294B]/30 active:scale-[0.98]'
+                            ? 'border-amber-200 dark:border-amber-900/40 hover:border-amber-400 bg-amber-50/10 cursor-pointer'
+                            : 'bg-[var(--surface-secondary)]/50 border-[var(--border)] hover:border-[#2868ff]/50 hover:bg-[#EEF2FF] dark:hover:bg-[#1E294B]/30 active:scale-[0.98] cursor-pointer'
                         }`}
                       >
                         <div>
                           <div className="flex items-center justify-between gap-1 text-[10px] uppercase tracking-wider mb-1">
-                            <span className="font-bold text-[#5C9764] dark:text-[#7DB585] truncate max-w-[55%]">
-                              {prod.brand || 'Retail'}
-                            </span>
+                            {prod.brand && prod.brand.toLowerCase() !== 'retail' ? (
+                              <span className="font-bold text-[#059669] dark:text-[#10B981] truncate max-w-[55%]">
+                                {prod.brand}
+                              </span>
+                            ) : prod.category_name ? (
+                              <span className="font-medium text-[var(--text-secondary)] truncate max-w-[55%]">
+                                {prod.category_name}
+                              </span>
+                            ) : (
+                              <span></span>
+                            )}
                             {/* Live Backend Stock Badge */}
                             <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border shrink-0 ${stockInfo.badgeClass}`}>
                               {stockInfo.badgeText}
@@ -931,24 +950,21 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                 </div>
               )}
 
-              {/* Customer Selector */}
+              {/* Customer Selector - Required registered customer */}
               <div className="my-3 space-y-1">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-                  Bill To Client (Optional)
+                  Bill To Client <span className="text-red-500">*</span>
                 </label>
                 <CustomSelect
                   value={selectedCustomerId}
                   onChange={setSelectedCustomerId}
                   searchable
-                  placeholder="Walk-in Guest / Retail Customer"
-                  options={[
-                    { value: '', label: 'Walk-in Guest / Retail Customer' },
-                    ...customers.map((c) => ({
-                      value: c.id,
-                      label: c.full_name,
-                      sublabel: c.phone,
-                    })),
-                  ]}
+                  placeholder="Select a registered customer..."
+                  options={customers.map((c) => ({
+                    value: c.id,
+                    label: c.full_name,
+                    sublabel: c.phone,
+                  }))}
                   size="sm"
                 />
               </div>
@@ -1032,9 +1048,11 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                             <button
                               type="button"
                               onClick={() => removeFromCart(item.id)}
-                              className="text-[10px] text-[#DC2626] hover:underline cursor-pointer"
+                              title="Remove item from cart"
+                              aria-label={`Remove ${item.name}`}
+                              className="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors inline-flex items-center justify-center cursor-pointer mt-0.5"
                             >
-                              Remove
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -1088,14 +1106,14 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                     <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase">
                       Order Discount
                     </span>
-                    <div className="flex rounded-lg border border-[var(--border)] p-0.5 bg-[var(--surface)] text-[10px] font-bold">
+                    <div className="flex rounded-[12px] border border-[var(--border)] p-0.5 bg-[var(--surface)] text-[10px] font-bold">
                       <button
                         type="button"
                         onClick={() => setDiscountType('FIXED')}
-                        className={`px-2 py-0.5 rounded transition-colors ${
+                        className={`px-2.5 py-1 rounded-[10px] transition-all cursor-pointer ${
                           discountType === 'FIXED'
-                            ? 'bg-[#0A24E9] text-white'
-                            : 'text-[var(--text-secondary)]'
+                            ? 'bg-[#2868ff] text-white shadow-xs'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                         }`}
                       >
                         ₹ Fixed
@@ -1103,10 +1121,10 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                       <button
                         type="button"
                         onClick={() => setDiscountType('PERCENT')}
-                        className={`px-2 py-0.5 rounded transition-colors ${
+                        className={`px-2.5 py-1 rounded-[10px] transition-all cursor-pointer ${
                           discountType === 'PERCENT'
-                            ? 'bg-[#0A24E9] text-white'
-                            : 'text-[var(--text-secondary)]'
+                            ? 'bg-[#2868ff] text-white shadow-xs'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                         }`}
                       >
                         % Percent
@@ -1162,19 +1180,34 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                   />
                 </div>
 
-                {/* STEP 1 ACTION: NEXT (Does NOT create invoice yet) */}
+                {/* Informative requirements notice if customer or cart missing */}
+                {(!selectedCustomerId || cart.length === 0) && (
+                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <div className="space-y-0.5">
+                      {!selectedCustomerId && <p>• Please select a registered customer to proceed.</p>}
+                      {cart.length === 0 && <p>• Please add at least one retail product to cart.</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 1 ACTION: NEXT (Requires real client + cart items) */}
                 <button
                   type="button"
-                  disabled={cart.length === 0 || hasStockErrors}
+                  disabled={!selectedCustomerId || cart.length === 0 || hasStockErrors}
                   onClick={handleGoToReview}
                   className={`btn-primary btn-lg w-full mt-2 font-bold shadow-md flex items-center justify-center gap-2 ${
-                    hasStockErrors
-                      ? 'opacity-65 cursor-not-allowed bg-[#D97706] hover:bg-[#D97706]'
+                    !selectedCustomerId || cart.length === 0 || hasStockErrors
+                      ? 'opacity-65 cursor-not-allowed bg-slate-400 dark:bg-slate-700 hover:bg-slate-400'
                       : ''
                   }`}
                 >
                   <span>
-                    {hasStockErrors
+                    {!selectedCustomerId
+                      ? 'Select Customer to Proceed'
+                      : cart.length === 0
+                      ? 'Add Products to Cart to Proceed'
+                      : hasStockErrors
                       ? 'Adjust Overstocked Items to Proceed'
                       : `Next: Review Bill (${formatINR(totalAmountDue)})`}
                   </span>

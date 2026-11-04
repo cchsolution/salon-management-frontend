@@ -3,6 +3,7 @@ import { Clock, Calendar, ArrowRight, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '../ui/Skeleton';
 import { formatINR } from '../../utils/currency';
+import { StatusLabel } from '../ui/StatusLabel';
 
 export interface ScheduleAppointment {
   id: string;
@@ -23,49 +24,6 @@ export interface DashboardScheduleProps {
   subtitle?: string;
   onAppointmentClick?: (appointment: ScheduleAppointment) => void;
 }
-
-const getStatusBadge = (status: string) => {
-  const norm = (status || '').toUpperCase();
-  switch (norm) {
-    case 'COMPLETED':
-      return {
-        label: 'completed',
-        bg: 'bg-[#ECFDF5] dark:bg-[#142A1D]',
-        text: 'text-[#059669] dark:text-[#34D399]',
-        border: 'border-[#A7F3D0]/70 dark:border-[#10B981]/40',
-      };
-    case 'IN_PROGRESS':
-    case 'IN PROGRESS':
-      return {
-        label: 'in progress',
-        bg: 'bg-[#F5F3FF] dark:bg-[#2A1E4B]',
-        text: 'text-[#7C3AED] dark:text-[#C084FC]',
-        border: 'border-[#DDD6FE]/70 dark:border-[#7C3AED]/40',
-      };
-    case 'CONFIRMED':
-      return {
-        label: 'confirmed',
-        bg: 'bg-[#EFF6FF] dark:bg-[#1E294B]',
-        text: 'text-[#2563EB] dark:text-[#60A5FA]',
-        border: 'border-[#BFDBFE]/70 dark:border-[#2563EB]/40',
-      };
-    case 'CANCELLED':
-      return {
-        label: 'cancelled',
-        bg: 'bg-rose-50 dark:bg-rose-950/40',
-        text: 'text-rose-600 dark:text-rose-400',
-        border: 'border-rose-200 dark:border-rose-800',
-      };
-    case 'PENDING':
-    default:
-      return {
-        label: 'pending',
-        bg: 'bg-[#FFFBEB] dark:bg-amber-950/40',
-        text: 'text-[#D97706] dark:text-[#FBBF24]',
-        border: 'border-[#FDE68A]/70 dark:border-amber-800/50',
-      };
-  }
-};
 
 const getInitials = (name: string): string => {
   if (!name) return 'C';
@@ -148,7 +106,6 @@ export const DashboardSchedule: React.FC<DashboardScheduleProps> = ({
         ) : (
           <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
             {appointments.map((appt, idx) => {
-              const badge = getStatusBadge(appt.status);
               const initial = getInitials(appt.customer_name);
               const serviceTitle = appt.service_name || 'Salon Treatment';
 
@@ -181,16 +138,12 @@ export const DashboardSchedule: React.FC<DashboardScheduleProps> = ({
                     </div>
                   </div>
 
-                  {/* Right: Time on top, Badge underneath */}
+                  {/* Right: Time on top, clean StatusLabel underneath */}
                   <div className="text-right shrink-0 flex flex-col items-end gap-1">
                     <span className="text-xs font-bold text-[#111827] dark:text-[#F8FAFC] tabular-nums">
                       {appt.time || '10:00'}
                     </span>
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badge.bg} ${badge.text} ${badge.border}`}
-                    >
-                      {badge.label}
-                    </span>
+                    <StatusLabel status={appt.status} size="xs" />
                   </div>
                 </div>
               );

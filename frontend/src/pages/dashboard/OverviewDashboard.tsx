@@ -45,6 +45,7 @@ export const OverviewDashboard: React.FC = () => {
 const OwnerOverviewDashboard: React.FC = () => {
   const { salon, branch } = useAuth();
   const [chartViewMode, setChartViewMode] = useState<'revenue' | 'combined'>('revenue');
+  const [selectedDays, setSelectedDays] = useState<number>(7);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch live metrics
@@ -76,18 +77,24 @@ const OwnerOverviewDashboard: React.FC = () => {
 
   const error = queryError ? (queryError as any).message || 'Failed to load live metrics.' : null;
 
-  // Real-time synchronization on appointment lifecycle events
+  // Real-time synchronization on appointment and billing lifecycle events
   useEffect(() => {
-    const handleApptSync = () => {
+    const handleSync = () => {
       refetchMetrics();
       refetchAppts();
     };
-    window.addEventListener('appointment:created', handleApptSync);
-    window.addEventListener('appointment:updated', handleApptSync);
+    window.addEventListener('appointment:created', handleSync);
+    window.addEventListener('appointment:updated', handleSync);
+    window.addEventListener('appointment:cancelled', handleSync);
+    window.addEventListener('invoice:created', handleSync);
+    window.addEventListener('pos:completed', handleSync);
 
     return () => {
-      window.removeEventListener('appointment:created', handleApptSync);
-      window.removeEventListener('appointment:updated', handleApptSync);
+      window.removeEventListener('appointment:created', handleSync);
+      window.removeEventListener('appointment:updated', handleSync);
+      window.removeEventListener('appointment:cancelled', handleSync);
+      window.removeEventListener('invoice:created', handleSync);
+      window.removeEventListener('pos:completed', handleSync);
     };
   }, [refetchMetrics, refetchAppts]);
 
@@ -99,6 +106,116 @@ const OwnerOverviewDashboard: React.FC = () => {
 
   const summary = metrics?.summary;
   const isCardLoading = isMetricsLoading || !metrics;
+
+  // Real data-driven comparison metrics (Never invent percentages)
+  const revenueTrend = useMemo(() => {
+    const backendGrowth = (metrics?.summary as any)?.revenue_growth ?? (metrics as any)?.revenue_comparison;
+    if (typeof backendGrowth === 'number' && !isNaN(backendGrowth)) {
+      return {
+        value: `${Math.abs(backendGrowth).toFixed(1)}%`,
+        numericValue: backendGrowth,
+        isPositive: backendGrowth >= 0,
+        label: 'vs last period',
+      };
+    }
+    const chart = metrics?.revenue_chart;
+    if (chart && chart.length >= 2) {
+      const latest = chart[chart.length - 1]?.revenue ?? 0;
+      const previous = chart[chart.length - 2]?.revenue ?? 0;
+      if (previous > 0) {
+        const pct = ((latest - previous) / previous) * 100;
+        return {
+          value: `${Math.abs(pct).toFixed(1)}%`,
+          numericValue: Math.round(pct * 10) / 10,
+          isPositive: pct >= 0,
+          label: 'vs yesterday',
+        };
+      } else if (latest > 0) {
+        return {
+          value: '100%',
+          numericValue: 100,
+          isPositive: true,
+          label: 'vs yesterday',
+        };
+      }
+    }
+    return {
+      value: '0%',
+      numericValue: 0,
+      isPositive: true,
+      label: 'vs last period',
+    };
+  }, [metrics]);
+
+  const bookingsTrend = useMemo(() => {
+    const backendGrowth = (metrics?.summary as any)?.appointments_growth ?? (metrics as any)?.appointments_comparison;
+    if (typeof backendGrowth === 'number' && !isNaN(backendGrowth)) {
+      return {
+        value: `${Math.abs(backendGrowth).toFixed(1)}%`,
+        numericValue: backendGrowth,
+        isPositive: backendGrowth >= 0,
+        label: 'vs last period',
+      };
+    }
+    const chart = metrics?.revenue_chart;
+    if (chart && chart.length >= 2) {
+      const latest = chart[chart.length - 1]?.appointments ?? 0;
+      const previous = chart[chart.length - 2]?.appointments ?? 0;
+      if (previous > 0) {
+        const pct = ((latest - previous) / previous) * 100;
+        return {
+          value: `${Math.abs(pct).toFixed(1)}%`,
+          numericValue: Math.round(pct * 10) / 10,
+          isPositive: pct >= 0,
+          label: 'vs yesterday',
+        };
+      } else if (latest > 0) {
+        return {
+          value: '100%',
+          numericValue: 100,
+          isPositive: true,
+          label: 'vs yesterday',
+        };
+      }
+    }
+    return {
+      value: '0%',
+      numericValue: 0,
+      isPositive: true,
+      label: 'vs last period',
+    };
+  }, [metrics]);
+
+  const clientsTrend = useMemo(() => {
+    const backendGrowth = (metrics?.summary as any)?.clients_growth ?? (metrics as any)?.clients_comparison;
+    if (typeof backendGrowth === 'number' && !isNaN(backendGrowth)) {
+      return {
+        value: `${Math.abs(backendGrowth).toFixed(1)}%`,
+        numericValue: backendGrowth,
+        isPositive: backendGrowth >= 0,
+        label: 'vs last period',
+      };
+    }
+    if (summary && summary.total_clients > 0 && summary.new_clients_this_month !== undefined) {
+      const newClients = summary.new_clients_this_month;
+      const previousClients = summary.total_clients - newClients;
+      if (previousClients > 0) {
+        const pct = (newClients / previousClients) * 100;
+        return {
+          value: `${pct.toFixed(1)}%`,
+          numericValue: Math.round(pct * 10) / 10,
+          isPositive: pct >= 0,
+          label: 'new this month',
+        };
+      }
+    }
+    return {
+      value: '0%',
+      numericValue: 0,
+      isPositive: true,
+      label: 'vs last period',
+    };
+  }, [metrics, summary]);
 
   // Map today's schedule from metrics.upcoming_appointments or todayBookings fallback
   const scheduleAppointments: ScheduleAppointment[] = useMemo(() => {
@@ -165,47 +282,47 @@ const OwnerOverviewDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TOP ROW: 4 KPI SUMMARY CARDS (Pure White Cards with Light Sky, Light Green, Light Orange, Light Gray Hover Tints) */}
+      {/* TOP ROW: 4 KPI SUMMARY CARDS (Semantic colors: Revenue: Green, Bookings: Blue, Clients: Grey, Inventory: Orange) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Card 1: Today's Revenue (Light Sky Hover) */}
+        {/* Card 1: Today's Revenue (Green Accent) */}
         <DashboardKPICard
           title="Today's Revenue"
           value={formatINR(summary?.today_revenue || 0)}
           icon={IndianRupee}
-          hoverVariant="sky"
-          trend={{ value: '18.4%', isPositive: true, label: 'vs last period' }}
+          hoverVariant="green"
+          trend={revenueTrend}
           isLoading={isCardLoading}
           sublabel={`Total: ${formatINR(summary?.total_revenue || 0)}`}
         />
 
-        {/* Card 2: Today's Bookings (Light Green Hover) */}
+        {/* Card 2: Today's Bookings (Blue Accent) */}
         <DashboardKPICard
           title="Today's Bookings"
           value={summary?.today_appointments ?? 0}
           icon={Calendar}
-          hoverVariant="green"
-          trend={{ value: '12.5%', isPositive: true, label: 'vs last period' }}
+          hoverVariant="blue"
+          trend={bookingsTrend}
           isLoading={isCardLoading}
           sublabel={`${summary?.completed_today ?? 0} completed · ${summary?.pending_today ?? 0} upcoming`}
         />
 
-        {/* Card 3: Active Clients (Light Orange Hover) */}
+        {/* Card 3: Active Clients (Grey Accent) */}
         <DashboardKPICard
           title="Active Clients"
           value={summary?.total_clients ?? 0}
           icon={Users}
-          hoverVariant="orange"
-          trend={{ value: '8.4%', isPositive: true, label: 'vs last period' }}
+          hoverVariant="gray"
+          trend={clientsTrend}
           isLoading={isCardLoading}
           sublabel={`+${summary?.new_clients_this_month ?? 0} new this month`}
         />
 
-        {/* Card 4: Inventory Alerts (Light Gray Hover) */}
+        {/* Card 4: Inventory Alerts (Orange Accent) */}
         <DashboardKPICard
           title="Inventory Alerts"
           value={summary?.low_stock_count ?? 0}
           icon={AlertTriangle}
-          hoverVariant="gray"
+          hoverVariant="orange"
           isLoading={isCardLoading}
           sublabel={
             summary && summary.low_stock_count > 0
@@ -224,8 +341,10 @@ const OwnerOverviewDashboard: React.FC = () => {
               data={metrics?.revenue_chart || []}
               isLoading={isMetricsLoading}
               title="Revenue Overview"
-              subtitle="Last 7 days performance · Indian Rupees (₹)"
-              periodLabel="Last 7 Days"
+              subtitle={`Actual ${selectedDays}-day revenue performance · Indian Rupees (₹)`}
+              periodLabel={`Last ${selectedDays} Days`}
+              selectedDays={selectedDays}
+              onDaysChange={setSelectedDays}
               viewMode={chartViewMode}
               onToggleViewMode={setChartViewMode}
               className="h-full"
@@ -235,8 +354,10 @@ const OwnerOverviewDashboard: React.FC = () => {
               data={metrics?.revenue_chart || []}
               isLoading={isMetricsLoading}
               title="Revenue & Bookings Combined"
-              subtitle="Dual-axis financial & visit volume correlation"
-              periodLabel="Last 7 Days"
+              subtitle={`Dual-axis ${selectedDays}-day volume & financial trends`}
+              periodLabel={`Last ${selectedDays} Days`}
+              selectedDays={selectedDays}
+              onDaysChange={setSelectedDays}
               viewMode={chartViewMode}
               onToggleViewMode={setChartViewMode}
               className="h-full"
@@ -244,7 +365,7 @@ const OwnerOverviewDashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Top Services Donut Chart - Enlarged Proportions */}
+        {/* Top Services Donut Chart - Stable ring with dynamic hover focus */}
         <div className="lg:col-span-1">
           <TopServicesChart
             data={metrics?.popular_services || []}

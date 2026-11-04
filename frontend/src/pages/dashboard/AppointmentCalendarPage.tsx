@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -18,19 +18,31 @@ import { QuickBookingModal } from '../../components/QuickBookingModal';
 import { AppointmentCardSkeleton } from '../../components/ui/Skeleton';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
+import { formatDuration } from '../../utils/formatDuration';
+import { StatusLabel } from '../../components/ui/StatusLabel';
 import { useStaff, useAppointments, useInvalidateQueries } from '../../hooks/useQueries';
 
 export const AppointmentCalendarPage: React.FC = () => {
-  const { branch, user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const { branch, user, salon } = useAuth();
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
+  const todayInSalonTz = useMemo(() => {
+    const tz = salon?.timezone || 'Asia/Kolkata';
+    try {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());
+    } catch {
+      return new Date().toISOString().split('T')[0];
+    }
+  }, [salon?.timezone]);
+
+  const [selectedDate, setSelectedDate] = useState<string>(todayInSalonTz);
   const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('');
   const [viewMode, setViewMode] = useState<'day' | 'agenda'>('day');
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
+
+  const isTodaySelected = selectedDate === todayInSalonTz;
 
   const { data: staffList = [] } = useStaff(branch?.id);
   const {
@@ -161,13 +173,18 @@ export const AppointmentCalendarPage: React.FC = () => {
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-2 bg-white dark:bg-[#141A2E] border border-[#CBD5E1] dark:border-[#252F4E] rounded-xl px-3 py-1.5 shadow-2xs">
-            <CalendarIcon className="w-4 h-4 text-[#2563EB] dark:text-[#60A5FA]" />
+          {/* Entire Clickable Calendar Button with Single Icon (Phase 6.1) */}
+          <div
+            onClick={() => dateInputRef.current?.showPicker?.()}
+            className="relative flex items-center gap-2 bg-white dark:bg-[#141A2E] border border-[#CBD5E1] dark:border-[#252F4E] hover:border-[#2563EB]/50 rounded-xl px-3 py-1.5 shadow-2xs cursor-pointer transition-colors"
+          >
+            <CalendarIcon className="w-4 h-4 text-[#2563EB] dark:text-[#60A5FA] shrink-0" />
             <input
+              ref={dateInputRef}
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs sm:text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC] bg-transparent focus:outline-none cursor-pointer"
+              className="text-xs sm:text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC] bg-transparent focus:outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
           </div>
 
@@ -179,9 +196,14 @@ export const AppointmentCalendarPage: React.FC = () => {
             <ChevronRight className="w-4 h-4" />
           </button>
 
+          {/* Today Button Highlighted ONLY when actually today in salon timezone (Phase 6.2) */}
           <button
-            onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-            className="px-3.5 py-1.5 text-xs font-bold text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E294B] hover:bg-[#DBEAFE] rounded-xl border border-[#BFDBFE]/80 dark:border-[#2563EB]/40 transition-colors active:scale-95 cursor-pointer shadow-2xs"
+            onClick={() => setSelectedDate(todayInSalonTz)}
+            className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs ${
+              isTodaySelected
+                ? 'text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E294B] border border-[#BFDBFE]/80 dark:border-[#2563EB]/40 ring-1 ring-[#2563EB]/30'
+                : 'text-[#64748B] dark:text-[#94A3B8] bg-white dark:bg-[#141A2E] hover:bg-[#F1F5F9] dark:hover:bg-[#1C2542] border border-[#CBD5E1] dark:border-[#252F4E]'
+            }`}
           >
             Today
           </button>
@@ -290,7 +312,7 @@ export const AppointmentCalendarPage: React.FC = () => {
                       {appt.start_time.slice(0, 5)} – {appt.end_time.slice(0, 5)}
                     </span>
                   </div>
-                  {statusBadge(appt.status)}
+                  <StatusLabel status={appt.status} size="xs" />
                 </div>
 
                 <div className="space-y-1">
@@ -320,35 +342,21 @@ export const AppointmentCalendarPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Card Footer */}
+              {/* Card Footer: Total Duration on Left, Total Amount on Right (Phase 6.5) */}
               <div className="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[#252F4E]/60 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 text-[#64748B] dark:text-[#94A3B8] font-medium">
+                  <Clock className="w-3.5 h-3.5 shrink-0 text-[#2563EB] dark:text-[#60A5FA]" />
+                  <span>
+                    {formatDuration(
+                      appt.total_duration_minutes ||
+                        appt.items?.reduce((acc, i) => acc + (i.duration_minutes || 0), 0) ||
+                        30
+                    )}
+                  </span>
+                </div>
                 <span className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums text-sm">
                   {formatINR(appt.total_amount || 0)}
                 </span>
-                <div className="flex items-center gap-1.5">
-                  {appt.status === 'CONFIRMED' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUpdateStatus(appt.id, 'IN_PROGRESS');
-                      }}
-                      className="btn-primary btn-sm px-3 text-[11px] font-bold"
-                    >
-                      <span>Start</span>
-                    </button>
-                  )}
-                  {appt.status === 'IN_PROGRESS' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUpdateStatus(appt.id, 'COMPLETED');
-                      }}
-                      className="btn-success btn-sm px-3 text-[11px] font-bold"
-                    >
-                      <span>Complete</span>
-                    </button>
-                  )}
-                </div>
               </div>
             </div>
           ))}
@@ -357,8 +365,14 @@ export const AppointmentCalendarPage: React.FC = () => {
 
       {/* Appointment Detail Slide-Over Modal */}
       {selectedAppt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-lg bg-white dark:bg-[#141A2E] rounded-2xl shadow-modal border border-[#CBD5E1] dark:border-[#252F4E] p-6 space-y-5 animate-scaleIn max-h-[90vh] overflow-y-auto">
+        <div
+          onClick={() => setSelectedAppt(null)}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg bg-white dark:bg-[#141A2E] rounded-2xl shadow-modal border border-[#CBD5E1] dark:border-[#252F4E] p-6 space-y-5 animate-scaleIn max-h-[90vh] overflow-y-auto"
+          >
             <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#252F4E] pb-3">
               <div>
                 <h3 className="text-base font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
@@ -404,7 +418,9 @@ export const AppointmentCalendarPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
                 <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Status:</span>
-                <div>{statusBadge(selectedAppt.status)}</div>
+                <div>
+                  <StatusLabel status={selectedAppt.status} size="sm" />
+                </div>
               </div>
 
               {/* Items */}
@@ -419,7 +435,7 @@ export const AppointmentCalendarPage: React.FC = () => {
                       className="flex justify-between py-1.5 px-3 bg-[#F8FAFC] dark:bg-[#1C2542] rounded-xl border border-[#E2E8F0] dark:border-[#252F4E]"
                     >
                       <span className="text-[#0F172A] dark:text-[#F8FAFC]">
-                        {it.service_name} ({it.duration_minutes}m)
+                        {it.service_name} ({formatDuration(it.duration_minutes)})
                       </span>
                       <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
                         {formatINR(it.price || 0)}

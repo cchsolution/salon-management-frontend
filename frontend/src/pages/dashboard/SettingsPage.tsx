@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Building,
   Save,
@@ -10,13 +10,16 @@ import {
   Moon,
   Laptop,
   Check,
-  AlertCircle
+  AlertCircle,
+  ExternalLink,
+  ShieldCheck
 } from 'lucide-react';
-import { api } from '../../services/api';
+import { api, clearApiCache } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme, ThemeMode } from '../../context/ThemeContext';
 import { Branch, Salon } from '../../types';
 import { FormField } from '../../components/ui/FormField';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import { Validation } from '../../utils/validation';
 import { useFormValidation } from '../../hooks/useFormValidation';
 
@@ -25,6 +28,7 @@ export const SettingsPage: React.FC = () => {
   const { themeMode, setThemeMode } = useTheme();
 
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const SHOW_BRANCH_MANAGEMENT = false;
 
   // Salon Profile Form & Validation
   const salonForm = useFormValidation({
@@ -39,7 +43,13 @@ export const SettingsPage: React.FC = () => {
       name: Validation.name('Salon name', 2, 80, true),
       email: Validation.email(false),
       phone: Validation.phone(false, 'IN'),
-      tax_rate: Validation.percentage('GST tax rate', false),
+      tax_rate: (val: string) => {
+        const allowed = ['0', '0.00', '5', '5.00', '18', '18.00', '40', '40.00'];
+        if (!allowed.includes(String(val))) {
+          return 'Please select a valid GST tax rate (0%, 5%, 18%, or 40%).';
+        }
+        return null;
+      },
       address: (val: string) => {
         const trimmed = (val ?? '').trim();
         if (trimmed && trimmed.length < 5) return 'Address must be at least 5 characters.';
@@ -58,11 +68,20 @@ export const SettingsPage: React.FC = () => {
         currency: 'INR',
         timezone: 'Asia/Kolkata',
       });
+      clearApiCache('/salons/');
       setSalon(updated);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
     },
   });
+
+  const suggestedSlug = useMemo(() => {
+    return (salonForm.values.name || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  }, [salonForm.values.name]);
 
   // Branch creation modal & validation
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
@@ -206,13 +225,19 @@ export const SettingsPage: React.FC = () => {
           </FormField>
 
           <div>
-            <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">Public Web Slug</label>
+            <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">
+              Public Web Slug & Online Booking URL
+            </label>
             <input
               type="text"
               disabled
               value={salon?.slug || 'ruhi-beauty-salon'}
-              className="input-field opacity-60 cursor-not-allowed"
+              className="input-field opacity-75 font-mono text-xs cursor-not-allowed"
             />
+            <p className="text-[11px] text-[var(--text-secondary)] mt-1 flex items-center gap-1.5">
+              <span>Suggested URL path:</span>
+              <span className="font-mono text-[#2868ff] font-semibold">/{suggestedSlug || salon?.slug}</span>
+            </p>
           </div>
         </div>
 
@@ -251,24 +276,33 @@ export const SettingsPage: React.FC = () => {
             />
           </FormField>
 
-          <FormField
-            id="taxRate"
-            label="GST Tax Rate (%)"
-            error={salonForm.errors.tax_rate}
-            touched={salonForm.touched.tax_rate}
-          >
-            <input
-              id="taxRate"
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-              value={salonForm.values.tax_rate}
-              onChange={salonForm.handleChange('tax_rate')}
-              onBlur={salonForm.handleBlur('tax_rate')}
-              className={`input-field ${salonForm.touched.tax_rate && salonForm.errors.tax_rate ? 'input-error' : ''}`}
+          <div>
+            <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">
+              GST Tax Rate <span className="text-red-500">*</span>
+            </label>
+            <CustomSelect
+              value={
+                ['0', '0.00'].includes(String(salonForm.values.tax_rate))
+                  ? '0.00'
+                  : ['5', '5.00'].includes(String(salonForm.values.tax_rate))
+                  ? '5.00'
+                  : ['40', '40.00'].includes(String(salonForm.values.tax_rate))
+                  ? '40.00'
+                  : '18.00'
+              }
+              onChange={(val) => salonForm.setFieldValue('tax_rate', val)}
+              options={[
+                { value: '0.00', label: '0% (Exempt / Nil Rated)' },
+                { value: '5.00', label: '5% (Essential Products)' },
+                { value: '18.00', label: '18% (Standard Beauty & Hair Services)' },
+                { value: '40.00', label: '40% (Luxury Cosmetics & Special Treatments)' },
+              ]}
+              size="sm"
             />
-          </FormField>
+            {salonForm.errors.tax_rate && (
+              <p className="text-[11px] text-red-500 mt-1">{salonForm.errors.tax_rate}</p>
+            )}
+          </div>
         </div>
 
         <FormField
@@ -300,47 +334,66 @@ export const SettingsPage: React.FC = () => {
         </div>
       </form>
 
-      {/* Physical Branches Management */}
-      <div className="card-surface p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#5C9764] dark:text-[#7DB585]" />
-              Studio Branches ({branches.length})
-            </h3>
-            <p className="text-xs text-[var(--text-secondary)]">Configure multi-location salon operations in Gujarat</p>
-          </div>
-          <button
-            onClick={() => setIsBranchModalOpen(true)}
-            className="btn-secondary btn-sm"
-          >
-            <Plus className="w-3.5 h-3.5 text-[#059669]" />
-            <span>Add Branch</span>
-          </button>
-        </div>
-
-        <div className="divide-y divide-[var(--border)]">
-          {branches.map((b) => (
-            <div key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[var(--surface-secondary)]/30 rounded-lg px-2 transition-colors">
-              <div>
-                <p className="font-bold text-[var(--text-primary)] flex items-center gap-2">
-                  {b.name}
-                  {b.is_primary && (
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] rounded-md border border-emerald-200 dark:border-emerald-800/40">
-                      Primary Studio
-                    </span>
-                  )}
-                </p>
-                <p className="text-[var(--text-secondary)] mt-0.5">{b.address}, {b.city}</p>
-              </div>
-              <div className="text-[var(--text-secondary)] flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                <span>{b.opening_time.slice(0, 5)} - {b.closing_time.slice(0, 5)}</span>
-              </div>
+      {/* Physical Branches Management (Protected / Centralized Routing) */}
+      {SHOW_BRANCH_MANAGEMENT ? (
+        <div className="card-surface p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#5C9764] dark:text-[#7DB585]" />
+                Studio Branches ({branches.length})
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)]">Configure multi-location salon operations in Gujarat</p>
             </div>
-          ))}
+            <button
+              onClick={() => setIsBranchModalOpen(true)}
+              className="btn-secondary btn-sm"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#059669]" />
+              <span>Add Branch</span>
+            </button>
+          </div>
+
+          <div className="divide-y divide-[var(--border)]">
+            {branches.map((b) => (
+              <div key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[var(--surface-secondary)]/30 rounded-lg px-2 transition-colors">
+                <div>
+                  <p className="font-bold text-[var(--text-primary)] flex items-center gap-2">
+                    {b.name}
+                    {b.is_primary && (
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] rounded-md border border-emerald-200 dark:border-emerald-800/40">
+                        Primary Studio
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[var(--text-secondary)] mt-0.5">{b.address}, {b.city}</p>
+                </div>
+                <div className="text-[var(--text-secondary)] flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                  <span>{b.opening_time.slice(0, 5)} - {b.closing_time.slice(0, 5)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="card-surface p-5 border border-dashed border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#2868ff]/10 text-[#2868ff] flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[var(--text-primary)]">Branch Operations</p>
+              <p className="text-[11px] text-[var(--text-secondary)]">
+                Operating on primary salon headquarters ({branch?.name || salon?.name || 'Main Studio'}). Multi-branch franchise routing is managed by Superadmin.
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md shrink-0 self-start sm:self-center">
+            Single Studio Active
+          </span>
+        </div>
+      )}
 
       {/* Add Branch Modal */}
       {isBranchModalOpen && (

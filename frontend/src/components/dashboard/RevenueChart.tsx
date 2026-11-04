@@ -17,6 +17,8 @@ export interface RevenueChartProps {
   title?: string;
   subtitle?: string;
   periodLabel?: string;
+  selectedDays?: number;
+  onDaysChange?: (days: number) => void;
   viewMode?: 'revenue' | 'combined';
   onToggleViewMode?: (mode: 'revenue' | 'combined') => void;
 }
@@ -26,17 +28,21 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
   isLoading = false,
   className = '',
   title = 'Revenue Overview',
-  subtitle = 'Last 7 days performance · Indian Rupees (₹)',
-  periodLabel = 'Last 7 Days',
+  subtitle = 'Actual salon revenue performance · Indian Rupees (₹)',
+  periodLabel,
+  selectedDays = 7,
+  onDaysChange,
   viewMode = 'revenue',
   onToggleViewMode,
 }) => {
   const gradientId = useId();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  const chartData = data && data.length > 0 ? data : [];
+  const rawData = data && data.length > 0 ? data : [];
+  const chartData = selectedDays && rawData.length > selectedDays ? rawData.slice(-selectedDays) : rawData;
   const totalRevenue = chartData.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
   const avgDailyRevenue = chartData.length > 0 ? Math.round(totalRevenue / chartData.length) : 0;
+  const effectivePeriodLabel = periodLabel || `Last ${selectedDays} Days`;
 
   // Responsive SVG Geometry
   const width = 640;
@@ -173,14 +179,33 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
               {title}
             </h3>
             <span className="text-[11px] font-semibold text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E294B] px-2.5 py-0.5 rounded-full border border-[#BFDBFE]/60">
-              {periodLabel}
+              {effectivePeriodLabel}
             </span>
           </div>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-0.5">{subtitle}</p>
         </div>
 
-        {/* Right Controls: View Toggle + Period Stats without collisions */}
-        <div className="flex items-center gap-3 sm:gap-4 self-start sm:self-auto">
+        {/* Right Controls: Date Range Selector + View Toggle + Period Stats */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">
+          {onDaysChange && (
+            <div className="flex items-center bg-[#F1F5F9] dark:bg-[#1C2542] p-1 rounded-xl border border-[#CBD5E1]/60 dark:border-[#252F4E] text-xs">
+              {[7, 14, 30].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => onDaysChange(d)}
+                  className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
+                    selectedDays === d
+                      ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
+                      : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                  }`}
+                >
+                  {d}D
+                </button>
+              ))}
+            </div>
+          )}
+
           {onToggleViewMode && (
             <div className="flex items-center bg-[#F1F5F9] dark:bg-[#1C2542] p-1 rounded-xl border border-[#CBD5E1]/60 dark:border-[#252F4E]">
               <button

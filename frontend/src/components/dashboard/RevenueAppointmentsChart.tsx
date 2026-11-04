@@ -11,6 +11,8 @@ export interface RevenueAppointmentsChartProps {
   title?: string;
   subtitle?: string;
   periodLabel?: string;
+  selectedDays?: number;
+  onDaysChange?: (days: number) => void;
   viewMode?: 'revenue' | 'combined';
   onToggleViewMode?: (mode: 'revenue' | 'combined') => void;
 }
@@ -20,8 +22,10 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
   isLoading = false,
   className = '',
   title = 'Revenue & Appointments Combined',
-  subtitle = 'Dual-metric 7-day volume & financial trends',
-  periodLabel = 'Last 7 Days',
+  subtitle = 'Dual-metric volume & financial trends · Indian Rupees (₹)',
+  periodLabel,
+  selectedDays = 7,
+  onDaysChange,
   viewMode = 'combined',
   onToggleViewMode,
 }) => {
@@ -30,9 +34,11 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
   const [showRevenue, setShowRevenue] = useState(true);
   const [showBookings, setShowBookings] = useState(true);
 
-  const chartData = data && data.length > 0 ? data : [];
+  const rawData = data && data.length > 0 ? data : [];
+  const chartData = selectedDays && rawData.length > selectedDays ? rawData.slice(-selectedDays) : rawData;
   const totalRevenue = chartData.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
   const totalBookings = chartData.reduce((acc, curr) => acc + (curr.appointments || 0), 0);
+  const effectivePeriodLabel = periodLabel || `Last ${selectedDays} Days`;
 
   // SVG Dimensions
   const width = 640;
@@ -128,9 +134,9 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
             <h3 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-[#F8FAFC] tracking-tight">
               {title}
             </h3>
-            {periodLabel && (
+            {effectivePeriodLabel && (
               <span className="text-[11px] font-semibold text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E294B] px-2.5 py-0.5 rounded-full border border-[#BFDBFE]/60">
-                {periodLabel}
+                {effectivePeriodLabel}
               </span>
             )}
           </div>
@@ -139,6 +145,24 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
 
         {/* View Toggle + Metric Visibility */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs self-start sm:self-auto">
+          {onDaysChange && (
+            <div className="flex items-center bg-[#F1F5F9] dark:bg-[#1C2542] p-1 rounded-xl border border-[#CBD5E1]/60 dark:border-[#252F4E] text-xs">
+              {[7, 14, 30].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => onDaysChange(d)}
+                  className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
+                    selectedDays === d
+                      ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
+                      : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                  }`}
+                >
+                  {d}D
+                </button>
+              ))}
+            </div>
+          )}
           {onToggleViewMode && (
             <div className="flex items-center bg-[#F1F5F9] dark:bg-[#1C2542] p-1 rounded-xl border border-[#CBD5E1]/60 dark:border-[#252F4E]">
               <button
