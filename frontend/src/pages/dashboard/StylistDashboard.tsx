@@ -5,7 +5,6 @@ import {
   User,
   CheckCircle2,
   PlayCircle,
-  Sparkles,
   Scissors,
   Phone,
   AlertCircle
@@ -14,80 +13,58 @@ import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Appointment, AppointmentStatus, StaffProfile } from '../../types';
 import { MetricCardSkeleton, AppointmentCardSkeleton } from '../../components/ui/Skeleton';
+import { useStaff, useAppointments, useInvalidateQueries } from '../../hooks/useQueries';
 
 export const StylistDashboard: React.FC = () => {
   const { user, salon, branch } = useAuth();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [myStaffProfile, setMyStaffProfile] = useState<StaffProfile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [todayDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [todayDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+
+  const { data: staffList = [] } = useStaff(branch?.id);
+  const myStaffProfile = React.useMemo(
+    () => staffList.find((s) => s.user === user?.id) || null,
+    [staffList, user?.id]
+  );
+
+  const {
+    data: rawAppointments = [],
+    isLoading,
+    refetch,
+  } = useAppointments({
+    date: todayDate,
+    branchId: branch?.id,
+    staffId: myStaffProfile?.id,
+  });
+
+  const { invalidateAppointments, invalidateMetrics } = useInvalidateQueries();
+
+  const appointments = React.useMemo(() => {
+    if (!myStaffProfile) return rawAppointments;
+    return rawAppointments.filter(
+      (a) => a.staff === myStaffProfile.id || a.staff_details?.user === user?.id
+    );
+  }, [rawAppointments, myStaffProfile, user?.id]);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchStylistData = async () => {
-      setIsLoading(true);
-      try {
-        // 1. Fetch staff profiles to identify this stylist's staff ID
-        const staffRes = await api.get<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/', {
-          signal: controller.signal,
-        });
-        const staffList = Array.isArray(staffRes) ? staffRes : staffRes.results || [];
-        const currentStaff = staffList.find((s) => s.user === user?.id) || null;
-        setMyStaffProfile(currentStaff);
-
-        // 2. Fetch appointments for today
-        let url = `/appointments/bookings/?date=${todayDate}`;
-        if (currentStaff) {
-          url += `&staff=${currentStaff.id}`;
-        }
-        if (branch) {
-          url += `&branch=${branch.id}`;
-        }
-
-        const apptRes = await api.get<{ results?: Appointment[] } | Appointment[]>(url, {
-          signal: controller.signal,
-        });
-        const apptList = Array.isArray(apptRes) ? apptRes : apptRes.results || [];
-
-        // Extra client-side filter if backend didn't filter by staff
-        const filtered = currentStaff
-          ? apptList.filter((a) => a.staff === currentStaff.id || a.staff_details?.user === user?.id)
-          : apptList;
-
-        setAppointments(filtered);
-      } catch (err: any) {
-        if (err?.name !== 'AbortError') {
-          setAppointments([]);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStylistData();
-
     const handleSync = () => {
-      fetchStylistData();
+      refetch();
     };
     window.addEventListener('appointment:created', handleSync);
     window.addEventListener('appointment:updated', handleSync);
 
     return () => {
-      controller.abort();
       window.removeEventListener('appointment:created', handleSync);
       window.removeEventListener('appointment:updated', handleSync);
     };
-  }, [branch?.id]);
+  }, [refetch]);
 
   const updateAppointmentStatus = async (appointmentId: string, newStatus: AppointmentStatus) => {
     setActionLoading(appointmentId);
     try {
       await api.patch(`/appointments/bookings/${appointmentId}/`, { status: newStatus });
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === appointmentId ? { ...a, status: newStatus } : a))
-      );
+      invalidateAppointments();
+      invalidateMetrics();
+      refetch();
     } catch {
       // Silently handle error
     } finally {
@@ -100,18 +77,18 @@ export const StylistDashboard: React.FC = () => {
   const upcomingCount = appointments.filter((a) => a.status === 'CONFIRMED' || a.status === 'PENDING').length;
 
   return (
-    <div className="space-y-6 sm:space-y-8 page-enter">
+    <div className="space-y-6 sm:space-y-8 page-enter font-sans">
       {/* Page Title & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
             Welcome, {user?.first_name || user?.full_name || 'Stylist'}
           </h1>
-          <p className="text-xs md:text-sm text-[#64748B] dark:text-[#C4BFD0] mt-1">
+          <p className="text-xs md:text-sm text-[#6B7280] dark:text-[#94A3B8] mt-1">
             Personal appointment queue and service schedule for today at {salon?.name || 'Ruhi Beauty Salon'}.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-[#0284C7] dark:text-[#38BDF8] bg-sky-50 dark:bg-sky-950/30 px-3 py-1.5 rounded-full border border-sky-200 dark:border-sky-800/60 self-start sm:self-auto shadow-sm">
+        <div className="flex items-center gap-2 text-xs font-semibold text-[#0A24E9] dark:text-[#4D68FF] bg-[#EEF2FF] dark:bg-[#1E294B] px-3.5 py-1.5 rounded-full border border-[#0A24E9]/20 self-start sm:self-auto shadow-xs">
           <Scissors className="w-3.5 h-3.5" />
           <span>Stylist Workspace · {myStaffProfile?.title || 'Hair & Beauty Specialist'}</span>
         </div>
@@ -121,82 +98,82 @@ export const StylistDashboard: React.FC = () => {
       {isLoading ? (
         <MetricCardSkeleton count={4} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {/* Total Today */}
-          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+          <div className="card-surface p-5 hover:-translate-y-0.5 transition-all duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#94A3B8]">
                 Today's Clients
               </span>
-              <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] flex items-center justify-center">
                 <User className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {appointments.length}
               </h3>
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
+              <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-2">
                 Scheduled for today ({todayDate})
               </p>
             </div>
           </div>
 
           {/* In Progress */}
-          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+          <div className="card-surface p-5 hover:-translate-y-0.5 transition-all duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#94A3B8]">
                 In Service Now
               </span>
-              <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-[#D97706] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-[#D97706] flex items-center justify-center">
                 <PlayCircle className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {inProgressCount}
               </h3>
-              <p className="text-xs text-[#D97706] mt-1.5 font-semibold">
+              <p className="text-xs text-[#D97706] mt-2 font-semibold">
                 Currently attending client
               </p>
             </div>
           </div>
 
           {/* Upcoming */}
-          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+          <div className="card-surface p-5 hover:-translate-y-0.5 transition-all duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#94A3B8]">
                 Upcoming Today
               </span>
-              <div className="w-9 h-9 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-[#0284C7] dark:text-[#38BDF8] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] flex items-center justify-center">
                 <Clock className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {upcomingCount}
               </h3>
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
+              <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-2">
                 Pending client arrivals
               </p>
             </div>
           </div>
 
           {/* Completed */}
-          <div className="card-surface p-5 hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200">
+          <div className="card-surface p-5 hover:-translate-y-0.5 transition-all duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#94A3B8]">
                 Completed Visits
               </span>
-              <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#F0FDF4] dark:bg-[#142A1D] text-[#5C9764] dark:text-[#7DB585] flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {completedCount}
               </h3>
-              <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold">
+              <p className="text-xs text-[#5C9764] dark:text-[#7DB585] mt-2 font-semibold">
                 Finished successfully
               </p>
             </div>
@@ -210,14 +187,14 @@ export const StylistDashboard: React.FC = () => {
         <div className="lg:col-span-2 card-surface p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-base font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+              <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
                 My Appointments for Today
               </h3>
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0]">
+              <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
                 Client schedule and instant service progress updates
               </p>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-[#211A32] text-[#64748B] dark:text-[#C4BFD0]">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#F0F2F5] dark:bg-[#1C2542] text-[#6B7280] dark:text-[#94A3B8]">
               {todayDate}
             </span>
           </div>
@@ -227,55 +204,55 @@ export const StylistDashboard: React.FC = () => {
               <AppointmentCardSkeleton count={3} />
             </div>
           ) : appointments.length === 0 ? (
-            <div className="py-12 text-center text-xs text-[#64748B] dark:text-[#C4BFD0] space-y-2">
+            <div className="py-12 text-center text-xs text-[#6B7280] dark:text-[#94A3B8] space-y-2">
               <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
-              <p className="font-semibold text-[#1E1B2E] dark:text-[#F8FAFC]">No appointments assigned today</p>
+              <p className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">No appointments assigned today</p>
               <p className="text-[11px]">Enjoy your break or consult the front desk for walk-in clients.</p>
             </div>
           ) : (
-            <div className="divide-y divide-[#E2E8F0] dark:divide-[#332A46]">
+            <div className="divide-y divide-[#CACED6]/40 dark:divide-[#252F4E]/60">
               {appointments.map((appt) => (
-                <div key={appt.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-[var(--surface-secondary)]/30 rounded-lg px-2 transition-colors">
+                <div key={appt.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-[#F0F2F5]/60 dark:hover:bg-[#1C2542]/60 rounded-xl px-2.5 transition-colors">
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#1E1B2E] dark:text-[#F8FAFC]">
+                      <span className="font-bold text-sm text-[#0B0D17] dark:text-[#F8FAFC]">
                         {appt.customer_details?.full_name || 'Walk-in Client'}
                       </span>
                       <span
-                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                           appt.status === 'COMPLETED'
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981]'
+                            ? 'bg-[#F0FDF4] dark:bg-[#142A1D] text-[#5C9764] dark:text-[#7DB585] border border-[#5C9764]/30'
                             : appt.status === 'IN_PROGRESS'
-                            ? 'bg-amber-50 dark:bg-amber-950/40 text-[#D97706]'
-                            : 'bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6]'
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-[#D97706] border border-amber-200'
+                            : 'bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] border border-[#0A24E9]/20'
                         }`}
                       >
                         {appt.status.replace('_', ' ')}
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[#64748B] dark:text-[#C4BFD0] text-[11px]">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[#6B7280] dark:text-[#94A3B8] text-[11px]">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-purple-500" />
+                        <Clock className="w-3.5 h-3.5 text-[#0A24E9] dark:text-[#4D68FF]" />
                         {appt.start_time} - {appt.end_time} ({appt.total_duration_minutes} min)
                       </span>
                       {appt.customer_details?.phone && (
                         <span className="flex items-center gap-1">
-                          <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                          <Phone className="w-3.5 h-3.5 text-[#5C9764] dark:text-[#7DB585]" />
                           {appt.customer_details.phone}
                         </span>
                       )}
                     </div>
 
                     <div className="flex items-center gap-1.5 pt-1">
-                      <Scissors className="w-3.5 h-3.5 text-[#6D28D9] dark:text-[#8B5CF6]" />
-                      <span className="font-medium text-[#1E1B2E] dark:text-[#F8FAFC]">
+                      <Scissors className="w-3.5 h-3.5 text-[#0A24E9] dark:text-[#4D68FF]" />
+                      <span className="font-medium text-[#0B0D17] dark:text-[#F8FAFC]">
                         {appt.items?.map((i) => i.service_name).join(', ') || 'Service treatment'}
                       </span>
                     </div>
 
                     {appt.notes && (
-                      <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0] italic bg-slate-50 dark:bg-[#211A32] p-1.5 rounded mt-1">
+                      <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8] italic bg-[#F0F2F5] dark:bg-[#1C2542] p-2 rounded-lg mt-1 border border-[#CACED6]/40 dark:border-[#252F4E]/40">
                         "{appt.notes}"
                       </p>
                     )}
@@ -287,7 +264,7 @@ export const StylistDashboard: React.FC = () => {
                       <button
                         onClick={() => updateAppointmentStatus(appt.id, 'IN_PROGRESS')}
                         disabled={actionLoading === appt.id}
-                        className="btn-primary btn-sm bg-[#0284C7] hover:bg-[#0369A1]"
+                        className="btn-primary btn-sm"
                       >
                         <PlayCircle className="w-3.5 h-3.5" />
                         <span>Start Service</span>
@@ -313,62 +290,62 @@ export const StylistDashboard: React.FC = () => {
         {/* Stylist Profile & Status Summary Card */}
         <div className="card-surface p-6 space-y-5">
           <div>
-            <h3 className="text-base font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
+            <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
               Stylist Profile
             </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0]">
+            <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
               Your active station & professional details
             </p>
           </div>
 
-          <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
+          <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-[#F0F2F5] dark:bg-[#1C2542] border border-[#CACED6]/70 dark:border-[#252F4E]">
             <div
-              className="w-12 h-12 rounded-xl text-white font-bold flex items-center justify-center text-lg shadow-sm shrink-0 ring-2 ring-white/10"
-              style={{ backgroundColor: myStaffProfile?.color_code || '#6D28D9' }}
+              className="w-12 h-12 rounded-xl text-white font-bold flex items-center justify-center text-lg shadow-xs shrink-0 ring-2 ring-white/10"
+              style={{ backgroundColor: myStaffProfile?.color_code || '#0A24E9' }}
             >
               {user?.first_name?.[0] || 'S'}
             </div>
             <div className="min-w-0">
-              <h4 className="font-bold text-sm text-[#1E1B2E] dark:text-[#F8FAFC] truncate">
+              <h4 className="font-bold text-sm text-[#0B0D17] dark:text-[#F8FAFC] truncate">
                 {user?.full_name || user?.username}
               </h4>
-              <p className="text-xs text-[#6D28D9] dark:text-[#8B5CF6] font-semibold">
+              <p className="text-xs text-[#0A24E9] dark:text-[#4D68FF] font-semibold">
                 {myStaffProfile?.title || 'Hair Stylist'}
               </p>
-              <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0] truncate">
+              <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8] truncate">
                 {user?.email}
               </p>
             </div>
           </div>
 
           <div className="space-y-2.5 text-xs">
-            <div className="flex justify-between py-1.5 border-b border-[#E2E8F0] dark:border-[#332A46]">
-              <span className="text-[#64748B] dark:text-[#C4BFD0]">Assigned Branch:</span>
-              <span className="font-semibold text-[#1E1B2E] dark:text-[#F8FAFC]">
+            <div className="flex justify-between py-1.5 border-b border-[#CACED6]/40 dark:border-[#252F4E]/60">
+              <span className="text-[#6B7280] dark:text-[#94A3B8]">Assigned Branch:</span>
+              <span className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">
                 {branch?.name || myStaffProfile?.branch_name || 'Main Studio'}
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-[#E2E8F0] dark:border-[#332A46]">
-              <span className="text-[#64748B] dark:text-[#C4BFD0]">Online Bookable:</span>
-              <span className="font-semibold text-[#059669] dark:text-[#10B981] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+            <div className="flex justify-between py-1.5 border-b border-[#CACED6]/40 dark:border-[#252F4E]/60">
+              <span className="text-[#6B7280] dark:text-[#94A3B8]">Online Bookable:</span>
+              <span className="font-semibold text-[#5C9764] dark:text-[#7DB585] flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#5C9764] animate-pulse"></span>
                 Active for clients
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-[#E2E8F0] dark:border-[#332A46]">
-              <span className="text-[#64748B] dark:text-[#C4BFD0]">Commission Tier:</span>
-              <span className="font-bold text-[#059669] dark:text-[#10B981]">
+            <div className="flex justify-between py-1.5 border-b border-[#CACED6]/40 dark:border-[#252F4E]/60">
+              <span className="text-[#6B7280] dark:text-[#94A3B8]">Commission Tier:</span>
+              <span className="font-bold text-[#5C9764] dark:text-[#7DB585] tabular-nums">
                 {myStaffProfile?.commission_rate || '15'}%
               </span>
             </div>
           </div>
 
           {myStaffProfile?.bio && (
-            <div className="p-3 bg-slate-50 dark:bg-[#211A32] rounded-lg border border-[var(--border)] text-xs">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0] mb-1">
+            <div className="p-3 bg-[#F0F2F5] dark:bg-[#1C2542] rounded-xl border border-[#CACED6]/60 dark:border-[#252F4E] text-xs">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#A9B6C0] dark:text-[#94A3B8] mb-1">
                 Bio & Specializations
               </p>
-              <p className="text-[#1E1B2E] dark:text-[#F8FAFC] text-[11px]">
+              <p className="text-[#0B0D17] dark:text-[#F8FAFC] text-[11px]">
                 {myStaffProfile.bio}
               </p>
             </div>

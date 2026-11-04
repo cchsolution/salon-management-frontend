@@ -320,6 +320,24 @@ export const WebsiteBuilderPage: React.FC = () => {
     }
   };
 
+  // Sync latest builder state to local preview cache so Live Site opens instantly with zero latency
+  const handleSyncLivePreview = () => {
+    if (salon?.slug) {
+      try {
+        const previewPayload = {
+          salon,
+          theme,
+          sections: sections.filter((s) => s.is_enabled),
+          services,
+          team: staff,
+          branches,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(`luxe_storefront_preview_${salon.slug}`, JSON.stringify(previewPayload));
+      } catch {}
+    }
+  };
+
   const selectedSection = sections.find((s) => s.id === selectedSectionId);
 
   // Theme tokens
@@ -416,7 +434,9 @@ export const WebsiteBuilderPage: React.FC = () => {
               href={`/s/${salon.slug}`}
               target="_blank"
               rel="noreferrer"
+              onClick={handleSyncLivePreview}
               className="hidden lg:inline-flex items-center gap-1.5 btn-secondary btn-sm"
+              title="Open live salon storefront in a new tab"
             >
               <ExternalLink className="w-3.5 h-3.5 text-[#6D28D9] dark:text-[#8B5CF6]" />
               <span>Live Site</span>
@@ -1053,7 +1073,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                                       </span>
                                     )}
                                   </div>
-                                  <h3 className="font-serif font-bold text-sm text-slate-900">
+                                  <h3 className="font-bold text-sm text-slate-900">
                                     {svc.name}
                                   </h3>
                                   {content.show_description !== false && (
@@ -1147,7 +1167,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                                     className="w-full h-full object-cover"
                                   />
                                 </div>
-                                <h3 className="font-serif font-bold text-sm text-slate-900">
+                                <h3 className="font-bold text-sm text-slate-900">
                                   {stf.user_details?.full_name || stf.title}
                                 </h3>
                                 <p
@@ -1457,7 +1477,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                               >
                                 <MapPin className="w-6 h-6" />
                               </div>
-                              <p className="font-serif font-bold text-slate-900 text-base">
+                              <p className="font-bold text-slate-900 text-base">
                                 Himmatnagar Central Studio
                               </p>
                               <p className="text-xs text-slate-500 max-w-xs">{address}</p>

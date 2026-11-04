@@ -214,7 +214,7 @@ export const BrandThemeEditor: React.FC<BrandThemeEditorProps> = ({ theme, onCha
           <select
             value={theme.font_heading || 'Playfair Display'}
             onChange={(e) => onChange({ ...theme, font_heading: e.target.value })}
-            className="select-field py-1.5 text-xs font-serif"
+            className="select-field py-1.5 text-xs"
           >
             {TYPOGRAPHY_OPTIONS.headings.map((h) => (
               <option key={h.value} value={h.value}>

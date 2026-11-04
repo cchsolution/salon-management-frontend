@@ -289,6 +289,8 @@ export interface Product {
   low_stock_threshold: number;
   total_stock: number;
   is_active: boolean;
+  quantity_on_hand?: number;
+  is_low_stock?: boolean;
   stock_levels?: {
     id: string;
     branch: string;

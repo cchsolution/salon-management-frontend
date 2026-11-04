@@ -9,119 +9,139 @@ import {
   Sun,
   Moon,
   Laptop,
-  Check
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme, ThemeMode } from '../../context/ThemeContext';
 import { Branch, Salon } from '../../types';
+import { FormField } from '../../components/ui/FormField';
+import { Validation } from '../../utils/validation';
+import { useFormValidation } from '../../hooks/useFormValidation';
 
 export const SettingsPage: React.FC = () => {
   const { salon, branches, setSalon, branch, setBranch } = useAuth();
   const { themeMode, setThemeMode } = useTheme();
 
-  const [salonName, setSalonName] = useState(salon?.name || '');
-  const [salonEmail, setSalonEmail] = useState(salon?.email || '');
-  const [salonPhone, setSalonPhone] = useState(salon?.phone || '');
-  const [salonAddress, setSalonAddress] = useState(salon?.address || '');
-  const [taxRate, setTaxRate] = useState(salon?.tax_rate?.toString() || '18.00');
-
-  const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Branch creation modal
-  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
-  const [bName, setBName] = useState('');
-  const [bAddress, setBAddress] = useState('');
-  const [bCity, setBCity] = useState('Himmatnagar');
-  const [bOpen, setBOpen] = useState('09:00');
-  const [bClose, setBClose] = useState('20:00');
-
-  useEffect(() => {
-    if (salon) {
-      setSalonName(salon.name);
-      setSalonEmail(salon.email);
-      setSalonPhone(salon.phone);
-      setSalonAddress(salon.address);
-      setTaxRate(salon.tax_rate?.toString() || '18.00');
-    }
-  }, [salon]);
-
-  const handleSaveSalon = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!salon) return;
-    setIsSaving(true);
-    setSaveSuccess(false);
-    try {
+  // Salon Profile Form & Validation
+  const salonForm = useFormValidation({
+    initialValues: {
+      name: salon?.name || '',
+      email: salon?.email || '',
+      phone: salon?.phone || '',
+      address: salon?.address || '',
+      tax_rate: salon?.tax_rate?.toString() || '18.00',
+    },
+    validationSchema: {
+      name: Validation.name('Salon name', 2, 80, true),
+      email: Validation.email(false),
+      phone: Validation.phone(false, 'IN'),
+      tax_rate: Validation.percentage('GST tax rate', false),
+      address: (val: string) => {
+        const trimmed = (val ?? '').trim();
+        if (trimmed && trimmed.length < 5) return 'Address must be at least 5 characters.';
+        return null;
+      },
+    },
+    onSubmit: async (values) => {
+      if (!salon) return;
+      setSaveSuccess(false);
       const updated = await api.patch<Salon>(`/salons/${salon.slug}/`, {
-        name: salonName,
-        email: salonEmail,
-        phone: salonPhone,
-        address: salonAddress,
-        tax_rate: parseFloat(taxRate),
+        name: values.name.trim(),
+        email: values.email.trim(),
+        phone: values.phone.trim(),
+        address: values.address.trim(),
+        tax_rate: parseFloat(values.tax_rate) || 0,
         currency: 'INR',
         timezone: 'Asia/Kolkata',
       });
       setSalon(updated);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
-    } catch (err: any) {
-      alert(err.message || 'Failed to update salon profile.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    },
+  });
 
-  const handleCreateBranch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
+  // Branch creation modal & validation
+  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const branchForm = useFormValidation({
+    initialValues: {
+      name: '',
+      city: 'Himmatnagar',
+      address: '',
+      opening_time: '09:00',
+      closing_time: '20:00',
+    },
+    validationSchema: {
+      name: Validation.name('Branch name', 2, 60, true),
+      city: Validation.name('City', 2, 40, true),
+      address: Validation.name('Full address', 5, 200, true),
+      opening_time: Validation.required('Opening time'),
+      closing_time: (val: string, all: any) => {
+        if (!val) return 'Closing time is required.';
+        if (all.opening_time && val <= all.opening_time) {
+          return 'Closing time must be after opening time.';
+        }
+        return null;
+      },
+    },
+    onSubmit: async (values) => {
       await api.post('/branches/', {
-        name: bName,
-        address: bAddress,
-        city: bCity,
-        opening_time: `${bOpen}:00`,
-        closing_time: `${bClose}:00`,
+        name: values.name.trim(),
+        address: values.address.trim(),
+        city: values.city.trim(),
+        opening_time: `${values.opening_time}:00`,
+        closing_time: `${values.closing_time}:00`,
       });
       setIsBranchModalOpen(false);
-      setBName('');
-      setBAddress('');
+      branchForm.reset();
       window.location.reload();
-    } catch (err: any) {
-      alert(err.message || 'Failed to create branch.');
+    },
+  });
+
+  useEffect(() => {
+    if (salon) {
+      salonForm.setFieldValue('name', salon.name);
+      salonForm.setFieldValue('email', salon.email || '');
+      salonForm.setFieldValue('phone', salon.phone || '');
+      salonForm.setFieldValue('address', salon.address || '');
+      salonForm.setFieldValue('tax_rate', salon.tax_rate?.toString() || '18.00');
     }
-  };
+  }, [salon]);
 
   const themeOptions: { mode: ThemeMode; label: string; desc: string; icon: React.ElementType }[] = [
-    { mode: 'light', label: 'Light Mode (Default)', desc: 'Crisp #F8FAFC canvas with White cards & Deep Purple brand accents', icon: Sun },
-    { mode: 'dark', label: 'Dark Mode (Engineered)', desc: 'Sophisticated #0F0B1A backdrop with #171225 surfaces and soft purple', icon: Moon },
+    { mode: 'light', label: 'Light Mode (Default)', desc: 'Crisp #F0F2F5 canvas with White cards & Royal Blue brand accents', icon: Sun },
+    { mode: 'dark', label: 'Dark Mode (Engineered)', desc: 'Sophisticated #0E1222 midnight navy backdrop with #141A2E surfaces', icon: Moon },
     { mode: 'system', label: 'System Sync', desc: 'Dynamically aligns with your operating system preference', icon: Laptop },
   ];
 
   return (
-    <div className="space-y-8 page-enter">
+    <div className="space-y-8 page-enter font-sans">
       {/* Page Title */}
       <div>
-        <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
           Salon Organization Settings
         </h1>
-        <p className="text-xs text-[var(--text-secondary)]">
+        <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
           Manage brand configuration, physical studio branches in Gujarat, operating hours, and appearance.
         </p>
       </div>
 
       {saveSuccess && (
-        <div className="p-3 text-xs text-[#059669] dark:text-[#10B981] bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg font-semibold animate-fade-in">
+        <div className="p-3 text-xs text-[#5C9764] dark:text-[#7DB585] bg-[#F0FDF4] dark:bg-[#142A1D] border border-[#5C9764]/30 rounded-xl font-semibold animate-fadeIn">
           Salon settings saved successfully!
         </div>
       )}
 
       {/* Theme & Visual System Settings */}
       <div className="card-surface p-6 space-y-4">
-        <h3 className="text-base font-serif font-bold text-[var(--text-primary)] flex items-center gap-2">
-          <Palette className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
+        <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+          <Palette className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
           Visual Theme & Display Preferences
         </h3>
-        <p className="text-xs text-[var(--text-secondary)]">
+        <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
           Choose the global color mode for your dashboard and management modules. Persisted across sessions.
         </p>
 
@@ -134,17 +154,16 @@ export const SettingsPage: React.FC = () => {
                 key={opt.mode}
                 type="button"
                 onClick={() => setThemeMode(opt.mode)}
-                className={`p-4 rounded-xl border text-left transition-all duration-200 relative hover:-translate-y-0.5 ${
-                  isSelected
-                    ? 'bg-purple-50/70 dark:bg-purple-950/40 border-[#6D28D9] dark:border-[#8B5CF6] shadow-sm ring-1 ring-[#6D28D9]/30'
-                    : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#6D28D9]/40 hover:shadow-sm'
-                }`}
+                className={`p-4 rounded-xl border text-left transition-all duration-200 relative hover:-translate-y-0.5 cursor-pointer ${isSelected
+                    ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] dark:border-[#4D68FF] shadow-sm ring-1 ring-[#0A24E9]/30'
+                    : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#0A24E9]/40 hover:shadow-xs'
+                  }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-[#6D28D9] text-white shadow-sm' : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)]'}`}>
+                  <div className={`p-2 rounded-lg transition-colors ${isSelected ? 'bg-[#0A24E9] text-white shadow-xs' : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)]'}`}>
                     <Icon className="w-4 h-4" />
                   </div>
-                  {isSelected && <Check className="w-4 h-4 text-[#059669] dark:text-[#10B981]" />}
+                  {isSelected && <Check className="w-4 h-4 text-[#5C9764] dark:text-[#7DB585]" />}
                 </div>
                 <p className="font-bold text-xs text-[var(--text-primary)]">{opt.label}</p>
                 <p className="text-[11px] text-[var(--text-secondary)] mt-1">{opt.desc}</p>
@@ -155,26 +174,39 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Main Settings Form */}
-      <form onSubmit={handleSaveSalon} className="card-surface p-6 space-y-5 text-xs">
-        <h3 className="text-base font-serif font-bold text-[var(--text-primary)] flex items-center gap-2">
-          <Building className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
+      <form onSubmit={salonForm.handleSubmit} noValidate className="card-surface p-6 space-y-5 text-xs">
+        <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+          <Building className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
           General Salon Profile (India)
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-[var(--text-secondary)] font-semibold mb-1">Salon Name</label>
-            <input
-              type="text"
-              value={salonName}
-              onChange={(e) => setSalonName(e.target.value)}
-              className="input-field"
-              required
-            />
+        {salonForm.submitError && (
+          <div className="flex items-center gap-2 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900/40">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+            <span>{salonForm.submitError}</span>
           </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            id="salonName"
+            label="Salon Name"
+            required
+            error={salonForm.errors.name}
+            touched={salonForm.touched.name}
+          >
+            <input
+              id="salonName"
+              type="text"
+              value={salonForm.values.name}
+              onChange={salonForm.handleChange('name')}
+              onBlur={salonForm.handleBlur('name')}
+              className={`input-field ${salonForm.touched.name && salonForm.errors.name ? 'input-error' : ''}`}
+            />
+          </FormField>
 
           <div>
-            <label className="block text-[var(--text-secondary)] font-semibold mb-1">Public Web Slug</label>
+            <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">Public Web Slug</label>
             <input
               type="text"
               disabled
@@ -185,56 +217,85 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-[var(--text-secondary)] font-semibold mb-1">Business Email</label>
+          <FormField
+            id="salonEmail"
+            label="Business Email"
+            error={salonForm.errors.email}
+            touched={salonForm.touched.email}
+          >
             <input
+              id="salonEmail"
               type="email"
-              value={salonEmail}
-              onChange={(e) => setSalonEmail(e.target.value)}
-              className="input-field"
+              placeholder="e.g. contact@salon.in"
+              value={salonForm.values.email}
+              onChange={salonForm.handleChange('email')}
+              onBlur={salonForm.handleBlur('email')}
+              className={`input-field ${salonForm.touched.email && salonForm.errors.email ? 'input-error' : ''}`}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className="block text-[var(--text-secondary)] font-semibold mb-1">Business Phone</label>
+          <FormField
+            id="salonPhone"
+            label="Business Phone"
+            error={salonForm.errors.phone}
+            touched={salonForm.touched.phone}
+          >
             <input
-              type="text"
-              value={salonPhone}
-              onChange={(e) => setSalonPhone(e.target.value)}
-              className="input-field"
+              id="salonPhone"
+              type="tel"
+              placeholder="e.g. 98250 12345"
+              value={salonForm.values.phone}
+              onChange={salonForm.handleChange('phone')}
+              onBlur={salonForm.handleBlur('phone')}
+              className={`input-field ${salonForm.touched.phone && salonForm.errors.phone ? 'input-error' : ''}`}
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className="block text-[var(--text-secondary)] font-semibold mb-1">GST Tax Rate (%)</label>
+          <FormField
+            id="taxRate"
+            label="GST Tax Rate (%)"
+            error={salonForm.errors.tax_rate}
+            touched={salonForm.touched.tax_rate}
+          >
             <input
+              id="taxRate"
               type="number"
               step="0.01"
-              value={taxRate}
-              onChange={(e) => setTaxRate(e.target.value)}
-              className="input-field"
+              min="0"
+              max="100"
+              value={salonForm.values.tax_rate}
+              onChange={salonForm.handleChange('tax_rate')}
+              onBlur={salonForm.handleBlur('tax_rate')}
+              className={`input-field ${salonForm.touched.tax_rate && salonForm.errors.tax_rate ? 'input-error' : ''}`}
             />
-          </div>
+          </FormField>
         </div>
 
-        <div>
-          <label className="block text-[var(--text-secondary)] font-semibold mb-1">Primary Studio Address</label>
+        <FormField
+          id="salonAddress"
+          label="Primary Studio Address"
+          error={salonForm.errors.address}
+          touched={salonForm.touched.address}
+        >
           <textarea
+            id="salonAddress"
             rows={2}
-            value={salonAddress}
-            onChange={(e) => setSalonAddress(e.target.value)}
-            className="textarea-field"
+            placeholder="Studio street, complex, city, pincode..."
+            value={salonForm.values.address}
+            onChange={salonForm.handleChange('address')}
+            onBlur={salonForm.handleBlur('address')}
+            className={`textarea-field ${salonForm.touched.address && salonForm.errors.address ? 'input-error' : ''}`}
           />
-        </div>
+        </FormField>
 
         <div className="pt-2 flex justify-end">
           <button
             type="submit"
-            disabled={isSaving}
-            className="btn-primary"
+            disabled={salonForm.isSubmitting}
+            className="btn-primary btn-sm disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Saving Changes...' : 'Save Organization Settings'}</span>
+            <span>{salonForm.isSubmitting ? 'Saving Changes...' : 'Save Organization Settings'}</span>
           </button>
         </div>
       </form>
@@ -243,8 +304,8 @@ export const SettingsPage: React.FC = () => {
       <div className="card-surface p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-serif font-bold text-[var(--text-primary)] flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#059669] dark:text-[#10B981]" />
+            <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#5C9764] dark:text-[#7DB585]" />
               Studio Branches ({branches.length})
             </h3>
             <p className="text-xs text-[var(--text-secondary)]">Configure multi-location salon operations in Gujarat</p>
@@ -285,77 +346,135 @@ export const SettingsPage: React.FC = () => {
       {isBranchModalOpen && (
         <div className="modal-overlay">
           <div className="modal-container max-w-md p-6 space-y-4">
-            <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">Add New Branch</h3>
-            <form onSubmit={handleCreateBranch} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Branch Name *</label>
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Add New Branch</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsBranchModalOpen(false);
+                  branchForm.reset();
+                }}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            {branchForm.submitError && (
+              <div className="flex items-center gap-2 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900/40">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{branchForm.submitError}</span>
+              </div>
+            )}
+
+            <form onSubmit={branchForm.handleSubmit} noValidate className="space-y-3 text-xs">
+              <FormField
+                id="bName"
+                label="Branch Name"
+                required
+                error={branchForm.errors.name}
+                touched={branchForm.touched.name}
+              >
                 <input
+                  id="bName"
                   type="text"
                   placeholder="e.g. Ahmedabad CG Road Branch"
-                  value={bName}
-                  onChange={(e) => setBName(e.target.value)}
-                  className="input-field"
-                  required
+                  value={branchForm.values.name}
+                  onChange={branchForm.handleChange('name')}
+                  onBlur={branchForm.handleBlur('name')}
+                  className={`input-field ${branchForm.touched.name && branchForm.errors.name ? 'input-error' : ''}`}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">City</label>
+              <FormField
+                id="bCity"
+                label="City"
+                required
+                error={branchForm.errors.city}
+                touched={branchForm.touched.city}
+              >
                 <input
+                  id="bCity"
                   type="text"
                   placeholder="e.g. Himmatnagar"
-                  value={bCity}
-                  onChange={(e) => setBCity(e.target.value)}
-                  className="input-field"
+                  value={branchForm.values.city}
+                  onChange={branchForm.handleChange('city')}
+                  onBlur={branchForm.handleBlur('city')}
+                  className={`input-field ${branchForm.touched.city && branchForm.errors.city ? 'input-error' : ''}`}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Full Address *</label>
+              <FormField
+                id="bAddress"
+                label="Full Address"
+                required
+                error={branchForm.errors.address}
+                touched={branchForm.touched.address}
+              >
                 <textarea
+                  id="bAddress"
                   rows={2}
                   placeholder="e.g. Shop 4-5, Shivalik Complex, Motipura..."
-                  value={bAddress}
-                  onChange={(e) => setBAddress(e.target.value)}
-                  className="textarea-field"
-                  required
+                  value={branchForm.values.address}
+                  onChange={branchForm.handleChange('address')}
+                  onBlur={branchForm.handleBlur('address')}
+                  className={`textarea-field ${branchForm.touched.address && branchForm.errors.address ? 'input-error' : ''}`}
                 />
-              </div>
+              </FormField>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Opening Time</label>
+                <FormField
+                  id="bOpen"
+                  label="Opening Time"
+                  required
+                  error={branchForm.errors.opening_time}
+                  touched={branchForm.touched.opening_time}
+                >
                   <input
+                    id="bOpen"
                     type="time"
-                    value={bOpen}
-                    onChange={(e) => setBOpen(e.target.value)}
+                    value={branchForm.values.opening_time}
+                    onChange={branchForm.handleChange('opening_time')}
+                    onBlur={branchForm.handleBlur('opening_time')}
                     className="input-field"
                   />
-                </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Closing Time</label>
+                </FormField>
+
+                <FormField
+                  id="bClose"
+                  label="Closing Time"
+                  required
+                  error={branchForm.errors.closing_time}
+                  touched={branchForm.touched.closing_time}
+                >
                   <input
+                    id="bClose"
                     type="time"
-                    value={bClose}
-                    onChange={(e) => setBClose(e.target.value)}
-                    className="input-field"
+                    value={branchForm.values.closing_time}
+                    onChange={branchForm.handleChange('closing_time')}
+                    onBlur={branchForm.handleBlur('closing_time')}
+                    className={`input-field ${branchForm.touched.closing_time && branchForm.errors.closing_time ? 'input-error' : ''}`}
                   />
-                </div>
+                </FormField>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                 <button
                   type="button"
-                  onClick={() => setIsBranchModalOpen(false)}
+                  onClick={() => {
+                    setIsBranchModalOpen(false);
+                    branchForm.reset();
+                  }}
                   className="btn-ghost"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary"
+                  disabled={branchForm.isSubmitting}
+                  className="btn-primary disabled:opacity-50"
                 >
-                  Save Branch
+                  {branchForm.isSubmitting ? 'Saving...' : 'Save Branch'}
                 </button>
               </div>
             </form>

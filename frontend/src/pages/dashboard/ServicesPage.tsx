@@ -17,134 +17,112 @@ import { Service, ServiceCategory, StaffProfile } from '../../types';
 import { CardGridSkeleton } from '../../components/ui/Skeleton';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
+import { useServices, useCategories, useStaff, useInvalidateQueries } from '../../hooks/useQueries';
+import { FormField } from '../../components/ui/FormField';
+import { Validation, extractBackendErrors } from '../../utils/validation';
+import { useFormValidation } from '../../hooks/useFormValidation';
 
 export const ServicesPage: React.FC = () => {
   const { hasPermission } = useAuth();
   const canManageServices = hasPermission('MANAGE_SERVICES');
 
-  const [services, setServices] = useState<Service[]>(() => {
-    const c = api.getCached<{ results?: Service[] } | Service[]>('/catalog/services/');
-    return Array.isArray(c) ? c : c?.results || [];
-  });
-  const [categories, setCategories] = useState<ServiceCategory[]>(() => {
-    const c = api.getCached<{ results?: ServiceCategory[] } | ServiceCategory[]>('/catalog/categories/');
-    return Array.isArray(c) ? c : c?.results || [];
-  });
-  const [staffList, setStaffList] = useState<StaffProfile[]>(() => {
-    const c = api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/');
-    return Array.isArray(c) ? c : c?.results || [];
-  });
+  const { data: services = [], isLoading: isServicesLoading } = useServices();
+  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
+  const { data: staffList = [] } = useStaff();
+  const { invalidateCatalog } = useInvalidateQueries();
+
+  const isLoading = isServicesLoading && isCategoriesLoading && services.length === 0 && categories.length === 0;
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [isLoading, setIsLoading] = useState<boolean>(() => services.length === 0 && categories.length === 0);
 
-  // New Service Modal
+  // New Service Modal & Validation
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [svcName, setSvcName] = useState('');
-  const [svcCategory, setSvcCategory] = useState(() => (categories.length > 0 ? categories[0].id : ''));
-  const [svcPrice, setSvcPrice] = useState('');
-  const [svcDiscountPrice, setSvcDiscountPrice] = useState('');
-  const [svcDuration, setSvcDuration] = useState('45');
-  const [svcDesc, setSvcDesc] = useState('');
-  const [svcFeatured, setSvcFeatured] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  // Category Modal
-  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-  const [newCatName, setNewCatName] = useState('');
-  const [newCatDesc, setNewCatDesc] = useState('');
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    if (services.length === 0) {
-      setIsLoading(true);
-    }
-    try {
-      const [svcRes, catRes, staffRes] = await Promise.all([
-        api.get<{ results?: Service[] } | Service[]>('/catalog/services/'),
-        api.get<{ results?: ServiceCategory[] } | ServiceCategory[]>('/catalog/categories/'),
-        api.get<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/'),
-      ]);
-
-      const sList = Array.isArray(svcRes) ? svcRes : svcRes.results || [];
-      const cList = Array.isArray(catRes) ? catRes : catRes.results || [];
-      const stList = Array.isArray(staffRes) ? staffRes : staffRes.results || [];
-
-      setServices(sList);
-      setCategories(cList);
-      setStaffList(stList);
-
-      if (cList.length > 0 && !svcCategory) {
-        setSvcCategory(cList[0].id);
-      }
-    } catch {
-      // Fallback
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateService = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    try {
+  const serviceForm = useFormValidation({
+    initialValues: {
+      name: '',
+      category: '',
+      price: '',
+      discount_price: '',
+      duration_minutes: '45',
+      description: '',
+      is_featured: false,
+    },
+    validationSchema: {
+      name: Validation.name('Service name', 2, 80, true),
+      category: Validation.required('Category'),
+      price: Validation.price('Service price', 1, true),
+      duration_minutes: Validation.quantity('Duration', 5, true),
+      discount_price: (val: string, all: any) => {
+        if (!val || val.trim() === '') return null;
+        const dp = Number(val);
+        const p = Number(all.price);
+        if (isNaN(dp) || dp < 0) return 'Discount price must be a valid positive amount.';
+        if (!isNaN(p) && p > 0 && dp >= p) return 'Discount price must be lower than original price.';
+        return null;
+      },
+    },
+    onSubmit: async (values) => {
       const payload: any = {
-        name: svcName,
-        category: svcCategory,
-        price: parseFloat(svcPrice),
-        duration_minutes: parseInt(svcDuration),
-        description: svcDesc,
-        is_featured: svcFeatured,
+        name: values.name.trim(),
+        category: values.category || (categories.length > 0 ? categories[0].id : ''),
+        price: parseFloat(values.price),
+        duration_minutes: parseInt(values.duration_minutes, 10),
+        description: values.description.trim(),
+        is_featured: values.is_featured,
       };
-      if (svcDiscountPrice) {
-        payload.discount_price = parseFloat(svcDiscountPrice);
+      if (values.discount_price.trim()) {
+        payload.discount_price = parseFloat(values.discount_price);
       }
 
       await api.post('/catalog/services/', payload);
+      invalidateCatalog();
       setIsModalOpen(false);
-      setSvcName('');
-      setSvcPrice('');
-      setSvcDiscountPrice('');
-      setSvcDesc('');
-      setSvcFeatured(false);
-      fetchData();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to create service.');
-    }
-  };
+      serviceForm.reset();
+    },
+  });
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
+  // Category Modal & Validation
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const categoryForm = useFormValidation({
+    initialValues: {
+      name: '',
+      description: '',
+    },
+    validationSchema: {
+      name: Validation.name('Category name', 2, 50, true),
+    },
+    onSubmit: async (values) => {
       await api.post('/catalog/categories/', {
-        name: newCatName,
-        description: newCatDesc,
+        name: values.name.trim(),
+        description: values.description.trim(),
       });
+      invalidateCatalog();
       setIsCatModalOpen(false);
-      setNewCatName('');
-      setNewCatDesc('');
-      fetchData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to create category.');
-    }
-  };
+      categoryForm.reset();
+    },
+  });
 
-  const filteredServices =
-    activeCategory === 'all'
+  // Default first category
+  useEffect(() => {
+    if (categories.length > 0 && !serviceForm.values.category) {
+      serviceForm.setFieldValue('category', categories[0].id);
+    }
+  }, [categories, serviceForm.values.category]);
+
+  const filteredServices = React.useMemo(() => {
+    return activeCategory === 'all'
       ? services
       : services.filter((s) => s.category === activeCategory);
+  }, [services, activeCategory]);
 
   return (
-    <div className="space-y-6 page-enter">
+    <div className="space-y-6 page-enter font-sans">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
             Services & Treatments Catalog
           </h1>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
             Configure hair, spa, bridal, and skincare treatments with pricing in INR, durations, and qualified stylists.
           </p>
         </div>
@@ -153,14 +131,14 @@ export const ServicesPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsCatModalOpen(true)}
-              className="btn-outline btn-md"
+              className="btn-outline btn-md shadow-xs"
             >
-              <Layers className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
+              <Layers className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
               <span>New Category</span>
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="btn-primary btn-md"
+              className="btn-primary btn-md shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Add Service</span>
@@ -173,9 +151,9 @@ export const ServicesPage: React.FC = () => {
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[var(--border)]">
         <button
           onClick={() => setActiveCategory('all')}
-          className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-150 active:scale-95 ${
+          className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer ${
             activeCategory === 'all'
-              ? 'bg-[#6D28D9] dark:bg-[#8B5CF6] text-white shadow-sm'
+              ? 'bg-[#0A24E9] text-white shadow-xs'
               : 'bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--text-primary)] hover:border-slate-400'
           }`}
         >
@@ -185,9 +163,9 @@ export const ServicesPage: React.FC = () => {
           <button
             key={c.id}
             onClick={() => setActiveCategory(c.id)}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-150 active:scale-95 ${
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer ${
               activeCategory === c.id
-                ? 'bg-[#6D28D9] dark:bg-[#8B5CF6] text-white shadow-sm'
+                ? 'bg-[#0A24E9] text-white shadow-xs'
                 : 'bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--text-primary)] hover:border-slate-400'
             }`}
           >
@@ -201,10 +179,10 @@ export const ServicesPage: React.FC = () => {
         <CardGridSkeleton count={6} columns="3" />
       ) : filteredServices.length === 0 ? (
         <div className="card-surface p-12 text-center">
-          <Scissors className="w-10 h-10 text-purple-300 dark:text-purple-800 mx-auto" />
-          <h3 className="text-base font-serif font-bold text-[var(--text-primary)] mt-3">No Services in this Category</h3>
+          <Scissors className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+          <h3 className="text-base font-bold text-[var(--text-primary)] mt-3">No Services in this Category</h3>
           <p className="text-xs text-[var(--text-secondary)] mt-1">Get started by creating your first salon treatment.</p>
-          <button onClick={() => setIsModalOpen(true)} className="mt-4 btn-primary btn-md">
+          <button onClick={() => setIsModalOpen(true)} className="mt-4 btn-primary btn-md shadow-sm">
             Add Service
           </button>
         </div>
@@ -213,7 +191,7 @@ export const ServicesPage: React.FC = () => {
           {filteredServices.map((svc) => (
             <div
               key={svc.id}
-              className="card-surface p-5 hover:border-[#6D28D9]/40 hover:-translate-y-1 transition-all flex flex-col justify-between"
+              className="card-surface p-5 hover:border-[#0A24E9]/40 hover:-translate-y-1 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -221,20 +199,20 @@ export const ServicesPage: React.FC = () => {
                     {svc.category_name || 'General'}
                   </span>
                   {svc.is_featured && (
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] rounded-md border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1">
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-[#F0FDF4] dark:bg-[#142A1D] text-[#5C9764] dark:text-[#7DB585] rounded-md border border-[#5C9764]/30 flex items-center gap-1">
                       <Sparkles className="w-2.5 h-2.5" /> Featured
                     </span>
                   )}
                 </div>
 
-                <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">{svc.name}</h3>
+                <h3 className="text-base font-bold text-[var(--text-primary)]">{svc.name}</h3>
                 <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">
                   {svc.description || 'Premium salon treatment customized to client style and condition.'}
                 </p>
 
                 <div className="flex items-center gap-4 mt-3 text-xs text-[var(--text-secondary)]">
                   <span className="flex items-center gap-1 font-medium">
-                    <Clock className="w-3.5 h-3.5 text-[#6D28D9] dark:text-[#8B5CF6]" />
+                    <Clock className="w-3.5 h-3.5 text-[#0A24E9] dark:text-[#4D68FF]" />
                     {svc.duration_minutes} mins
                   </span>
                   <span className="flex items-center gap-1 font-bold text-[var(--text-primary)] tabular-nums">
@@ -276,96 +254,145 @@ export const ServicesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-lg bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 max-h-[90vh] overflow-y-auto animate-scaleIn">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
-              <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">Add New Service</h3>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Add New Service</h3>
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  serviceForm.reset();
+                }}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 ✕
               </button>
             </div>
-            {formError && <p className="text-xs text-[#DC2626] bg-[#DC2626]/10 p-2.5 rounded-xl border border-red-200 dark:border-red-900/40">{formError}</p>}
-            <form onSubmit={handleCreateService} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Service Name *</label>
+            {serviceForm.submitError && (
+              <div className="flex items-center gap-2 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900/40">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{serviceForm.submitError}</span>
+              </div>
+            )}
+            <form onSubmit={serviceForm.handleSubmit} noValidate className="space-y-4 text-xs">
+              <FormField
+                id="svcName"
+                label="Service Name"
+                required
+                error={serviceForm.errors.name}
+                touched={serviceForm.touched.name}
+              >
                 <input
+                  id="svcName"
                   type="text"
                   placeholder="e.g. Hair Spa & Deep Conditioning"
-                  value={svcName}
-                  onChange={(e) => setSvcName(e.target.value)}
-                  className="input-field"
-                  required
+                  value={serviceForm.values.name}
+                  onChange={serviceForm.handleChange('name')}
+                  onBlur={serviceForm.handleBlur('name')}
+                  className={`input-field ${serviceForm.touched.name && serviceForm.errors.name ? 'input-error' : ''}`}
                 />
-              </div>
+              </FormField>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Category</label>
+                <FormField
+                  id="svcCat"
+                  label="Category"
+                  required
+                  error={serviceForm.errors.category}
+                  touched={serviceForm.touched.category}
+                >
                   <CustomSelect
-                    value={svcCategory}
-                    onChange={setSvcCategory}
+                    value={serviceForm.values.category}
+                    onChange={(val) => serviceForm.setFieldValue('category', val)}
                     options={categories.map((c) => ({
                       value: c.id,
                       label: c.name,
                     }))}
                   />
-                </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Duration (Minutes)</label>
+                </FormField>
+
+                <FormField
+                  id="svcDuration"
+                  label="Duration (Minutes)"
+                  required
+                  error={serviceForm.errors.duration_minutes}
+                  touched={serviceForm.touched.duration_minutes}
+                >
                   <input
+                    id="svcDuration"
                     type="number"
-                    value={svcDuration}
-                    onChange={(e) => setSvcDuration(e.target.value)}
-                    className="input-field"
+                    min="5"
+                    step="5"
+                    value={serviceForm.values.duration_minutes}
+                    onChange={serviceForm.handleChange('duration_minutes')}
+                    onBlur={serviceForm.handleBlur('duration_minutes')}
+                    className={`input-field ${serviceForm.touched.duration_minutes && serviceForm.errors.duration_minutes ? 'input-error' : ''}`}
                   />
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Price (₹) *</label>
+                <FormField
+                  id="svcPrice"
+                  label="Price (₹)"
+                  required
+                  error={serviceForm.errors.price}
+                  touched={serviceForm.touched.price}
+                >
                   <input
+                    id="svcPrice"
                     type="number"
                     step="1"
+                    min="1"
                     placeholder="e.g. 1200"
-                    value={svcPrice}
-                    onChange={(e) => setSvcPrice(e.target.value)}
-                    className="input-field"
-                    required
+                    value={serviceForm.values.price}
+                    onChange={serviceForm.handleChange('price')}
+                    onBlur={serviceForm.handleBlur('price')}
+                    className={`input-field ${serviceForm.touched.price && serviceForm.errors.price ? 'input-error' : ''}`}
                   />
-                </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Discount Price (Optional ₹)</label>
+                </FormField>
+
+                <FormField
+                  id="svcDiscountPrice"
+                  label="Discount Price (Optional ₹)"
+                  error={serviceForm.errors.discount_price}
+                  touched={serviceForm.touched.discount_price}
+                >
                   <input
+                    id="svcDiscountPrice"
                     type="number"
                     step="1"
+                    min="0"
                     placeholder="Leave empty if none"
-                    value={svcDiscountPrice}
-                    onChange={(e) => setSvcDiscountPrice(e.target.value)}
-                    className="input-field"
+                    value={serviceForm.values.discount_price}
+                    onChange={serviceForm.handleChange('discount_price')}
+                    onBlur={serviceForm.handleBlur('discount_price')}
+                    className={`input-field ${serviceForm.touched.discount_price && serviceForm.errors.discount_price ? 'input-error' : ''}`}
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Description</label>
+              <FormField
+                id="svcDesc"
+                label="Description"
+                error={serviceForm.errors.description}
+                touched={serviceForm.touched.description}
+              >
                 <textarea
+                  id="svcDesc"
                   rows={2}
                   placeholder="Service highlights, formulas used..."
-                  value={svcDesc}
-                  onChange={(e) => setSvcDesc(e.target.value)}
+                  value={serviceForm.values.description}
+                  onChange={serviceForm.handleChange('description')}
                   className="textarea-field"
                 />
-              </div>
+              </FormField>
 
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="featuredCheck"
-                  checked={svcFeatured}
-                  onChange={(e) => setSvcFeatured(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#6D28D9] focus:ring-[#6D28D9] cursor-pointer"
+                  checked={serviceForm.values.is_featured}
+                  onChange={serviceForm.handleChange('is_featured')}
+                  className="w-4 h-4 rounded text-[#0A24E9] focus:ring-[#0A24E9] cursor-pointer"
                 />
                 <label htmlFor="featuredCheck" className="text-[var(--text-primary)] font-medium cursor-pointer">
                   Feature on Salon Website Homepage
@@ -375,16 +402,20 @@ export const ServicesPage: React.FC = () => {
               <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    serviceForm.reset();
+                  }}
                   className="btn-ghost btn-md"
                 >
-                  Cancel
+                  <span>Cancel</span>
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary btn-md"
+                  disabled={serviceForm.isSubmitting}
+                  className="btn-primary btn-md shadow-sm disabled:opacity-50"
                 >
-                  Save Service
+                  <span>{serviceForm.isSubmitting ? 'Saving Service...' : 'Save Service'}</span>
                 </button>
               </div>
             </form>
@@ -397,50 +428,76 @@ export const ServicesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 animate-scaleIn">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
-              <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">New Service Category</h3>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">New Service Category</h3>
               <button
                 type="button"
-                onClick={() => setIsCatModalOpen(false)}
+                onClick={() => {
+                  setIsCatModalOpen(false);
+                  categoryForm.reset();
+                }}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 ✕
               </button>
             </div>
-            <form onSubmit={handleCreateCategory} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Category Name *</label>
+            {categoryForm.submitError && (
+              <div className="flex items-center gap-2 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900/40">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{categoryForm.submitError}</span>
+              </div>
+            )}
+            <form onSubmit={categoryForm.handleSubmit} noValidate className="space-y-4 text-xs">
+              <FormField
+                id="newCatName"
+                label="Category Name"
+                required
+                error={categoryForm.errors.name}
+                touched={categoryForm.touched.name}
+              >
                 <input
+                  id="newCatName"
                   type="text"
                   placeholder="e.g. Bridal Makeup & Mehendi"
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                  className="input-field"
-                  required
+                  value={categoryForm.values.name}
+                  onChange={categoryForm.handleChange('name')}
+                  onBlur={categoryForm.handleBlur('name')}
+                  className={`input-field ${categoryForm.touched.name && categoryForm.errors.name ? 'input-error' : ''}`}
                 />
-              </div>
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Description</label>
+              </FormField>
+
+              <FormField
+                id="newCatDesc"
+                label="Description"
+                error={categoryForm.errors.description}
+                touched={categoryForm.touched.description}
+              >
                 <textarea
+                  id="newCatDesc"
                   rows={2}
                   placeholder="Brief summary of treatments in this category"
-                  value={newCatDesc}
-                  onChange={(e) => setNewCatDesc(e.target.value)}
+                  value={categoryForm.values.description}
+                  onChange={categoryForm.handleChange('description')}
                   className="textarea-field"
                 />
-              </div>
+              </FormField>
+
               <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                 <button
                   type="button"
-                  onClick={() => setIsCatModalOpen(false)}
+                  onClick={() => {
+                    setIsCatModalOpen(false);
+                    categoryForm.reset();
+                  }}
                   className="btn-ghost btn-md"
                 >
-                  Cancel
+                  <span>Cancel</span>
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary btn-md"
+                  disabled={categoryForm.isSubmitting}
+                  className="btn-primary btn-md disabled:opacity-50"
                 >
-                  Create Category
+                  <span>{categoryForm.isSubmitting ? 'Creating Category...' : 'Create Category'}</span>
                 </button>
               </div>
             </form>

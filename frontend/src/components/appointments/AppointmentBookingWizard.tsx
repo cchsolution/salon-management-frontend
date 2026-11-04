@@ -22,6 +22,18 @@ import { api, clearApiCache } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Service, ServiceCategory, ServiceStyle, StaffProfile, Customer } from '../../types';
 import { formatINR } from '../../utils/currency';
+import {
+  useCategories,
+  useServices,
+  useStyles,
+  useStaff,
+  useClients,
+  useAvailableSlots,
+  useInvalidateQueries,
+} from '../../hooks/useQueries';
+import { useDebounce } from '../../hooks/useDebounce';
+import { FormField } from '../ui/FormField';
+import { Validation, extractBackendErrors } from '../../utils/validation';
 
 interface AppointmentBookingWizardProps {
   isOpen: boolean;
@@ -41,23 +53,36 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
   const { branch, branches } = useAuth();
 
   // Wizard Step: 1 = Customer, 2 = Services, 3 = Stylist & Style, 4 = Date & Time, 5 = Review & Confirm
+  // Wizard Step: 1 = Customer, 2 = Services, 3 = Stylist & Style, 4 = Date & Time, 5 = Review & Confirm
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Data Catalogs
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [styles, setStyles] = useState<ServiceStyle[]>([]);
-  const [staffList, setStaffList] = useState<StaffProfile[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  // Data Catalogs via TanStack React Query (cached across app, 0ms load on open)
+  const { data: categories = [] } = useCategories();
+  const { data: services = [] } = useServices();
+  const { data: styles = [] } = useStyles();
+  const { data: staffList = [] } = useStaff(branch?.id);
+  const { data: initialCustomers = [] } = useClients();
+  const { invalidateAppointments, invalidateMetrics, invalidateClients } = useInvalidateQueries();
+
+  // Local newly created customers in this session
+  const [createdCustomers, setCreatedCustomers] = useState<Customer[]>([]);
+  const customers = useMemo(() => {
+    if (createdCustomers.length === 0) return initialCustomers;
+    const existingIds = new Set(createdCustomers.map((c) => c.id));
+    return [...createdCustomers, ...initialCustomers.filter((c) => !existingIds.has(c.id))];
+  }, [createdCustomers, initialCustomers]);
 
   // Selection States
   // Step 1: Customer
   const [customerSearch, setCustomerSearch] = useState<string>('');
+  const debouncedCustomerSearch = useDebounce(customerSearch, 200);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showNewCustomerForm, setShowNewCustomerForm] = useState<boolean>(false);
   const [newCustName, setNewCustName] = useState<string>('');
   const [newCustPhone, setNewCustPhone] = useState<string>('');
   const [newCustEmail, setNewCustEmail] = useState<string>('');
+  const [newCustErrors, setNewCustErrors] = useState<{ name?: string; phone?: string; email?: string }>({});
+  const [newCustTouched, setNewCustTouched] = useState<{ name?: boolean; phone?: boolean; email?: boolean }>({});
   const [isCreatingCustomer, setIsCreatingCustomer] = useState<boolean>(false);
   const [customerFormError, setCustomerFormError] = useState<string | null>(null);
 
@@ -68,6 +93,13 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
   // Step 3: Stylist & Style
   const [selectedStaffId, setSelectedStaffId] = useState<string>(initialStaffId || '');
   const [selectedStyleId, setSelectedStyleId] = useState<string>('');
+
+  // Auto-select initial stylist when staff list resolves
+  useEffect(() => {
+    if (staffList.length > 0 && !selectedStaffId) {
+      setSelectedStaffId(initialStaffId || staffList[0].id);
+    }
+  }, [staffList, selectedStaffId, initialStaffId]);
 
   // Step 4: Date & Slots (Timezone: Asia/Kolkata)
   const todayKolkata = useMemo(() => {
@@ -84,9 +116,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
   }, []);
 
   const [bookingDate, setBookingDate] = useState<string>(initialDate || todayKolkata);
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
-  const [isSlotLoading, setIsSlotLoading] = useState<boolean>(false);
 
   // Step 5: Notes & Submit
   const [internalNotes, setInternalNotes] = useState<string>('');
@@ -94,63 +124,18 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<boolean>(false);
 
-  // Initial Load
+  // Reset steps & feedback when modal opens
   useEffect(() => {
     if (!isOpen) return;
-
-    // Reset state on open
     setCurrentStep(1);
     setBookingSuccess(false);
     setBookingError(null);
     setCustomerFormError(null);
+  }, [isOpen]);
 
-    const loadData = async () => {
-      try {
-        const [catRes, svcRes, staffRes, custRes, stylesRes] = await Promise.allSettled([
-          api.get<{ results?: ServiceCategory[] } | ServiceCategory[]>('/catalog/categories/'),
-          api.get<{ results?: Service[] } | Service[]>('/catalog/services/'),
-          api.get<{ results?: StaffProfile[] } | StaffProfile[]>(
-            branch?.id ? `/catalog/staff/?branch=${branch.id}` : '/catalog/staff/'
-          ),
-          api.get<{ results?: Customer[] } | Customer[]>('/crm/clients/'),
-          api.get<{ results?: ServiceStyle[] } | ServiceStyle[]>('/catalog/styles/'),
-        ]);
-
-        if (catRes.status === 'fulfilled') {
-          const val = catRes.value;
-          setCategories(Array.isArray(val) ? val : val.results || []);
-        }
-        if (svcRes.status === 'fulfilled') {
-          const val = svcRes.value;
-          setServices(Array.isArray(val) ? val : val.results || []);
-        }
-        if (staffRes.status === 'fulfilled') {
-          const val = staffRes.value;
-          const staff = Array.isArray(val) ? val : val.results || [];
-          setStaffList(staff);
-          if (staff.length > 0 && !selectedStaffId) {
-            setSelectedStaffId(staff[0].id);
-          }
-        }
-        if (custRes.status === 'fulfilled') {
-          const val = custRes.value;
-          setCustomers(Array.isArray(val) ? val : val.results || []);
-        }
-        if (stylesRes.status === 'fulfilled') {
-          const val = stylesRes.value;
-          setStyles(Array.isArray(val) ? val : val.results || []);
-        }
-      } catch (err: any) {
-        console.error('Failed to load catalog data for booking wizard', err);
-      }
-    };
-
-    loadData();
-  }, [isOpen, branch?.id]);
-
-  // Filtered Customers by search
+  // Filtered Customers by debounced search
   const filteredCustomers = useMemo(() => {
-    const q = customerSearch.trim().toLowerCase();
+    const q = debouncedCustomerSearch.trim().toLowerCase();
     if (!q) return customers.slice(0, 10);
     return customers.filter(
       (c) =>
@@ -158,7 +143,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
         c.phone?.includes(q) ||
         c.email?.toLowerCase().includes(q)
     );
-  }, [customers, customerSearch]);
+  }, [customers, debouncedCustomerSearch]);
 
   // Filtered Services by category
   const filteredServices = useMemo(() => {
@@ -214,53 +199,42 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
     return styles.find((st) => st.id === selectedStyleId);
   }, [styles, selectedStyleId]);
 
-  // Fetch slots whenever staff, date, or services change
-  useEffect(() => {
-    if (!selectedStaffId || !bookingDate || selectedServiceIds.length === 0) {
-      setAvailableSlots([]);
-      setSelectedSlot('');
-      return;
-    }
+  // Fetch slots efficiently only when date, stylist, and services are chosen
+  const isSlotQueryEnabled = isOpen && Boolean(selectedStaffId && bookingDate && selectedServiceIds.length > 0);
+  const { data: rawSlots = [], isLoading: isSlotLoading } = useAvailableSlots(
+    {
+      staffId: selectedStaffId,
+      date: bookingDate,
+      duration: totalDurationMinutes,
+      branchId: branch?.id,
+    },
+    isSlotQueryEnabled
+  );
 
-    const fetchSlots = async () => {
-      setIsSlotLoading(true);
+  const availableSlots = useMemo(() => {
+    if (!isSlotQueryEnabled) return [];
+    let slots = rawSlots;
+    if (bookingDate === todayKolkata) {
       try {
-        const branchParam = branch?.id || '';
-        const dur = Math.max(totalDurationMinutes, 15);
-        const res = await api.get<{ slots: string[] }>(
-          `/appointments/bookings/available_slots/?staff_id=${selectedStaffId}&date=${bookingDate}&duration=${dur}&branch_id=${branchParam}`
-        );
+        const nowKolkata = new Intl.DateTimeFormat('en-GB', {
+          timeZone: 'Asia/Kolkata',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).format(new Date());
+        slots = slots.filter((slot) => slot >= nowKolkata);
+      } catch {}
+    }
+    return slots;
+  }, [rawSlots, bookingDate, todayKolkata, isSlotQueryEnabled]);
 
-        let slots = res.slots || [];
-
-        // If booking for today in Asia/Kolkata timezone, filter out past time slots
-        if (bookingDate === todayKolkata) {
-          const nowKolkata = new Intl.DateTimeFormat('en-GB', {
-            timeZone: 'Asia/Kolkata',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          }).format(new Date());
-
-          slots = slots.filter((slot) => slot >= nowKolkata);
-        }
-
-        setAvailableSlots(slots);
-        if (slots.length > 0) {
-          setSelectedSlot((prev) => (slots.includes(prev) ? prev : slots[0]));
-        } else {
-          setSelectedSlot('');
-        }
-      } catch {
-        setAvailableSlots([]);
-        setSelectedSlot('');
-      } finally {
-        setIsSlotLoading(false);
-      }
-    };
-
-    fetchSlots();
-  }, [selectedStaffId, bookingDate, totalDurationMinutes, branch?.id, todayKolkata]);
+  useEffect(() => {
+    if (availableSlots.length > 0) {
+      setSelectedSlot((prev) => (availableSlots.includes(prev) ? prev : availableSlots[0]));
+    } else {
+      setSelectedSlot('');
+    }
+  }, [availableSlots]);
 
   // Toggle service selection
   const handleToggleService = (svcId: string) => {
@@ -273,15 +247,24 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
     });
   };
 
-  // Inline Quick Add Customer
+  // Inline Quick Add Customer with full field-level validation
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCustPhone.trim()) {
-      setCustomerFormError('Valid phone number is required.');
-      return;
-    }
-    if (!newCustName.trim()) {
-      setCustomerFormError('Customer name is required.');
+
+    setNewCustTouched({ name: true, phone: true, email: true });
+
+    const nameErr = Validation.name('Client full name', 2, 80, true)(newCustName);
+    const phoneErr = Validation.phone(true, 'IN')(newCustPhone);
+    const emailErr = Validation.email(false)(newCustEmail);
+
+    const errs: { name?: string; phone?: string; email?: string } = {};
+    if (nameErr) errs.name = nameErr;
+    if (phoneErr) errs.phone = phoneErr;
+    if (emailErr) errs.email = emailErr;
+
+    setNewCustErrors(errs);
+
+    if (Object.keys(errs).length > 0) {
       return;
     }
 
@@ -302,14 +285,26 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
       });
 
       // Update customers list and select this newly created customer
-      setCustomers((prev) => [created, ...prev]);
+      setCreatedCustomers((prev) => [created, ...prev]);
       setSelectedCustomer(created);
+      invalidateClients();
       setShowNewCustomerForm(false);
       setNewCustName('');
       setNewCustPhone('');
       setNewCustEmail('');
+      setNewCustErrors({});
+      setNewCustTouched({});
     } catch (err: any) {
-      setCustomerFormError(err.message || 'Failed to create customer. Please check phone number.');
+      const { fieldErrors, generalError } = extractBackendErrors(err);
+      if (fieldErrors.phone || fieldErrors.first_name || fieldErrors.email) {
+        setNewCustErrors((prev) => ({
+          ...prev,
+          phone: fieldErrors.phone,
+          name: fieldErrors.first_name,
+          email: fieldErrors.email,
+        }));
+      }
+      setCustomerFormError(generalError || 'Failed to create customer. Please check phone number.');
     } finally {
       setIsCreatingCustomer(false);
     }
@@ -359,6 +354,8 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
       // Invalidate appointment cache so lists & calendar update immediately
       clearApiCache('/appointments/');
       clearApiCache('/analytics/metrics/');
+      invalidateAppointments();
+      invalidateMetrics();
 
       // Dispatch global window event for instant UI sync
       window.dispatchEvent(
@@ -393,13 +390,13 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="w-full max-w-2xl bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col max-h-[92vh] animate-scale-in">
         {/* Wizard Header */}
-        <div className="px-5 py-4 border-b border-[var(--border)] bg-gradient-to-r from-purple-50/50 to-emerald-50/30 dark:from-purple-950/20 dark:to-emerald-950/10 flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 border-b border-[var(--border)] bg-gradient-to-r from-blue-50/50 to-emerald-50/30 dark:from-blue-950/20 dark:to-emerald-950/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#6D28D9]/10 text-[#6D28D9] dark:text-[#8B5CF6] flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-[#0A24E9]/10 text-[#0A24E9] dark:text-[#4D68FF] flex items-center justify-center font-bold">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-serif font-bold text-[var(--text-primary)] leading-tight">
+              <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-tight">
                 Book New Appointment
               </h2>
               <p className="text-xs text-[var(--text-secondary)]">
@@ -440,9 +437,9 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                   onClick={() => isCompleted && setCurrentStep(item.step)}
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
                     isCompleted
-                      ? 'bg-[#059669] text-white hover:opacity-90'
+                      ? 'bg-[#5C9764] text-white hover:opacity-90'
                       : isCurrent
-                      ? 'bg-[#6D28D9] text-white ring-2 ring-purple-400/40'
+                      ? 'bg-[#0A24E9] text-white ring-2 ring-[#0A24E9]/40'
                       : 'bg-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
                   }`}
                 >
@@ -451,9 +448,9 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                 <span
                   className={`hidden sm:inline font-semibold ${
                     isCurrent
-                      ? 'text-[#6D28D9] dark:text-[#8B5CF6]'
+                      ? 'text-[#0A24E9] dark:text-[#4D68FF]'
                       : isCompleted
-                      ? 'text-[#059669] dark:text-[#10B981]'
+                      ? 'text-[#5C9764] dark:text-[#7DB585]'
                       : 'text-[var(--text-secondary)]'
                   }`}
                 >
@@ -476,7 +473,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-serif font-bold text-[var(--text-primary)]">
+                <h3 className="text-xl font-bold text-[var(--text-primary)]">
                   Appointment Confirmed!
                 </h3>
                 <p className="text-xs text-[var(--text-secondary)] max-w-sm mx-auto">
@@ -567,58 +564,119 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                   {showNewCustomerForm ? (
                     <form
                       onSubmit={handleCreateCustomer}
-                      className="p-4 bg-purple-50/50 dark:bg-purple-950/20 rounded-xl border border-purple-200 dark:border-purple-800/60 space-y-3"
+                      className="p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800/60 space-y-3"
+                      noValidate
                     >
-                      <h4 className="text-xs font-bold text-[#6D28D9] dark:text-[#8B5CF6] uppercase tracking-wider">
+                      <h4 className="text-xs font-bold text-[#0A24E9] dark:text-[#4D68FF] uppercase tracking-wider">
                         Quick Add New Client
                       </h4>
                       {customerFormError && (
-                        <div className="text-xs text-[#DC2626]">{customerFormError}</div>
+                        <div className="flex items-center gap-1.5 p-2.5 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/20 rounded-lg">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{customerFormError}</span>
+                        </div>
                       )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div>
-                          <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
-                            Full Name *
-                          </label>
+                        <FormField
+                          label="Full Name"
+                          required
+                          error={newCustErrors.name}
+                          touched={newCustTouched.name}
+                        >
                           <input
                             type="text"
                             placeholder="e.g. Ruhi Patel"
                             value={newCustName}
-                            onChange={(e) => setNewCustName(e.target.value)}
-                            className="input-field"
-                            required
+                            onChange={(e) => {
+                              setNewCustName(e.target.value);
+                              if (newCustTouched.name) {
+                                setNewCustErrors((prev) => ({
+                                  ...prev,
+                                  name: Validation.name('Client full name', 2, 80, true)(e.target.value) || undefined,
+                                }));
+                              }
+                            }}
+                            onBlur={() => {
+                              setNewCustTouched((prev) => ({ ...prev, name: true }));
+                              setNewCustErrors((prev) => ({
+                                ...prev,
+                                name: Validation.name('Client full name', 2, 80, true)(newCustName) || undefined,
+                              }));
+                            }}
+                            className={`input-field ${newCustTouched.name && newCustErrors.name ? 'input-error' : ''}`}
                           />
-                        </div>
-                        <div>
-                          <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
-                            Phone Number *
-                          </label>
+                        </FormField>
+
+                        <FormField
+                          label="Phone Number"
+                          required
+                          error={newCustErrors.phone}
+                          touched={newCustTouched.phone}
+                        >
                           <input
                             type="tel"
-                            placeholder="e.g. +91 98250 12345"
+                            placeholder="e.g. 98250 12345"
                             value={newCustPhone}
-                            onChange={(e) => setNewCustPhone(e.target.value)}
-                            className="input-field"
-                            required
+                            onChange={(e) => {
+                              setNewCustPhone(e.target.value);
+                              if (newCustTouched.phone) {
+                                setNewCustErrors((prev) => ({
+                                  ...prev,
+                                  phone: Validation.phone(true, 'IN')(e.target.value) || undefined,
+                                }));
+                              }
+                            }}
+                            onBlur={() => {
+                              setNewCustTouched((prev) => ({ ...prev, phone: true }));
+                              setNewCustErrors((prev) => ({
+                                ...prev,
+                                phone: Validation.phone(true, 'IN')(newCustPhone) || undefined,
+                              }));
+                            }}
+                            className={`input-field ${newCustTouched.phone && newCustErrors.phone ? 'input-error' : ''}`}
                           />
-                        </div>
+                        </FormField>
+
                         <div className="sm:col-span-2">
-                          <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
-                            Email (Optional)
-                          </label>
-                          <input
-                            type="email"
-                            placeholder="client@example.com"
-                            value={newCustEmail}
-                            onChange={(e) => setNewCustEmail(e.target.value)}
-                            className="input-field"
-                          />
+                          <FormField
+                            label="Email Address"
+                            error={newCustErrors.email}
+                            touched={newCustTouched.email}
+                            helperText="Optional for confirmations"
+                          >
+                            <input
+                              type="email"
+                              placeholder="client@example.com"
+                              value={newCustEmail}
+                              onChange={(e) => {
+                                setNewCustEmail(e.target.value);
+                                if (newCustTouched.email) {
+                                  setNewCustErrors((prev) => ({
+                                    ...prev,
+                                    email: Validation.email(false)(e.target.value) || undefined,
+                                  }));
+                                }
+                              }}
+                              onBlur={() => {
+                                setNewCustTouched((prev) => ({ ...prev, email: true }));
+                                setNewCustErrors((prev) => ({
+                                  ...prev,
+                                  email: Validation.email(false)(newCustEmail) || undefined,
+                                }));
+                              }}
+                              className={`input-field ${newCustTouched.email && newCustErrors.email ? 'input-error' : ''}`}
+                            />
+                          </FormField>
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 pt-1">
                         <button
                           type="button"
-                          onClick={() => setShowNewCustomerForm(false)}
+                          onClick={() => {
+                            setShowNewCustomerForm(false);
+                            setNewCustErrors({});
+                            setNewCustTouched({});
+                          }}
                           className="btn-ghost btn-sm"
                         >
                           Cancel
@@ -648,9 +706,9 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
 
                       {/* Selected Customer Card */}
                       {selectedCustomer && (
-                        <div className="p-3 bg-purple-50 dark:bg-purple-950/40 border border-[#6D28D9]/40 rounded-xl flex items-center justify-between">
+                        <div className="p-3 bg-[#EEF2FF] dark:bg-[#1E294B] border border-[#0A24E9]/30 rounded-xl flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#6D28D9] text-white flex items-center justify-center font-bold text-xs">
+                            <div className="w-9 h-9 rounded-full bg-[#0A24E9] text-white flex items-center justify-center font-bold text-xs">
                               {selectedCustomer.first_name?.[0] || 'C'}
                             </div>
                             <div>
@@ -660,14 +718,14 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                               <p className="text-[11px] text-[var(--text-secondary)] flex items-center gap-2">
                                 <span>{selectedCustomer.phone}</span>
                                 {selectedCustomer.visit_count > 0 && (
-                                  <span className="text-[#059669] font-semibold">
+                                  <span className="text-[#5C9764] font-semibold">
                                     · {selectedCustomer.visit_count} past visits
                                   </span>
                                 )}
                               </p>
                             </div>
                           </div>
-                          <span className="inline-flex items-center gap-1 text-xs text-[#059669] font-bold">
+                          <span className="inline-flex items-center gap-1 text-xs text-[#5C9764] font-bold">
                             <Check className="w-4 h-4" /> Selected
                           </span>
                         </div>
@@ -689,7 +747,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                                 onClick={() => setSelectedCustomer(cust)}
                                 className={`w-full text-left p-3 flex items-center justify-between transition-colors text-xs ${
                                   isSelected
-                                    ? 'bg-purple-50 dark:bg-purple-950/40 font-semibold text-[var(--text-primary)]'
+                                    ? 'bg-[#EEF2FF] dark:bg-[#1E294B] font-semibold text-[var(--text-primary)]'
                                     : 'hover:bg-[var(--surface-secondary)] text-[var(--text-primary)]'
                                 }`}
                               >
@@ -704,7 +762,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                                     Visits: {cust.visit_count || 0}
                                   </span>
                                   {isSelected && (
-                                    <Check className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6] inline-block" />
+                                    <Check className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF] inline-block" />
                                   )}
                                 </div>
                               </button>
@@ -736,7 +794,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                       onClick={() => setSelectedCategoryId('ALL')}
                       className={`px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 transition-all ${
                         selectedCategoryId === 'ALL'
-                          ? 'bg-[#6D28D9] text-white shadow-xs'
+                          ? 'bg-[#0A24E9] text-white shadow-xs'
                           : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)]'
                       }`}
                     >
@@ -749,7 +807,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                         onClick={() => setSelectedCategoryId(cat.id)}
                         className={`px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 transition-all ${
                           selectedCategoryId === cat.id
-                            ? 'bg-[#6D28D9] text-white shadow-xs'
+                            ? 'bg-[#0A24E9] text-white shadow-xs'
                             : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)]'
                         }`}
                       >
@@ -774,8 +832,8 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                             onClick={() => handleToggleService(svc.id)}
                             className={`p-3 rounded-xl text-left border transition-all text-xs flex flex-col justify-between ${
                               isSelected
-                                ? 'bg-purple-50 dark:bg-purple-950/40 border-[#6D28D9] dark:border-[#8B5CF6] shadow-sm ring-1 ring-[#6D28D9]/40'
-                                : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#6D28D9]/40 hover:bg-[var(--surface-secondary)]'
+                                ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] dark:border-[#4D68FF] shadow-sm ring-1 ring-[#0A24E9]/40'
+                                : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#0A24E9]/40 hover:bg-[var(--surface-secondary)]'
                             }`}
                           >
                             <div className="flex items-start justify-between gap-2">
@@ -790,7 +848,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                               <div
                                 className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border ${
                                   isSelected
-                                    ? 'bg-[#6D28D9] border-[#6D28D9] text-white'
+                                    ? 'bg-[#0A24E9] border-[#0A24E9] text-white'
                                     : 'border-[var(--border)] bg-[var(--surface)]'
                                 }`}
                               >
@@ -817,7 +875,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                     <span className="text-[var(--text-secondary)]">
                       {selectedServiceIds.length} service(s) selected
                     </span>
-                    <span className="font-bold text-[#6D28D9] dark:text-[#8B5CF6]">
+                    <span className="font-bold text-[#0A24E9] dark:text-[#4D68FF]">
                       Est. Duration: {totalDurationMinutes} mins · Total: {formatINR(totalPrice)}
                     </span>
                   </div>
@@ -848,11 +906,11 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                           onClick={() => setSelectedStaffId(st.id)}
                           className={`p-3 rounded-xl border text-left flex items-center gap-3 transition-all ${
                             isSelected
-                              ? 'bg-purple-50 dark:bg-purple-950/40 border-[#6D28D9] dark:border-[#8B5CF6] shadow-sm ring-1 ring-[#6D28D9]/40'
-                              : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#6D28D9]/40 hover:bg-[var(--surface-secondary)]'
+                              ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] dark:border-[#4D68FF] shadow-sm ring-1 ring-[#0A24E9]/40'
+                              : 'bg-[var(--surface)] border-[var(--border)] hover:border-[#0A24E9]/40 hover:bg-[var(--surface-secondary)]'
                           }`}
                         >
-                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6D28D9] dark:text-[#8B5CF6] font-bold flex items-center justify-center text-sm shrink-0 border border-purple-200 dark:border-purple-800">
+                          <div className="w-10 h-10 rounded-full bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] font-bold flex items-center justify-center text-sm shrink-0 border border-[#0A24E9]/20">
                             {staffName?.[0] || 'S'}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -864,7 +922,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                             </p>
                           </div>
                           {isSelected && (
-                            <Check className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6] shrink-0" />
+                            <Check className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF] shrink-0" />
                           )}
                         </button>
                       );
@@ -875,7 +933,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                   {availableStyles.length > 0 && (
                     <div className="space-y-2 pt-2 border-t border-[var(--border)]">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
-                        <Sparkles className="w-3.5 h-3.5 text-[#6D28D9] dark:text-[#8B5CF6]" />
+                        <Sparkles className="w-3.5 h-3.5 text-[#0A24E9] dark:text-[#4D68FF]" />
                         <span>Optional Signature Style Upgrade</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -884,7 +942,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                           onClick={() => setSelectedStyleId('')}
                           className={`p-2.5 rounded-xl border text-left text-xs transition-all ${
                             !selectedStyleId
-                              ? 'bg-purple-50 dark:bg-purple-950/40 border-[#6D28D9] font-bold text-[var(--text-primary)]'
+                              ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] font-bold text-[var(--text-primary)]'
                               : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)]'
                           }`}
                         >
@@ -899,7 +957,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                               onClick={() => setSelectedStyleId(sty.id)}
                               className={`p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between ${
                                 isStyleSelected
-                                  ? 'bg-purple-50 dark:bg-purple-950/40 border-[#6D28D9] font-bold text-[var(--text-primary)] ring-1 ring-[#6D28D9]/40'
+                                  ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] font-bold text-[var(--text-primary)] ring-1 ring-[#0A24E9]/40'
                                   : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
                               }`}
                             >
@@ -910,7 +968,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                                 </p>
                               </div>
                               {isStyleSelected && (
-                                <Check className="w-3.5 h-3.5 text-[#6D28D9]" />
+                                <Check className="w-3.5 h-3.5 text-[#0A24E9]" />
                               )}
                             </button>
                           );
@@ -957,8 +1015,8 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                         Available Slots for {formatDisplayDate(bookingDate)}
                       </label>
                       {isSlotLoading && (
-                        <span className="text-xs text-[#6D28D9] dark:text-[#8B5CF6] font-semibold flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-[#6D28D9] animate-ping" />
+                        <span className="text-xs text-[#0A24E9] dark:text-[#4D68FF] font-semibold flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-[#0A24E9] animate-ping" />
                           Checking slots...
                         </span>
                       )}
@@ -1037,7 +1095,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
                           </div>
                         ))}
                         {selectedStyleObj && (
-                          <div className="flex justify-between text-xs text-[#6D28D9] dark:text-[#8B5CF6]">
+                          <div className="flex justify-between text-xs text-[#0A24E9] dark:text-[#4D68FF]">
                             <span>+ Style: {selectedStyleObj.name}</span>
                             <span className="tabular-nums font-bold">
                               {formatINR(selectedStyleObj.extra_price)}
@@ -1056,7 +1114,7 @@ export const AppointmentBookingWizard: React.FC<AppointmentBookingWizardProps> =
 
                     <div className="grid grid-cols-[130px_1fr] gap-2 items-center border-b border-[var(--border)] pb-2">
                       <span className="text-[var(--text-secondary)] font-medium">Date & Time:</span>
-                      <span className="font-bold text-[#6D28D9] dark:text-[#8B5CF6]">
+                      <span className="font-bold text-[#0A24E9] dark:text-[#4D68FF]">
                         {formatDisplayDate(bookingDate)} at {selectedSlot} ({totalDurationMinutes} mins)
                       </span>
                     </div>

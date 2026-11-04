@@ -1,38 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Download, IndianRupee } from 'lucide-react';
-import { api, API_BASE } from '../../services/api';
+import { API_BASE } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { DashboardMetrics } from '../../types';
 import { TableSkeleton } from '../../components/ui/Skeleton';
 import { formatINR } from '../../utils/currency';
+import { useDashboardMetrics } from '../../hooks/useQueries';
 
 export const AnalyticsReportsPage: React.FC = () => {
   const { salon, branch } = useAuth();
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(() => {
-    return (
-      api.getCached<DashboardMetrics>(branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/') ||
-      api.getCached<DashboardMetrics>('/analytics/metrics/')
-    );
-  });
-  const [isLoading, setIsLoading] = useState(() => !metrics);
-
-  useEffect(() => {
-    fetchMetrics();
-  }, [branch?.id]);
-
-  const fetchMetrics = async () => {
-    if (!metrics) {
-      setIsLoading(true);
-    }
-    try {
-      const url = branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
-      const data = await api.get<DashboardMetrics>(url);
-      setMetrics(data);
-    } catch {
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: metrics, isLoading } = useDashboardMetrics(branch?.id);
 
   const handleExportCsv = (type: 'invoices' | 'staff_commission') => {
     const token = localStorage.getItem('luxe_token');
@@ -57,14 +33,14 @@ export const AnalyticsReportsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 page-enter">
+    <div className="space-y-6 page-enter font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
             Reports & Business Analytics
           </h1>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
             Export financial audits, track staff commission payouts, and view branch performance in INR (₹).
           </p>
         </div>
@@ -72,14 +48,14 @@ export const AnalyticsReportsPage: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => handleExportCsv('invoices')}
-            className="btn-outline btn-md"
+            className="btn-outline btn-md shadow-xs"
           >
-            <Download className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
+            <Download className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
             <span>Export Invoices CSV</span>
           </button>
           <button
             onClick={() => handleExportCsv('staff_commission')}
-            className="btn-primary btn-md"
+            className="btn-primary btn-md shadow-sm"
           >
             <Download className="w-4 h-4" />
             <span>Export Commissions CSV</span>
@@ -90,10 +66,10 @@ export const AnalyticsReportsPage: React.FC = () => {
       {/* Staff Commission Audit Table */}
       <div className="card-surface p-6 space-y-4">
         <div>
-          <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
+          <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
             Staff Commission Breakdown
           </h3>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
             Realized earnings computed from completed appointments and billed service items.
           </p>
         </div>
@@ -137,7 +113,7 @@ export const AnalyticsReportsPage: React.FC = () => {
       {/* Branch Comparisons */}
       <div className="card-surface p-6 space-y-4">
         <div>
-          <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
+          <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
             Gujarat Branch Performance Comparison
           </h3>
           <p className="text-xs text-[var(--text-secondary)]">

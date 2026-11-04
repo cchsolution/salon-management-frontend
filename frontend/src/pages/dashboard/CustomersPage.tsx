@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   Search,
@@ -15,91 +15,92 @@ import { api } from '../../services/api';
 import { Customer } from '../../types';
 import { TableSkeleton } from '../../components/ui/Skeleton';
 import { formatINR } from '../../utils/currency';
+import { useClients, useInvalidateQueries } from '../../hooks/useQueries';
+import { useDebounce } from '../../hooks/useDebounce';
+import { useFormValidation } from '../../hooks/useFormValidation';
+import { Validation } from '../../utils/validation';
+import { FormField } from '../../components/ui/FormField';
+import { AlertCircle } from 'lucide-react';
 
 export const CustomersPage: React.FC = () => {
-  const [customers, setCustomers] = useState<Customer[]>(() => {
-    const c = api.getCached<{ results?: Customer[] } | Customer[]>('/crm/clients/');
-    return Array.isArray(c) ? c : c?.results || [];
-  });
+  const { data: customers = [], isLoading } = useClients();
+  const { invalidateClients } = useInvalidateQueries();
+
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 250);
   const [selectedTag, setSelectedTag] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(() => customers.length === 0);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-  // New Client Modal
+  // New Client Modal with comprehensive field validation
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [fName, setFName] = useState('');
-  const [lName, setLName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [notes, setNotes] = useState('');
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const fetchCustomers = async () => {
-    if (customers.length === 0) {
-      setIsLoading(true);
-    }
-    try {
-      const data = await api.get<{ results?: Customer[] } | Customer[]>('/crm/clients/');
-      const list = Array.isArray(data) ? data : data.results || [];
-      setCustomers(list);
-    } catch {
-      // Fallback
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateCustomer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
+  const {
+    values: clientValues,
+    errors: clientErrors,
+    touched: clientTouched,
+    isSubmitting: isSubmittingClient,
+    submitError: clientSubmitError,
+    handleChange: handleClientChange,
+    handleBlur: handleClientBlur,
+    handleSubmit: handleClientSubmit,
+    resetForm: resetClientForm,
+  } = useFormValidation({
+    initialValues: {
+      first_name: '',
+      last_name: '',
+      phone: '',
+      email: '',
+      notes: '',
+    },
+    validationSchema: {
+      first_name: [Validation.required('First name'), Validation.name('First name', 2, 50, true)],
+      last_name: [Validation.name('Last name', 1, 50, false)],
+      phone: [Validation.required('Phone number'), Validation.phone(true, 'IN')],
+      email: [Validation.email(false)],
+    },
+    onSubmit: async (vals) => {
       await api.post('/crm/clients/', {
-        first_name: fName,
-        last_name: lName,
-        phone,
-        email,
-        notes,
+        first_name: vals.first_name.trim(),
+        last_name: vals.last_name.trim(),
+        phone: vals.phone.trim(),
+        email: vals.email.trim() || undefined,
+        notes: vals.notes.trim(),
       });
+      invalidateClients();
       setIsModalOpen(false);
-      setFName('');
-      setLName('');
-      setPhone('');
-      setEmail('');
-      setNotes('');
-      fetchCustomers();
-    } catch (err: any) {
-      alert(err.message || 'Failed to create customer.');
-    }
-  };
-
-  const filtered = customers.filter((c) => {
-    const matchesSearch =
-      c.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.phone.includes(searchQuery) ||
-      (c.email && c.email.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesTag = selectedTag ? c.tags && c.tags.includes(selectedTag) : true;
-    return matchesSearch && matchesTag;
+      resetClientForm();
+    },
   });
 
+  const filtered = useMemo(() => {
+    const q = debouncedSearch.toLowerCase().trim();
+    return customers.filter((c) => {
+      const matchesSearch =
+        !q ||
+        c.full_name.toLowerCase().includes(q) ||
+        c.phone.includes(q) ||
+        (c.email && c.email.toLowerCase().includes(q));
+      const matchesTag = selectedTag ? c.tags && c.tags.includes(selectedTag) : true;
+      return matchesSearch && matchesTag;
+    });
+  }, [customers, debouncedSearch, selectedTag]);
+
   return (
-    <div className="space-y-6 page-enter">
+    <div className="space-y-6 page-enter font-sans">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
             Client Directory & CRM
           </h1>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
             Manage salon customer profiles, visit history, preferences, and loyalty points.
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="btn-primary btn-md"
+          className="btn-primary btn-md shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>Add Client</span>
@@ -124,9 +125,9 @@ export const CustomersPage: React.FC = () => {
             <button
               key={tag}
               onClick={() => setSelectedTag(tag)}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-150 active:scale-95 ${
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer ${
                 selectedTag === tag
-                  ? 'bg-[#6D28D9] dark:bg-[#8B5CF6] text-white shadow-sm'
+                  ? 'bg-[#0A24E9] text-white shadow-xs'
                   : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-slate-400'
               }`}
             >
@@ -159,7 +160,7 @@ export const CustomersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
-                {filtered.map((c) => (
+                {filtered.map((c: Customer) => (
                   <tr
                     key={c.id}
                     onClick={() => setSelectedCustomer(c)}
@@ -193,7 +194,7 @@ export const CustomersPage: React.FC = () => {
                     <td className="py-4 px-4">
                       <div className="flex flex-wrap gap-1">
                         {c.tags && c.tags.length > 0 ? (
-                          c.tags.map((t, idx) => (
+                          c.tags.map((t: string, idx: number) => (
                             <span
                               key={idx}
                               className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
@@ -242,11 +243,11 @@ export const CustomersPage: React.FC = () => {
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--surface-secondary)]/50 shrink-0">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-purple-100 text-[#6D28D9] dark:bg-purple-950/60 dark:text-[#8B5CF6] font-bold flex items-center justify-center text-base border border-purple-200 dark:border-purple-800 shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-[#EEF2FF] text-[#0A24E9] dark:bg-[#1E294B] dark:text-[#4D68FF] font-bold flex items-center justify-center text-base border border-[#0A24E9]/20 shrink-0">
                   {selectedCustomer.first_name?.[0] || 'C'}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-base font-serif font-bold text-[var(--text-primary)] truncate">
+                  <h3 className="text-base font-bold text-[var(--text-primary)] truncate">
                     {selectedCustomer.full_name}
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] truncate">{selectedCustomer.phone}</p>
@@ -279,7 +280,7 @@ export const CustomersPage: React.FC = () => {
                 </div>
                 <div className="p-1">
                   <p className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-wider">Points</p>
-                  <p className="font-bold text-[#6D28D9] dark:text-[#8B5CF6] mt-1 tabular-nums text-sm font-sans">
+                  <p className="font-bold text-[#0A24E9] dark:text-[#4D68FF] mt-1 tabular-nums text-sm font-sans">
                     {selectedCustomer.loyalty_points || 0}
                   </p>
                 </div>
@@ -375,87 +376,123 @@ export const CustomersPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 animate-scaleIn">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
-              <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">New Client Profile</h3>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">New Client Profile</h3>
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  resetClientForm();
+                }}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 ✕
               </button>
             </div>
-            <form onSubmit={handleCreateCustomer} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-medium mb-1">First Name *</label>
+
+            {clientSubmitError && (
+              <div className="flex items-start gap-2 p-3 text-xs text-[#DC2626] bg-[#DC2626]/10 border border-[#DC2626]/25 rounded-xl">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{clientSubmitError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleClientSubmit()} className="space-y-3.5 text-xs" noValidate>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  label="First Name"
+                  required
+                  error={clientErrors.first_name}
+                  touched={clientTouched.first_name}
+                >
                   <input
                     type="text"
-                    value={fName}
+                    value={clientValues.first_name}
                     placeholder="e.g. Ayesha"
-                    onChange={(e) => setFName(e.target.value)}
-                    className="input-field"
-                    required
+                    onChange={handleClientChange('first_name')}
+                    onBlur={handleClientBlur('first_name')}
+                    className={`input-field ${clientTouched.first_name && clientErrors.first_name ? 'input-error' : ''}`}
                   />
-                </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-medium mb-1">Last Name</label>
+                </FormField>
+
+                <FormField
+                  label="Last Name"
+                  error={clientErrors.last_name}
+                  touched={clientTouched.last_name}
+                >
                   <input
                     type="text"
-                    value={lName}
+                    value={clientValues.last_name}
                     placeholder="e.g. Sheikh"
-                    onChange={(e) => setLName(e.target.value)}
-                    className="input-field"
+                    onChange={handleClientChange('last_name')}
+                    onBlur={handleClientBlur('last_name')}
+                    className={`input-field ${clientTouched.last_name && clientErrors.last_name ? 'input-error' : ''}`}
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] font-medium mb-1">Phone Number *</label>
+              <FormField
+                label="Phone Number"
+                required
+                error={clientErrors.phone}
+                touched={clientTouched.phone}
+                helperText="10-digit mobile number for appointment reminders"
+              >
                 <input
                   type="tel"
-                  placeholder="+91 98250 00000"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="input-field"
-                  required
+                  placeholder="e.g. 98250 12345"
+                  value={clientValues.phone}
+                  onChange={handleClientChange('phone')}
+                  onBlur={handleClientBlur('phone')}
+                  className={`input-field ${clientTouched.phone && clientErrors.phone ? 'input-error' : ''}`}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] font-medium mb-1">Email Address</label>
+              <FormField
+                label="Email Address"
+                error={clientErrors.email}
+                touched={clientTouched.email}
+                helperText="Optional for invoice & promotions"
+              >
                 <input
                   type="email"
                   placeholder="client@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
+                  value={clientValues.email}
+                  onChange={handleClientChange('email')}
+                  onBlur={handleClientBlur('email')}
+                  className={`input-field ${clientTouched.email && clientErrors.email ? 'input-error' : ''}`}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] font-medium mb-1">Stylist Notes</label>
+              <FormField
+                label="Stylist Notes & Preferences"
+                helperText="Allergies, formulas, coffee preferences..."
+              >
                 <textarea
                   rows={2}
-                  placeholder="Allergies, beverage preferences, favorite formulas..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Sensitive scalp, preferred stylist Ruhi"
+                  value={clientValues.notes}
+                  onChange={handleClientChange('notes')}
                   className="textarea-field"
                 />
-              </div>
+              </FormField>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetClientForm();
+                  }}
                   className="btn-ghost btn-md"
                 >
-                  Cancel
+                  <span>Cancel</span>
                 </button>
                 <button
                   type="submit"
+                  disabled={isSubmittingClient}
                   className="btn-primary btn-md"
                 >
-                  Save Client
+                  <span>{isSubmittingClient ? 'Saving Client...' : 'Save Client'}</span>
                 </button>
               </div>
             </form>

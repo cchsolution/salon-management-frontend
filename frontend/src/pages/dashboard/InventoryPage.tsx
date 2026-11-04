@@ -1,127 +1,128 @@
-import React, { useState, useEffect } from 'react';
-import { Package, Plus, AlertTriangle, Search, RefreshCw, IndianRupee } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Package, Plus, AlertTriangle, Search, RefreshCw, IndianRupee, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Product } from '../../types';
 import { TableSkeleton } from '../../components/ui/Skeleton';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
+import { useInventoryProducts, useInvalidateQueries } from '../../hooks/useQueries';
+import { useDebounce } from '../../hooks/useDebounce';
+import { FormField } from '../../components/ui/FormField';
+import { Validation, extractBackendErrors } from '../../utils/validation';
+import { useFormValidation } from '../../hooks/useFormValidation';
 
 export const InventoryPage: React.FC = () => {
   const { branch } = useAuth();
-  const [products, setProducts] = useState<Product[]>(() => {
-    const c = api.getCached<{ results?: Product[] } | Product[]>('/inventory/products/');
-    return Array.isArray(c) ? c : c?.results || [];
-  });
+  const { data: products = [], isLoading: isProdsLoading } = useInventoryProducts(branch?.id);
+  const { invalidateProducts } = useInvalidateQueries();
+  const isLoading = isProdsLoading && products.length === 0;
+
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 200);
   const [filterLowStock, setFilterLowStock] = useState(false);
-  const [isLoading, setIsLoading] = useState(() => products.length === 0);
 
-  // Stock Adjustment Modal
+  // Stock Adjustment Modal & Validation
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
-  const [deltaQty, setDeltaQty] = useState<number>(0);
-  const [adjustmentReason, setAdjustmentReason] = useState<string>('ADJUSTMENT');
-  const [adjustmentNotes, setAdjustmentNotes] = useState<string>('');
-
-  // Add Product Modal
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [pName, setPName] = useState('');
-  const [pSku, setPSku] = useState('');
-  const [pBrand, setPBrand] = useState('');
-  const [pCost, setPCost] = useState('650.00');
-  const [pPrice, setPPrice] = useState('950.00');
-  const [pIsRetail, setPIsRetail] = useState(true);
-  const [pLowStock, setPLowStock] = useState(5);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [branch?.id]);
-
-  const fetchProducts = async () => {
-    if (products.length === 0) {
-      setIsLoading(true);
-    }
-    try {
-      const res = await api.get<{ results?: Product[] } | Product[]>('/inventory/products/');
-      const list = Array.isArray(res) ? res : res.results || [];
-      setProducts(list);
-    } catch {
-      setProducts([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAdjustStock = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adjustingProduct || deltaQty === 0) return;
-    try {
+  const adjustForm = useFormValidation({
+    initialValues: {
+      deltaQty: '',
+      adjustmentReason: 'ADJUSTMENT',
+      adjustmentNotes: '',
+    },
+    validationSchema: {
+      deltaQty: (val: string) => {
+        const trimmed = (val ?? '').trim();
+        if (!trimmed) return 'Stock change quantity is required.';
+        const num = Number(trimmed);
+        if (isNaN(num)) return 'Please enter a valid numeric change.';
+        if (num === 0) return 'Change cannot be 0 (e.g. enter +10 to add or -5 to deduct).';
+        if (!Number.isInteger(num)) return 'Stock quantity must be a whole integer.';
+        return null;
+      },
+    },
+    onSubmit: async (values) => {
+      if (!adjustingProduct) return;
       await api.post(`/inventory/products/${adjustingProduct.id}/adjust_stock/`, {
         branch_id: branch?.id,
-        quantity_change: deltaQty,
-        movement_type: adjustmentReason,
-        notes: adjustmentNotes,
+        quantity_change: parseInt(values.deltaQty, 10),
+        movement_type: values.adjustmentReason,
+        notes: values.adjustmentNotes.trim(),
       });
+      invalidateProducts();
       setAdjustingProduct(null);
-      setDeltaQty(0);
-      setAdjustmentNotes('');
-      fetchProducts();
-    } catch (err: any) {
-      alert(err.message || 'Failed to adjust stock.');
-    }
-  };
-
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pName || !pSku) return;
-    try {
-      await api.post('/inventory/products/', {
-        name: pName,
-        sku: pSku,
-        brand: pBrand,
-        purchase_price: parseFloat(pCost),
-        selling_price: parseFloat(pPrice),
-        is_retail: pIsRetail,
-        low_stock_threshold: pLowStock,
-      });
-      setIsAddModalOpen(false);
-      setPName('');
-      setPSku('');
-      setPBrand('');
-      fetchProducts();
-    } catch (err: any) {
-      alert(err.message || 'Failed to create product.');
-    }
-  };
-
-  const filtered = products.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku.toLowerCase().includes(search.toLowerCase()) ||
-      p.brand.toLowerCase().includes(search.toLowerCase());
-
-    if (filterLowStock) {
-      return matchesSearch && p.total_stock <= p.low_stock_threshold;
-    }
-    return matchesSearch;
+      adjustForm.reset();
+    },
   });
 
+  // Add Product Modal & Validation
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const addProductForm = useFormValidation({
+    initialValues: {
+      name: '',
+      sku: '',
+      brand: '',
+      purchase_price: '650.00',
+      selling_price: '950.00',
+      is_retail: true,
+      low_stock_threshold: '5',
+    },
+    validationSchema: {
+      name: Validation.name('Product name', 2, 100, true),
+      sku: Validation.code('SKU code', 2, 30, true),
+      brand: (val: string) => (val && val.trim().length > 60 ? 'Brand name cannot exceed 60 characters.' : null),
+      purchase_price: Validation.price('Cost price', 0, false),
+      selling_price: Validation.price('Selling price', 1, true),
+      low_stock_threshold: Validation.quantity('Low stock alert threshold', 1, true),
+    },
+    onSubmit: async (values) => {
+      await api.post('/inventory/products/', {
+        name: values.name.trim(),
+        sku: values.sku.trim(),
+        brand: values.brand.trim(),
+        purchase_price: parseFloat(values.purchase_price) || 0,
+        selling_price: parseFloat(values.selling_price),
+        is_retail: values.is_retail,
+        low_stock_threshold: parseInt(values.low_stock_threshold, 10) || 5,
+      });
+      invalidateProducts();
+      setIsAddModalOpen(false);
+      addProductForm.reset();
+    },
+  });
+
+  const filtered = useMemo(() => {
+    const q = debouncedSearch.trim().toLowerCase();
+    return products.filter((p) => {
+      const matchesSearch =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q) ||
+        p.brand.toLowerCase().includes(q);
+
+      if (filterLowStock) {
+        return matchesSearch && p.total_stock <= p.low_stock_threshold;
+      }
+      return matchesSearch;
+    });
+  }, [products, debouncedSearch, filterLowStock]);
+
   return (
-    <div className="space-y-6 page-enter">
+    <div className="space-y-6 page-enter font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
             Inventory & Consumables
           </h1>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
             Track retail product stocks, salon consumables, threshold alerts, and adjustments in Indian Rupees (₹).
           </p>
         </div>
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="btn-primary btn-md"
+          className="btn-primary btn-md shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>Add Product</span>
@@ -154,7 +155,7 @@ export const InventoryPage: React.FC = () => {
             Low Stock Only
           </button>
           <button
-            onClick={fetchProducts}
+            onClick={() => invalidateProducts()}
             aria-label="Refresh inventory"
             className="p-2 border border-[var(--border)] rounded-xl text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] transition-colors active:scale-95"
           >
@@ -194,9 +195,9 @@ export const InventoryPage: React.FC = () => {
                       <td className="py-4 px-4 text-[var(--text-secondary)]">{prod.brand || '—'}</td>
                       <td className="py-4 px-4">
                         <span
-                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md ${
+                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
                             prod.is_retail
-                              ? 'bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] border border-purple-200 dark:border-purple-800/40'
+                              ? 'bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] border border-[#0A24E9]/20'
                               : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)] border border-[var(--border)]'
                           }`}
                         >
@@ -241,39 +242,57 @@ export const InventoryPage: React.FC = () => {
           <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 animate-scaleIn">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
               <div>
-                <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
+                <h3 className="text-base font-bold text-[var(--text-primary)]">
                   Adjust Stock: {adjustingProduct.name}
                 </h3>
-                <p className="text-xs text-[var(--text-secondary)]">Current Stock: {adjustingProduct.total_stock} {adjustingProduct.unit}</p>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  Current Stock: {adjustingProduct.total_stock} {adjustingProduct.unit || 'units'}
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setAdjustingProduct(null)}
+                onClick={() => {
+                  setAdjustingProduct(null);
+                  adjustForm.reset();
+                }}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleAdjustStock} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
-                  Stock Change (e.g. +10 or -5)
-                </label>
-                <input
-                  type="number"
-                  value={deltaQty}
-                  onChange={(e) => setDeltaQty(parseInt(e.target.value, 10) || 0)}
-                  className="input-field"
-                  required
-                />
+            {adjustForm.submitError && (
+              <div className="flex items-center gap-2 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900/40">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{adjustForm.submitError}</span>
               </div>
+            )}
+
+            <form onSubmit={adjustForm.handleSubmit} noValidate className="space-y-4 text-xs">
+              <FormField
+                id="deltaQty"
+                label="Stock Quantity Change"
+                required
+                error={adjustForm.errors.deltaQty}
+                touched={adjustForm.touched.deltaQty}
+                helperText="Use positive numbers to add (e.g. +10) or negative to deduct (e.g. -5)."
+              >
+                <input
+                  id="deltaQty"
+                  type="number"
+                  placeholder="e.g. +10 or -5"
+                  value={adjustForm.values.deltaQty}
+                  onChange={adjustForm.handleChange('deltaQty')}
+                  onBlur={adjustForm.handleBlur('deltaQty')}
+                  className={`input-field ${adjustForm.touched.deltaQty && adjustForm.errors.deltaQty ? 'input-error' : ''}`}
+                />
+              </FormField>
 
               <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Movement Type</label>
+                <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">Movement Type</label>
                 <CustomSelect
-                  value={adjustmentReason}
-                  onChange={setAdjustmentReason}
+                  value={adjustForm.values.adjustmentReason}
+                  onChange={(val) => adjustForm.setFieldValue('adjustmentReason', val)}
                   options={[
                     { value: 'PURCHASE_IN', label: 'Purchase Received (+)', badge: 'Stock In' },
                     { value: 'SALE_OUT', label: 'Manual Sale / Out (-)', badge: 'Stock Out' },
@@ -284,12 +303,12 @@ export const InventoryPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Notes / Invoice Ref</label>
+                <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">Notes / Invoice Ref</label>
                 <textarea
                   rows={2}
                   placeholder="Reason for adjustment, supplier po..."
-                  value={adjustmentNotes}
-                  onChange={(e) => setAdjustmentNotes(e.target.value)}
+                  value={adjustForm.values.adjustmentNotes}
+                  onChange={adjustForm.handleChange('adjustmentNotes')}
                   className="textarea-field"
                 />
               </div>
@@ -297,16 +316,20 @@ export const InventoryPage: React.FC = () => {
               <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                 <button
                   type="button"
-                  onClick={() => setAdjustingProduct(null)}
+                  onClick={() => {
+                    setAdjustingProduct(null);
+                    adjustForm.reset();
+                  }}
                   className="btn-ghost btn-md"
                 >
-                  Cancel
+                  <span>Cancel</span>
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary btn-md"
+                  disabled={adjustForm.isSubmitting}
+                  className="btn-primary btn-md disabled:opacity-50"
                 >
-                  Confirm Adjustment
+                  <span>{adjustForm.isSubmitting ? 'Adjusting Stock...' : 'Confirm Adjustment'}</span>
                 </button>
               </div>
             </form>
@@ -319,92 +342,147 @@ export const InventoryPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-4 animate-scaleIn">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
-              <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">Add New Inventory Item</h3>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Add New Inventory Item</h3>
               <button
                 type="button"
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  addProductForm.reset();
+                }}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 ✕
               </button>
             </div>
-            <form onSubmit={handleCreateProduct} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] font-semibold mb-1">Product Name *</label>
+
+            {addProductForm.submitError && (
+              <div className="flex items-center gap-2 p-3 text-xs text-red-600 bg-red-50 dark:bg-red-950/40 rounded-xl border border-red-200 dark:border-red-900/40">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{addProductForm.submitError}</span>
+              </div>
+            )}
+
+            <form onSubmit={addProductForm.handleSubmit} noValidate className="space-y-3 text-xs">
+              <FormField
+                id="pName"
+                label="Product Name"
+                required
+                error={addProductForm.errors.name}
+                touched={addProductForm.touched.name}
+              >
                 <input
+                  id="pName"
                   type="text"
                   placeholder="e.g. L’Oréal Professionnel Hair Spa Cream"
-                  value={pName}
-                  onChange={(e) => setPName(e.target.value)}
-                  className="input-field"
-                  required
+                  value={addProductForm.values.name}
+                  onChange={addProductForm.handleChange('name')}
+                  onBlur={addProductForm.handleBlur('name')}
+                  className={`input-field ${addProductForm.touched.name && addProductForm.errors.name ? 'input-error' : ''}`}
                 />
-              </div>
+              </FormField>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">SKU *</label>
+                <FormField
+                  id="pSku"
+                  label="SKU Code"
+                  required
+                  error={addProductForm.errors.sku}
+                  touched={addProductForm.touched.sku}
+                >
                   <input
+                    id="pSku"
                     type="text"
                     placeholder="LOR-SPA-500"
-                    value={pSku}
-                    onChange={(e) => setPSku(e.target.value)}
-                    className="input-field"
-                    required
+                    value={addProductForm.values.sku}
+                    onChange={addProductForm.handleChange('sku')}
+                    onBlur={addProductForm.handleBlur('sku')}
+                    className={`input-field uppercase ${addProductForm.touched.sku && addProductForm.errors.sku ? 'input-error' : ''}`}
                   />
-                </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Brand</label>
+                </FormField>
+
+                <FormField
+                  id="pBrand"
+                  label="Brand"
+                  error={addProductForm.errors.brand}
+                  touched={addProductForm.touched.brand}
+                >
                   <input
+                    id="pBrand"
                     type="text"
                     placeholder="L’Oréal Professionnel"
-                    value={pBrand}
-                    onChange={(e) => setPBrand(e.target.value)}
+                    value={addProductForm.values.brand}
+                    onChange={addProductForm.handleChange('brand')}
+                    onBlur={addProductForm.handleBlur('brand')}
                     className="input-field"
                   />
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Cost Price (₹)</label>
+                <FormField
+                  id="pCost"
+                  label="Cost Price (₹)"
+                  error={addProductForm.errors.purchase_price}
+                  touched={addProductForm.touched.purchase_price}
+                >
                   <input
+                    id="pCost"
                     type="number"
                     step="1"
-                    value={pCost}
-                    onChange={(e) => setPCost(e.target.value)}
-                    className="input-field"
+                    min="0"
+                    value={addProductForm.values.purchase_price}
+                    onChange={addProductForm.handleChange('purchase_price')}
+                    onBlur={addProductForm.handleBlur('purchase_price')}
+                    className={`input-field ${addProductForm.touched.purchase_price && addProductForm.errors.purchase_price ? 'input-error' : ''}`}
                   />
-                </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Selling Price (₹)</label>
+                </FormField>
+
+                <FormField
+                  id="pPrice"
+                  label="Selling Price (₹)"
+                  required
+                  error={addProductForm.errors.selling_price}
+                  touched={addProductForm.touched.selling_price}
+                >
                   <input
+                    id="pPrice"
                     type="number"
                     step="1"
-                    value={pPrice}
-                    onChange={(e) => setPPrice(e.target.value)}
-                    className="input-field"
+                    min="1"
+                    value={addProductForm.values.selling_price}
+                    onChange={addProductForm.handleChange('selling_price')}
+                    onBlur={addProductForm.handleBlur('selling_price')}
+                    className={`input-field ${addProductForm.touched.selling_price && addProductForm.errors.selling_price ? 'input-error' : ''}`}
                   />
-                </div>
+                </FormField>
               </div>
 
               <div className="grid grid-cols-2 gap-3 items-center pt-1">
-                <div>
-                  <label className="block text-[var(--text-secondary)] font-semibold mb-1">Low Stock Alert</label>
+                <FormField
+                  id="pLowStock"
+                  label="Low Stock Alert"
+                  required
+                  error={addProductForm.errors.low_stock_threshold}
+                  touched={addProductForm.touched.low_stock_threshold}
+                >
                   <input
+                    id="pLowStock"
                     type="number"
-                    value={pLowStock}
-                    onChange={(e) => setPLowStock(parseInt(e.target.value, 10) || 5)}
-                    className="input-field"
+                    min="1"
+                    value={addProductForm.values.low_stock_threshold}
+                    onChange={addProductForm.handleChange('low_stock_threshold')}
+                    onBlur={addProductForm.handleBlur('low_stock_threshold')}
+                    className={`input-field ${addProductForm.touched.low_stock_threshold && addProductForm.errors.low_stock_threshold ? 'input-error' : ''}`}
                   />
-                </div>
+                </FormField>
+
                 <div className="flex items-center gap-2 mt-4">
                   <input
                     type="checkbox"
                     id="retailCheck"
-                    checked={pIsRetail}
-                    onChange={(e) => setPIsRetail(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#6D28D9] focus:ring-[#6D28D9] cursor-pointer"
+                    checked={addProductForm.values.is_retail}
+                    onChange={addProductForm.handleChange('is_retail')}
+                    className="w-4 h-4 rounded text-[#0A24E9] focus:ring-[#0A24E9] cursor-pointer"
                   />
                   <label htmlFor="retailCheck" className="text-[var(--text-primary)] font-medium cursor-pointer">
                     Available for Retail
@@ -415,16 +493,20 @@ export const InventoryPage: React.FC = () => {
               <div className="flex justify-end gap-2 pt-3 border-t border-[var(--border)]">
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    addProductForm.reset();
+                  }}
                   className="btn-ghost btn-md"
                 >
-                  Cancel
+                  <span>Cancel</span>
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary btn-md"
+                  disabled={addProductForm.isSubmitting}
+                  className="btn-primary btn-md disabled:opacity-50"
                 >
-                  Save Product
+                  <span>{addProductForm.isSubmitting ? 'Saving Product...' : 'Save Product'}</span>
                 </button>
               </div>
             </form>

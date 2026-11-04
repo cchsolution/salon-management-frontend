@@ -18,6 +18,7 @@ import { QuickBookingModal } from '../../components/QuickBookingModal';
 import { AppointmentCardSkeleton } from '../../components/ui/Skeleton';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 import { formatINR } from '../../utils/currency';
+import { useStaff, useAppointments, useInvalidateQueries } from '../../hooks/useQueries';
 
 export const AppointmentCalendarPage: React.FC = () => {
   const { branch, user } = useAuth();
@@ -25,93 +26,34 @@ export const AppointmentCalendarPage: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
 
-  const [staffList, setStaffList] = useState<StaffProfile[]>(() => {
-    const c = api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>(
-      branch?.id ? `/catalog/staff/?branch=${branch.id}` : '/catalog/staff/'
-    ) || api.getCached<{ results?: StaffProfile[] } | StaffProfile[]>('/catalog/staff/');
-    return Array.isArray(c) ? c : c?.results || [];
-  });
-
-  // Filters
-  const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>(() => {
-    if (user?.role === 'STYLIST' && staffList.length > 0) {
-      const found = staffList.find((s) => s.user === user.id);
-      return found ? found.id : '';
-    }
-    return '';
-  });
+  const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('');
   const [viewMode, setViewMode] = useState<'day' | 'agenda'>('day');
-
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    let url = `/appointments/bookings/?date=${new Date().toISOString().split('T')[0]}`;
-    if (branch?.id) url += `&branch=${branch.id}`;
-    const c = api.getCached<{ results?: Appointment[] } | Appointment[]>(url);
-    return Array.isArray(c) ? c : c?.results || [];
-  });
-
-  const [isLoading, setIsLoading] = useState<boolean>(() => appointments.length === 0);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
 
+  const { data: staffList = [] } = useStaff(branch?.id);
+  const {
+    data: appointments = [],
+    isLoading,
+    refetch: fetchAppointments,
+  } = useAppointments({
+    date: selectedDate,
+    branchId: branch?.id,
+    staffId: selectedStaffFilter || undefined,
+    status: selectedStatusFilter || undefined,
+  });
+  const { invalidateAppointments, invalidateMetrics } = useInvalidateQueries();
+
+  // If stylist logged in, default filter to their own staff profile
   useEffect(() => {
-    let isMounted = true;
-
-    const loadData = async () => {
-      if (appointments.length === 0) {
-        setIsLoading(true);
+    if (user?.role === 'STYLIST' && staffList.length > 0 && !selectedStaffFilter) {
+      const found = staffList.find((s) => s.user === user.id);
+      if (found) {
+        setSelectedStaffFilter(found.id);
       }
-
-      try {
-        const staffUrl = branch?.id ? `/catalog/staff/?branch=${branch.id}` : '/catalog/staff/';
-        const staffPromise = staffList.length > 0
-          ? Promise.resolve(staffList)
-          : api.get<{ results?: StaffProfile[] } | StaffProfile[]>(staffUrl);
-
-        let activeStaffFilter = selectedStaffFilter;
-
-        const staffRes = await staffPromise;
-        const currentStaffList = Array.isArray(staffRes) ? staffRes : staffRes.results || [];
-
-        if (isMounted && staffList.length === 0) {
-          setStaffList(currentStaffList);
-        }
-
-        if (user?.role === 'STYLIST' && !activeStaffFilter) {
-          const found = currentStaffList.find((s: StaffProfile) => s.user === user.id);
-          if (found) {
-            activeStaffFilter = found.id;
-            if (isMounted) setSelectedStaffFilter(found.id);
-          }
-        }
-
-        let apptUrl = `/appointments/bookings/?date=${selectedDate}`;
-        if (branch?.id) apptUrl += `&branch=${branch.id}`;
-        if (activeStaffFilter) apptUrl += `&staff=${activeStaffFilter}`;
-        if (selectedStatusFilter) apptUrl += `&status=${selectedStatusFilter}`;
-
-        const apptRes = await api.get<{ results?: Appointment[] } | Appointment[]>(apptUrl);
-
-        if (isMounted) {
-          setAppointments(Array.isArray(apptRes) ? apptRes : apptRes.results || []);
-        }
-      } catch {
-        if (isMounted && appointments.length === 0) {
-          setAppointments([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedDate, branch?.id, selectedStaffFilter, selectedStatusFilter]);
+    }
+  }, [user, staffList, selectedStaffFilter]);
 
   // Synchronize instantly when appointments are created or modified elsewhere
   useEffect(() => {
@@ -124,28 +66,15 @@ export const AppointmentCalendarPage: React.FC = () => {
       window.removeEventListener('appointment:created', handleSync);
       window.removeEventListener('appointment:updated', handleSync);
     };
-  }, [selectedDate, branch?.id, selectedStaffFilter, selectedStatusFilter]);
-
-  const fetchAppointments = async () => {
-    try {
-      let url = `/appointments/bookings/?date=${selectedDate}`;
-      if (branch?.id) url += `&branch=${branch.id}`;
-      if (selectedStaffFilter) url += `&staff=${selectedStaffFilter}`;
-      if (selectedStatusFilter) url += `&status=${selectedStatusFilter}`;
-
-      const data = await api.get<{ results?: Appointment[] } | Appointment[]>(url, { forceRefresh: true });
-      const list = Array.isArray(data) ? data : data.results || [];
-      setAppointments(list);
-    } catch {
-      setAppointments([]);
-    }
-  };
+  }, [fetchAppointments]);
 
   const handleUpdateStatus = async (apptId: string, newStatus: AppointmentStatus) => {
     try {
       await api.post(`/appointments/bookings/${apptId}/update_status/`, {
         status: newStatus,
       });
+      invalidateAppointments();
+      invalidateMetrics();
       fetchAppointments();
       if (selectedAppt && selectedAppt.id === apptId) {
         setSelectedAppt((prev) => (prev ? { ...prev, status: newStatus } : null));
@@ -164,35 +93,55 @@ export const AppointmentCalendarPage: React.FC = () => {
   const statusBadge = (status: AppointmentStatus) => {
     switch (status) {
       case 'CONFIRMED':
-        return <span className="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] rounded-full border border-emerald-200 dark:border-emerald-800/40">Confirmed</span>;
+        return (
+          <span className="px-2.5 py-0.5 text-[10px] font-bold bg-[#ECFDF5] dark:bg-[#142A1D] text-[#059669] dark:text-[#34D399] rounded-full border border-[#A7F3D0]/70 dark:border-[#10B981]/40">
+            Confirmed
+          </span>
+        );
       case 'IN_PROGRESS':
-        return <span className="px-2.5 py-0.5 text-[10px] font-bold bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] rounded-full border border-purple-200 dark:border-purple-800/40">In Progress</span>;
+        return (
+          <span className="px-2.5 py-0.5 text-[10px] font-bold bg-[#EFF6FF] dark:bg-[#1E294B] text-[#2563EB] dark:text-[#60A5FA] rounded-full border border-[#BFDBFE]/70 dark:border-[#2563EB]/40">
+            In Progress
+          </span>
+        );
       case 'COMPLETED':
-        return <span className="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] rounded-full border border-emerald-200 dark:border-emerald-800/40">Completed</span>;
+        return (
+          <span className="px-2.5 py-0.5 text-[10px] font-bold bg-[#ECFDF5] dark:bg-[#142A1D] text-[#059669] dark:text-[#34D399] rounded-full border border-[#A7F3D0]/70 dark:border-[#10B981]/40">
+            Completed
+          </span>
+        );
       case 'CANCELLED':
-        return <span className="px-2.5 py-0.5 text-[10px] font-bold bg-red-50 dark:bg-red-950/40 text-[#DC2626] rounded-full border border-red-200 dark:border-red-800/40">Cancelled</span>;
+        return (
+          <span className="px-2.5 py-0.5 text-[10px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-full border border-rose-200 dark:border-rose-800/40">
+            Cancelled
+          </span>
+        );
       default:
-        return <span className="px-2.5 py-0.5 text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-[#D97706] rounded-full border border-amber-200 dark:border-amber-800/40">Pending</span>;
+        return (
+          <span className="px-2.5 py-0.5 text-[10px] font-bold bg-[#FFFBEB] dark:bg-amber-950/40 text-[#D97706] dark:text-[#FBBF24] rounded-full border border-[#FDE68A]/70 dark:border-amber-800/50">
+            Pending
+          </span>
+        );
     }
   };
 
   return (
-    <div className="space-y-6 page-enter">
+    <div className="space-y-6 page-enter font-sans pb-10">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[var(--text-primary)]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
             Appointment Calendar
           </h1>
-          <p className="text-xs text-[var(--text-secondary)]">
-            Real-time schedule management for {branch?.name || 'Himmatnagar Main Studio'}.
+          <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1">
+            Real-time schedule management for {branch?.name || 'Ahmedabad CG Road Branch'}.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
             onClick={() => setIsBookingOpen(true)}
-            className="btn-primary btn-md"
+            className="btn-primary btn-md shadow-sm"
           >
             <Plus className="w-4 h-4" />
             <span>New Booking</span>
@@ -200,93 +149,104 @@ export const AppointmentCalendarPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Date Controls & Filters */}
-      <div className="card-surface p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Date Stepper */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+      {/* Date Controls & Filters Card — Responsive & Non-overlapping */}
+      <div className="card-surface p-3.5 sm:p-4 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {/* Date Stepper Group */}
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
           <button
             onClick={() => changeDateBy(-1)}
             aria-label="Previous day"
-            className="p-2 border border-[var(--border)] hover:bg-[var(--surface-secondary)] rounded-xl text-[var(--text-secondary)] transition-colors active:scale-95"
+            className="p-2 border border-[#CBD5E1] dark:border-[#252F4E] hover:bg-[#F1F5F9] dark:hover:bg-[#1C2542] rounded-xl text-[#64748B] dark:text-[#94A3B8] transition-colors active:scale-95 cursor-pointer shadow-2xs"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
+
+          <div className="flex items-center gap-2 bg-white dark:bg-[#141A2E] border border-[#CBD5E1] dark:border-[#252F4E] rounded-xl px-3 py-1.5 shadow-2xs">
+            <CalendarIcon className="w-4 h-4 text-[#2563EB] dark:text-[#60A5FA]" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] bg-[var(--surface)] border border-[var(--border)] rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/20"
+              className="text-xs sm:text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC] bg-transparent focus:outline-none cursor-pointer"
             />
           </div>
+
           <button
             onClick={() => changeDateBy(1)}
             aria-label="Next day"
-            className="p-2 border border-[var(--border)] hover:bg-[var(--surface-secondary)] rounded-xl text-[var(--text-secondary)] transition-colors active:scale-95"
+            className="p-2 border border-[#CBD5E1] dark:border-[#252F4E] hover:bg-[#F1F5F9] dark:hover:bg-[#1C2542] rounded-xl text-[#64748B] dark:text-[#94A3B8] transition-colors active:scale-95 cursor-pointer shadow-2xs"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
+
           <button
             onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-            className="px-3 py-1.5 text-xs font-semibold text-[#6D28D9] dark:text-[#8B5CF6] bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100/80 rounded-xl border border-purple-200 dark:border-purple-800 transition-colors active:scale-95"
+            className="px-3.5 py-1.5 text-xs font-bold text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E294B] hover:bg-[#DBEAFE] rounded-xl border border-[#BFDBFE]/80 dark:border-[#2563EB]/40 transition-colors active:scale-95 cursor-pointer shadow-2xs"
           >
             Today
           </button>
         </div>
 
-        {/* View Mode & Filter Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* View Mode & Filter Controls Group */}
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Stylist Filter */}
           {user?.role === 'STYLIST' ? (
-            <div className="text-xs px-3 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] font-semibold border border-purple-200 dark:border-purple-800">
+            <div className="text-xs px-3.5 py-2 rounded-xl bg-[#EFF6FF] dark:bg-[#1E294B] text-[#2563EB] dark:text-[#60A5FA] font-bold border border-[#BFDBFE]/70">
               My Schedule
             </div>
           ) : (
-            <CustomSelect
-              value={selectedStaffFilter}
-              onChange={setSelectedStaffFilter}
-              options={[
-                { value: '', label: 'All Stylists' },
-                ...staffList.map((s) => ({
-                  value: s.id,
-                  label: s.user_details?.full_name || s.title,
-                })),
-              ]}
-              size="sm"
-              className="w-40"
-            />
+            <div className="w-full sm:w-44">
+              <CustomSelect
+                value={selectedStaffFilter}
+                onChange={setSelectedStaffFilter}
+                options={[
+                  { value: '', label: 'All Stylists' },
+                  ...staffList.map((s) => ({
+                    value: s.id,
+                    label: s.user_details?.full_name || s.title,
+                  })),
+                ]}
+                size="sm"
+                className="w-full"
+              />
+            </div>
           )}
 
           {/* Status Filter */}
-          <CustomSelect
-            value={selectedStatusFilter}
-            onChange={setSelectedStatusFilter}
-            options={[
-              { value: '', label: 'All Statuses' },
-              { value: 'CONFIRMED', label: 'Confirmed', badge: 'Active' },
-              { value: 'IN_PROGRESS', label: 'In Progress' },
-              { value: 'COMPLETED', label: 'Completed' },
-              { value: 'CANCELLED', label: 'Cancelled' },
-            ]}
-            size="sm"
-            className="w-36"
-          />
+          <div className="w-full sm:w-40">
+            <CustomSelect
+              value={selectedStatusFilter}
+              onChange={setSelectedStatusFilter}
+              options={[
+                { value: '', label: 'All Statuses' },
+                { value: 'CONFIRMED', label: 'Confirmed', badge: 'Active' },
+                { value: 'IN_PROGRESS', label: 'In Progress' },
+                { value: 'COMPLETED', label: 'Completed' },
+                { value: 'CANCELLED', label: 'Cancelled' },
+              ]}
+              size="sm"
+              className="w-full"
+            />
+          </div>
 
           {/* Toggle Mode */}
-          <div className="flex rounded-xl border border-[var(--border)] p-0.5 bg-[var(--surface-secondary)]">
+          <div className="flex rounded-xl border border-[#CBD5E1] dark:border-[#252F4E] p-1 bg-[#F1F5F9] dark:bg-[#1C2542] shadow-2xs">
             <button
               onClick={() => setViewMode('day')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                viewMode === 'day' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                viewMode === 'day'
+                  ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
+                  : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A]'
               }`}
             >
               Timeline
             </button>
             <button
               onClick={() => setViewMode('agenda')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                viewMode === 'agenda' ? 'bg-[var(--surface)] text-[#6D28D9] dark:text-[#8B5CF6] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                viewMode === 'agenda'
+                  ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
+                  : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A]'
               }`}
             >
               Agenda
@@ -295,21 +255,21 @@ export const AppointmentCalendarPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Appointment Slots / Timeline */}
+      {/* Appointment Cards Grid — Beautiful Clean Responsive Cards */}
       {isLoading ? (
         <AppointmentCardSkeleton count={6} />
       ) : appointments.length === 0 ? (
-        <div className="card-surface p-12 text-center">
-          <CalendarIcon className="w-12 h-12 text-purple-300 dark:text-purple-800 mx-auto" />
-          <h3 className="text-base font-serif font-bold text-[var(--text-primary)] mt-3">
+        <div className="card-surface p-12 text-center rounded-2xl border border-dashed border-[#CBD5E1] dark:border-[#252F4E]">
+          <CalendarIcon className="w-12 h-12 text-[#94A3B8] dark:text-slate-600 mx-auto stroke-[1.5]" />
+          <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-3">
             No Bookings Found for {new Date(selectedDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
           </h3>
-          <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1 max-w-sm mx-auto">
             There are no appointments scheduled for this date matching the current filters.
           </p>
           <button
             onClick={() => setIsBookingOpen(true)}
-            className="mt-4 btn-primary btn-md"
+            className="mt-4 btn-primary btn-md shadow-sm"
           >
             Create New Appointment
           </button>
@@ -320,12 +280,12 @@ export const AppointmentCalendarPage: React.FC = () => {
             <div
               key={appt.id}
               onClick={() => setSelectedAppt(appt)}
-              className="card-surface p-5 hover:border-[#6D28D9]/40 hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between"
+              className="bg-white dark:bg-[#141A2E] rounded-2xl p-5 border border-[#E2E8F0] dark:border-[#252F4E] hover:border-[#2563EB]/40 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                    <Clock className="w-3.5 h-3.5 text-[#6D28D9] dark:text-[#8B5CF6]" />
+                  <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
+                    <Clock className="w-3.5 h-3.5 text-[#2563EB] dark:text-[#60A5FA]" />
                     <span>
                       {appt.start_time.slice(0, 5)} – {appt.end_time.slice(0, 5)}
                     </span>
@@ -334,22 +294,25 @@ export const AppointmentCalendarPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <h4 className="text-sm font-serif font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                    {appt.customer_details?.full_name || 'Walk-in Guest'}
+                  <h4 className="text-sm font-bold text-[#0F172A] dark:text-[#F8FAFC] flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-[#64748B] dark:text-[#94A3B8]" />
+                    <span>{appt.customer_details?.full_name || 'Walk-in Client'}</span>
                   </h4>
-                  <p className="text-xs text-[var(--text-secondary)] flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: appt.staff_details?.color_code || '#6D28D9' }}></span>
-                    Stylist: {appt.staff_details?.user_details?.full_name || appt.staff_details?.title}
+                  <p className="text-xs text-[#64748B] dark:text-[#94A3B8] flex items-center gap-1.5">
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: appt.staff_details?.color_code || '#2563EB' }}
+                    ></span>
+                    <span>Stylist: {appt.staff_details?.user_details?.full_name || appt.staff_details?.title}</span>
                   </p>
                 </div>
 
                 {/* Services Tags */}
-                <div className="mt-3 flex flex-wrap gap-1">
+                <div className="mt-3 flex flex-wrap gap-1.5">
                   {appt.items?.map((item, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 text-[11px] font-medium bg-[var(--surface-secondary)] text-[var(--text-primary)] rounded-md border border-[var(--border)]"
+                      className="px-2.5 py-1 text-[11px] font-medium bg-[#F8FAFC] dark:bg-[#1C2542] text-[#334155] dark:text-[#F8FAFC] rounded-lg border border-[#E2E8F0] dark:border-[#252F4E]"
                     >
                       {item.service_name}
                     </span>
@@ -358,8 +321,10 @@ export const AppointmentCalendarPage: React.FC = () => {
               </div>
 
               {/* Card Footer */}
-              <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between text-xs">
-                <span className="font-bold text-[var(--text-primary)] tabular-nums">{formatINR(appt.total_amount || 0)}</span>
+              <div className="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[#252F4E]/60 flex items-center justify-between text-xs">
+                <span className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums text-sm">
+                  {formatINR(appt.total_amount || 0)}
+                </span>
                 <div className="flex items-center gap-1.5">
                   {appt.status === 'CONFIRMED' && (
                     <button
@@ -367,9 +332,9 @@ export const AppointmentCalendarPage: React.FC = () => {
                         e.stopPropagation();
                         handleUpdateStatus(appt.id, 'IN_PROGRESS');
                       }}
-                      className="px-2.5 py-1 text-[10px] font-bold text-white bg-[#6D28D9] hover:bg-[#5B21B6] rounded-md transition-colors"
+                      className="btn-primary btn-sm px-3 text-[11px] font-bold"
                     >
-                      Start
+                      <span>Start</span>
                     </button>
                   )}
                   {appt.status === 'IN_PROGRESS' && (
@@ -378,9 +343,9 @@ export const AppointmentCalendarPage: React.FC = () => {
                         e.stopPropagation();
                         handleUpdateStatus(appt.id, 'COMPLETED');
                       }}
-                      className="px-2.5 py-1 text-[10px] font-bold text-white bg-[#059669] hover:bg-[#047857] rounded-md transition-colors"
+                      className="btn-success btn-sm px-3 text-[11px] font-bold"
                     >
-                      Complete
+                      <span>Complete</span>
                     </button>
                   )}
                 </div>
@@ -392,91 +357,110 @@ export const AppointmentCalendarPage: React.FC = () => {
 
       {/* Appointment Detail Slide-Over Modal */}
       {selectedAppt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg bg-[var(--surface)] rounded-2xl shadow-modal border border-[var(--border)] p-6 space-y-5 animate-scale-in">
-            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-white dark:bg-[#141A2E] rounded-2xl shadow-modal border border-[#CBD5E1] dark:border-[#252F4E] p-6 space-y-5 animate-scaleIn max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#252F4E] pb-3">
               <div>
-                <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
+                <h3 className="text-base font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
                   Appointment Details
                 </h3>
-                <p className="text-xs text-[var(--text-secondary)]">
+                <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
                   {selectedAppt.date} · {selectedAppt.start_time.slice(0, 5)} to {selectedAppt.end_time.slice(0, 5)}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedAppt(null)}
                 aria-label="Close"
-                className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl hover:bg-[var(--surface-secondary)] transition-colors active:scale-95"
+                className="p-1.5 text-[#64748B] hover:text-[#0F172A] dark:hover:text-white rounded-xl hover:bg-[#F1F5F9] dark:hover:bg-[#1C2542] transition-colors active:scale-95 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-1 text-xs">
-              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)] font-medium">Client:</span>
-                <span className="font-bold text-[var(--text-primary)] break-words">{selectedAppt.customer_details?.full_name || 'Walk-in Client'}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
+                <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Client:</span>
+                <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC] break-words">
+                  {selectedAppt.customer_details?.full_name || 'Walk-in Client'}
+                </span>
               </div>
-              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)] font-medium">Phone:</span>
-                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.customer_details?.phone || 'Not provided'}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
+                <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Phone:</span>
+                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+                  {selectedAppt.customer_details?.phone || 'Not provided'}
+                </span>
               </div>
-              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)] font-medium">Stylist:</span>
-                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.staff_details?.user_details?.full_name || selectedAppt.staff_details?.title}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
+                <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Stylist:</span>
+                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+                  {selectedAppt.staff_details?.user_details?.full_name || selectedAppt.staff_details?.title}
+                </span>
               </div>
-              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)] font-medium">Branch:</span>
-                <span className="font-semibold text-[var(--text-primary)]">{selectedAppt.branch_details?.name || 'Main Branch'}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
+                <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Branch:</span>
+                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+                  {selectedAppt.branch_details?.name || 'Main Branch'}
+                </span>
               </div>
-              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[var(--border)]">
-                <span className="text-[var(--text-secondary)] font-medium">Status:</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
+                <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Status:</span>
                 <div>{statusBadge(selectedAppt.status)}</div>
               </div>
 
               {/* Items */}
               <div className="pt-2">
-                <span className="font-semibold text-[var(--text-primary)] block mb-1">Booked Services:</span>
+                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] block mb-1.5">
+                  Booked Services:
+                </span>
                 <div className="space-y-1">
                   {selectedAppt.items?.map((it, i) => (
-                    <div key={i} className="flex justify-between py-1.5 px-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-                      <span className="text-[var(--text-primary)]">{it.service_name} ({it.duration_minutes}m)</span>
-                      <span className="font-bold text-[var(--text-primary)] tabular-nums">{formatINR(it.price || 0)}</span>
+                    <div
+                      key={i}
+                      className="flex justify-between py-1.5 px-3 bg-[#F8FAFC] dark:bg-[#1C2542] rounded-xl border border-[#E2E8F0] dark:border-[#252F4E]"
+                    >
+                      <span className="text-[#0F172A] dark:text-[#F8FAFC]">
+                        {it.service_name} ({it.duration_minutes}m)
+                      </span>
+                      <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                        {formatINR(it.price || 0)}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-t border-[var(--border)] text-sm font-bold">
-                <span className="text-[var(--text-primary)]">Total Amount:</span>
-                <span className="text-[#059669] dark:text-[#10B981] tabular-nums font-sans font-bold text-base">{formatINR(selectedAppt.total_amount || 0)}</span>
+              <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-t border-[#E2E8F0] dark:border-[#252F4E] text-sm font-bold">
+                <span className="text-[#0F172A] dark:text-[#F8FAFC]">Total Amount:</span>
+                <span className="text-[#059669] dark:text-[#34D399] tabular-nums font-bold text-base">
+                  {formatINR(selectedAppt.total_amount || 0)}
+                </span>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)] justify-end">
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-[#E2E8F0] dark:border-[#252F4E] justify-end">
               {selectedAppt.status !== 'CANCELLED' && selectedAppt.status !== 'COMPLETED' && (
                 <button
                   onClick={() => handleUpdateStatus(selectedAppt.id, 'CANCELLED')}
-                  className="btn-danger-outline btn-sm"
+                  className="btn-danger-outline btn-sm font-semibold"
                 >
-                  Cancel Booking
+                  <span>Cancel Booking</span>
                 </button>
               )}
               {selectedAppt.status === 'CONFIRMED' && (
                 <button
                   onClick={() => handleUpdateStatus(selectedAppt.id, 'IN_PROGRESS')}
-                  className="btn-primary btn-sm"
+                  className="btn-primary btn-sm font-semibold"
                 >
-                  Mark In Progress
+                  <span>Mark In Progress</span>
                 </button>
               )}
               {selectedAppt.status !== 'COMPLETED' && (
                 <button
                   onClick={() => handleUpdateStatus(selectedAppt.id, 'COMPLETED')}
-                  className="btn-secondary btn-sm"
+                  className="btn-secondary btn-sm font-semibold"
                 >
-                  Mark Completed
+                  <span>Mark Completed</span>
                 </button>
               )}
             </div>

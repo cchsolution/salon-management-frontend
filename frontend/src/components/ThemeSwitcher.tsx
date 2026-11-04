@@ -32,24 +32,24 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false })
     themeMode === 'system' ? Laptop : resolvedTheme === 'dark' ? Moon : Sun;
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className="relative inline-block text-left font-sans" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle theme mode"
-        className="p-2 rounded-xl text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/40 active:scale-95"
+        className="p-2 rounded-xl text-[#6B7280] dark:text-[#94A3B8] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-[#0A24E9]/30 active:scale-95 cursor-pointer"
       >
-        <CurrentIcon className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
+        <CurrentIcon className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
         {!compact && (
-          <span className="text-xs font-semibold capitalize hidden sm:inline text-[#1E1B2E] dark:text-[#F8FAFC]">
+          <span className="text-xs font-semibold capitalize hidden sm:inline text-[#0B0D17] dark:text-[#F8FAFC]">
             {themeMode}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-2xl bg-white dark:bg-[#171225] border border-[#E2E8F0] dark:border-[#332A46] shadow-dropdown dark:shadow-dropdown-dark py-1.5 z-50 animate-scaleIn">
-          <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+        <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-2xl bg-white dark:bg-[#141A2E] border border-[#CACED6] dark:border-[#252F4E] shadow-dropdown dark:shadow-dropdown-dark py-1.5 z-50 animate-scaleIn">
+          <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#A9B6C0] dark:text-[#94A3B8]">
             Appearance
           </div>
           {options.map((opt) => {
@@ -62,17 +62,17 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false })
                   setThemeMode(opt.mode);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors ${
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors cursor-pointer ${
                   isSelected
-                    ? 'text-[#6D28D9] dark:text-[#8B5CF6] bg-purple-50 dark:bg-purple-950/40 font-semibold'
-                    : 'text-[#64748B] dark:text-[#C4BFD0] hover:bg-slate-50 dark:hover:bg-[#211A32] hover:text-[#1E1B2E] dark:hover:text-white'
+                    ? 'text-[#0A24E9] dark:text-[#4D68FF] bg-[#EEF2FF] dark:bg-[#1E294B] font-semibold'
+                    : 'text-[#6B7280] dark:text-[#94A3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] hover:text-[#0B0D17] dark:hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Icon className="w-4 h-4" />
                   <span>{opt.label}</span>
                 </div>
-                {isSelected && <Check className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981]" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-[#5C9764] dark:text-[#7DB585]" />}
               </button>
             );
           })}

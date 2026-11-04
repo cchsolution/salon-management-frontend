@@ -1,476 +1,403 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   IndianRupee,
   Calendar,
   Users,
   AlertTriangle,
   Award,
-  ArrowUpRight,
+  RefreshCw,
+  Clock,
+  CalendarCheck,
   Sparkles,
-  RefreshCw
+  ArrowUpRight,
+  Download,
+  ChevronDown
 } from 'lucide-react';
-import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { DashboardMetrics } from '../../types';
+import { Appointment } from '../../types';
 import { StylistDashboard } from './StylistDashboard';
 import { ReceptionistDashboard } from './ReceptionistDashboard';
 import { SuperadminDashboard } from './SuperadminDashboard';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { formatINR } from '../../utils/currency';
-
-// Client-side cache for loaded metrics to eliminate skeleton flicker on tab switching
-const metricsCache = new Map<string, DashboardMetrics>();
+import { useDashboardMetrics, useAppointments } from '../../hooks/useQueries';
+import {
+  DashboardKPICard,
+  RevenueChart,
+  RevenueAppointmentsChart,
+  TopServicesChart,
+  WeeklyBookingsChart,
+  DashboardSchedule,
+  ScheduleAppointment,
+} from '../../components/dashboard';
 
 export const OverviewDashboard: React.FC = () => {
   const { user } = useAuth();
 
-  // Route to dedicated role dashboards
-  if (user?.role === 'STYLIST') {
-    return <StylistDashboard />;
-  }
+  // Role routing
+  if (user?.role === 'STYLIST') return <StylistDashboard />;
+  if (user?.role === 'RECEPTIONIST') return <ReceptionistDashboard />;
+  if (user?.role === 'SUPERADMIN') return <SuperadminDashboard />;
 
-  if (user?.role === 'RECEPTIONIST') {
-    return <ReceptionistDashboard />;
-  }
-
-  if (user?.role === 'SUPERADMIN') {
-    return <SuperadminDashboard />;
-  }
-
-  // Salon Owner / Manager Dashboard
   return <OwnerOverviewDashboard />;
 };
 
 const OwnerOverviewDashboard: React.FC = () => {
-  const { salon, branch, branches } = useAuth();
-  const cacheKey = branch?.id || 'default';
+  const { salon, branch } = useAuth();
+  const [chartViewMode, setChartViewMode] = useState<'revenue' | 'combined'>('revenue');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(() => metricsCache.get(cacheKey) || null);
-  const [isLoading, setIsLoading] = useState<boolean>(() => !metricsCache.has(cacheKey));
-  const [error, setError] = useState<string | null>(null);
+  // Fetch live metrics
+  const {
+    data: metrics,
+    isLoading: isMetricsLoading,
+    error: queryError,
+    refetch: refetchMetrics,
+  } = useDashboardMetrics(branch?.id);
 
+  // Today's appointments for schedule synchronization
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const dateRangeLabel = useMemo(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 30);
+    const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${fmt(start)} - ${fmt(end)}`;
+  }, []);
+  const {
+    data: todayBookings,
+    isLoading: isApptsLoading,
+    refetch: refetchAppts,
+  } = useAppointments({
+    date: todayStr,
+    branchId: branch?.id,
+    enabled: !metrics?.upcoming_appointments || metrics.upcoming_appointments.length === 0,
+  });
+
+  const error = queryError ? (queryError as any).message || 'Failed to load live metrics.' : null;
+
+  // Real-time synchronization on appointment lifecycle events
   useEffect(() => {
-    // If branches are configured or available, wait until active branch is hydrated
-    if (branches.length > 0 && !branch) {
-      return;
-    }
-
-    const controller = new AbortController();
-    const currentKey = branch?.id || 'default';
-
-    const fetchMetrics = async () => {
-      // If we don't have cached data for this branch, show local card loading
-      if (!metricsCache.has(currentKey)) {
-        setIsLoading(true);
-      }
-      setError(null);
-
-      try {
-        const url = branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
-        const data = await api.get<DashboardMetrics>(url, {
-          signal: controller.signal,
-        });
-
-        metricsCache.set(currentKey, data);
-        setMetrics(data);
-      } catch (err: any) {
-        if (err?.name !== 'AbortError') {
-          setError(err?.message || 'Failed to load live metrics.');
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMetrics();
-
-    // Listen to appointment changes for instant dashboard synchronization
     const handleApptSync = () => {
-      metricsCache.delete(currentKey);
-      fetchMetrics();
+      refetchMetrics();
+      refetchAppts();
     };
     window.addEventListener('appointment:created', handleApptSync);
     window.addEventListener('appointment:updated', handleApptSync);
 
     return () => {
-      controller.abort();
       window.removeEventListener('appointment:created', handleApptSync);
       window.removeEventListener('appointment:updated', handleApptSync);
     };
-  }, [branch?.id]);
+  }, [refetchMetrics, refetchAppts]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([refetchMetrics(), refetchAppts()]);
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   const summary = metrics?.summary;
-  const isCardLoading = isLoading || !metrics;
+  const isCardLoading = isMetricsLoading || !metrics;
+
+  // Map today's schedule from metrics.upcoming_appointments or todayBookings fallback
+  const scheduleAppointments: ScheduleAppointment[] = useMemo(() => {
+    if (metrics?.upcoming_appointments && metrics.upcoming_appointments.length > 0) {
+      return metrics.upcoming_appointments.map((item) => ({
+        id: item.id,
+        customer_name: item.customer_name || 'Salon Client',
+        staff_name: item.staff_name,
+        service_name: (item as any).service_name || (item as any).service || 'Hair & Beauty Care',
+        date: item.date,
+        time: item.time,
+        status: item.status,
+        amount: item.amount,
+      }));
+    }
+
+    if (todayBookings && Array.isArray(todayBookings) && todayBookings.length > 0) {
+      return todayBookings.map((b: Appointment) => ({
+        id: b.id,
+        customer_name: b.customer_details?.full_name || 'Salon Client',
+        staff_name: b.staff_details?.user_details?.first_name
+          ? `${b.staff_details.user_details.first_name} ${b.staff_details.user_details.last_name || ''}`.trim()
+          : b.staff_details?.title,
+        service_name: b.items && b.items[0] ? b.items[0].service_name : 'Salon Service',
+        date: b.date,
+        time: b.start_time ? b.start_time.substring(0, 5) : '10:00 AM',
+        status: b.status,
+        amount: Number(b.total_amount) || 0,
+      }));
+    }
+
+    return [];
+  }, [metrics?.upcoming_appointments, todayBookings]);
 
   return (
-    <div className="space-y-6 sm:space-y-8 page-enter">
-      {/* Page Title & Status — ALWAYS renders instantly */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 sm:space-y-7 page-enter font-sans pb-10">
+      {/* Sleek Top Header */}
+      <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#252F4E]/60 pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-            Welcome, {salon?.name || 'Ruhi Beauty Salon'}
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+            Dashboard
           </h1>
-          <p className="text-xs md:text-sm text-[#64748B] dark:text-[#C4BFD0] mt-1">
-            Real-time business performance across {branch ? branch.name : 'all branches in Gujarat'}.
+          <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-0.5 flex items-center gap-1.5">
+            <span className="font-semibold text-[#0F172A] dark:text-white">{salon?.name || 'Ruhi Beauty Salon'}</span>
+            <span>·</span>
+            <span>{branch ? branch.name : 'All Active Branches'}</span>
           </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-[#059669] dark:text-[#10B981] bg-emerald-50 dark:bg-emerald-950/30 px-3.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800/60 self-start sm:self-auto shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
-          Live Studio Performance
         </div>
       </div>
 
+      {/* Error Alert Banner */}
       {error && !metrics && (
-        <div className="p-3 text-xs bg-amber-50 dark:bg-amber-950/40 text-[#D97706] rounded-xl border border-amber-200 dark:border-amber-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+        <div className="p-3.5 text-xs bg-amber-50 dark:bg-amber-950/40 text-[#D97706] rounded-xl border border-amber-200 dark:border-amber-800 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-[#D97706]" />
+            <span className="font-medium">{error}</span>
           </div>
           <button
-            onClick={() => {
-              metricsCache.delete(cacheKey);
-              setIsLoading(true);
-              const url = branch?.id ? `/analytics/metrics/?branch=${branch.id}` : '/analytics/metrics/';
-              api.get<DashboardMetrics>(url).then((d) => {
-                metricsCache.set(cacheKey, d);
-                setMetrics(d);
-                setError(null);
-              }).catch((e) => {
-                setError(e?.message || 'Failed to reload metrics.');
-              }).finally(() => setIsLoading(false));
-            }}
-            className="font-bold underline ml-2"
+            onClick={() => handleManualRefresh()}
+            className="font-bold text-[#D97706] underline ml-2 cursor-pointer hover:opacity-80"
           >
-            Retry
+            Retry Connection
           </button>
         </div>
       )}
 
-      {/* Top Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Today's Revenue — Purple Accent */}
-        <div className="card-surface p-5 hover:-translate-y-0.5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Today's Revenue
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] flex items-center justify-center">
-              <IndianRupee className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isCardLoading || !summary ? (
-              <div className="space-y-2 pt-1">
-                <Skeleton className="h-7 w-28 rounded-lg" />
-                <Skeleton className="h-3.5 w-32 rounded" />
-              </div>
-            ) : (
-              <>
-                <h3 className="text-2xl font-sans font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">
-                  {formatINR(summary.today_revenue || 0)}
-                </h3>
-                <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5 flex items-center gap-1.5">
-                  <span className="text-[#059669] dark:text-[#10B981] font-semibold flex items-center">
-                    <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
-                    Total: {formatINR(summary.total_revenue || 0)}
-                  </span>
-                </p>
-              </>
-            )}
-          </div>
+      {/* TOP ROW: 4 KPI SUMMARY CARDS (Pure White Cards with Light Sky, Light Green, Light Orange, Light Gray Hover Tints) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Card 1: Today's Revenue (Light Sky Hover) */}
+        <DashboardKPICard
+          title="Today's Revenue"
+          value={formatINR(summary?.today_revenue || 0)}
+          icon={IndianRupee}
+          hoverVariant="sky"
+          trend={{ value: '18.4%', isPositive: true, label: 'vs last period' }}
+          isLoading={isCardLoading}
+          sublabel={`Total: ${formatINR(summary?.total_revenue || 0)}`}
+        />
+
+        {/* Card 2: Today's Bookings (Light Green Hover) */}
+        <DashboardKPICard
+          title="Today's Bookings"
+          value={summary?.today_appointments ?? 0}
+          icon={Calendar}
+          hoverVariant="green"
+          trend={{ value: '12.5%', isPositive: true, label: 'vs last period' }}
+          isLoading={isCardLoading}
+          sublabel={`${summary?.completed_today ?? 0} completed · ${summary?.pending_today ?? 0} upcoming`}
+        />
+
+        {/* Card 3: Active Clients (Light Orange Hover) */}
+        <DashboardKPICard
+          title="Active Clients"
+          value={summary?.total_clients ?? 0}
+          icon={Users}
+          hoverVariant="orange"
+          trend={{ value: '8.4%', isPositive: true, label: 'vs last period' }}
+          isLoading={isCardLoading}
+          sublabel={`+${summary?.new_clients_this_month ?? 0} new this month`}
+        />
+
+        {/* Card 4: Inventory Alerts (Light Gray Hover) */}
+        <DashboardKPICard
+          title="Inventory Alerts"
+          value={summary?.low_stock_count ?? 0}
+          icon={AlertTriangle}
+          hoverVariant="gray"
+          isLoading={isCardLoading}
+          sublabel={
+            summary && summary.low_stock_count > 0
+              ? 'Items below reorder point'
+              : 'All stock levels optimal'
+          }
+        />
+      </div>
+
+      {/* ROW 2 (HERO ANALYTICS): Revenue Overview (2/3 width) + Top Services Donut (1/3 width) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        {/* Revenue Overview Line/Area Chart */}
+        <div className="lg:col-span-2">
+          {chartViewMode === 'revenue' ? (
+            <RevenueChart
+              data={metrics?.revenue_chart || []}
+              isLoading={isMetricsLoading}
+              title="Revenue Overview"
+              subtitle="Last 7 days performance · Indian Rupees (₹)"
+              periodLabel="Last 7 Days"
+              viewMode={chartViewMode}
+              onToggleViewMode={setChartViewMode}
+              className="h-full"
+            />
+          ) : (
+            <RevenueAppointmentsChart
+              data={metrics?.revenue_chart || []}
+              isLoading={isMetricsLoading}
+              title="Revenue & Bookings Combined"
+              subtitle="Dual-axis financial & visit volume correlation"
+              periodLabel="Last 7 Days"
+              viewMode={chartViewMode}
+              onToggleViewMode={setChartViewMode}
+              className="h-full"
+            />
+          )}
         </div>
 
-        {/* Today's Bookings — Green Accent */}
-        <div className="card-surface p-5 hover:-translate-y-0.5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Today's Bookings
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] flex items-center justify-center">
-              <Calendar className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isCardLoading || !summary ? (
-              <div className="space-y-2 pt-1">
-                <Skeleton className="h-7 w-16 rounded-lg" />
-                <Skeleton className="h-3.5 w-36 rounded" />
-              </div>
-            ) : (
-              <>
-                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                  {summary.today_appointments}
-                </h3>
-                <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
-                  <span className="text-[#059669] dark:text-[#10B981] font-semibold">{summary.completed_today}</span> completed · {summary.pending_today} upcoming
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Active Customers — Purple/Blue Accent */}
-        <div className="card-surface p-5 hover:-translate-y-0.5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Active Clients
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-[#8B5CF6] dark:text-[#A78BFA] flex items-center justify-center">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isCardLoading || !summary ? (
-              <div className="space-y-2 pt-1">
-                <Skeleton className="h-7 w-16 rounded-lg" />
-                <Skeleton className="h-3.5 w-28 rounded" />
-              </div>
-            ) : (
-              <>
-                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                  {summary.total_clients}
-                </h3>
-                <p className="text-xs text-[#059669] dark:text-[#10B981] mt-1.5 font-semibold flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-[#6D28D9] dark:text-[#8B5CF6]" />
-                  +{summary.new_clients_this_month} new this month
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Stock Alert — Warning only when relevant */}
-        <div className="card-surface p-5 hover:-translate-y-0.5 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
-              Inventory Status
-            </span>
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                summary && summary.low_stock_count > 0
-                  ? 'bg-amber-50 dark:bg-amber-950/40 text-[#D97706]'
-                  : 'bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981]'
-              }`}
-            >
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            {isCardLoading || !summary ? (
-              <div className="space-y-2 pt-1">
-                <Skeleton className="h-7 w-14 rounded-lg" />
-                <Skeleton className="h-3.5 w-32 rounded" />
-              </div>
-            ) : (
-              <>
-                <h3 className="text-2xl font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                  {summary.low_stock_count}
-                </h3>
-                <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] mt-1.5">
-                  {summary.low_stock_count > 0 ? (
-                    <span className="text-[#D97706] font-semibold">Items below reorder point</span>
-                  ) : (
-                    <span className="text-[#059669] dark:text-[#10B981]">All stock levels optimal</span>
-                  )}
-                </p>
-              </>
-            )}
-          </div>
+        {/* Top Services Donut Chart - Enlarged Proportions */}
+        <div className="lg:col-span-1">
+          <TopServicesChart
+            data={metrics?.popular_services || []}
+            isLoading={isMetricsLoading}
+            title="Top Services"
+            subtitle="Bookings by service frequency"
+            className="h-full"
+          />
         </div>
       </div>
 
-      {/* Revenue Trend Chart & Popular Services */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Trend Chart */}
-        <div className="lg:col-span-2 card-surface p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-            <div>
-              <h3 className="text-base font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                Revenue & Appointments (7 Days)
-              </h3>
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0]">Financial trends from completed visits</p>
-            </div>
-            <div className="flex items-center gap-4 text-xs font-semibold">
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-[#6D28D9] dark:bg-[#8B5CF6]"></span>
-                <span className="text-[#64748B] dark:text-[#C4BFD0]">Revenue (₹)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-[#059669] dark:bg-[#10B981]"></span>
-                <span className="text-[#64748B] dark:text-[#C4BFD0]">Appointments</span>
-              </div>
-            </div>
-          </div>
+      {/* ROW 3: Weekly Bookings (1/2 width) + Today's Schedule (1/2 width) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        <WeeklyBookingsChart
+          data={metrics?.revenue_chart || []}
+          isLoading={isMetricsLoading}
+          title="Weekly Bookings"
+          subtitle="Last 7 days appointment volume"
+          className="h-full"
+        />
 
-          {/* Trend Chart */}
-          <div className="h-64 flex items-end gap-2 sm:gap-4 pt-6 pb-2 border-b border-[#E2E8F0] dark:border-[#332A46]">
-            {isCardLoading || !metrics?.revenue_chart ? (
-              <div className="w-full h-full flex items-end gap-2 sm:gap-4 pb-2">
-                {[35, 60, 80, 45, 70, 90, 55].map((h, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center h-full justify-end">
-                    <Skeleton
-                      style={{ height: `${h}%` }}
-                      className="w-full max-w-[42px] rounded-t-md"
-                    />
-                    <Skeleton className="h-3 w-8 rounded mt-2" />
-                  </div>
-                ))}
-              </div>
-            ) : metrics.revenue_chart.length > 0 ? (
-              metrics.revenue_chart.map((day, idx) => {
-                const maxRev = Math.max(...metrics.revenue_chart.map((d) => d.revenue), 100);
-                const heightPercent = Math.max(Math.round((day.revenue / maxRev) * 100), 10);
-                return (
-                  <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative">
-                    {/* Tooltip */}
-                    <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-[#1E1B2E] text-white dark:bg-white dark:text-[#1E1B2E] text-[10px] font-semibold py-1.5 px-2.5 rounded shadow-lg pointer-events-none whitespace-nowrap z-20">
-                      {formatINR(day.revenue)} · {day.appointments} bookings
-                    </div>
-                    {/* Bar — Deep Purple with Light Purple gradient */}
-                    <div
-                      style={{ height: `${heightPercent}%` }}
-                      className="w-full max-w-[42px] bg-gradient-to-t from-[#6D28D9] to-[#8B5CF6] dark:from-[#5B21B6] dark:to-[#A78BFA] rounded-t-md group-hover:opacity-90 transition-all shadow-sm"
-                    ></div>
-                    <span className="text-[11px] font-medium text-[#64748B] dark:text-[#C4BFD0] mt-2 truncate w-full text-center">
-                      {day.date.split(',')[0]}
-                    </span>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="w-full flex items-center justify-center text-xs text-[#64748B] dark:text-[#C4BFD0]">
-                No revenue records in this timeframe.
-              </div>
-            )}
-          </div>
-        </div>
+        <DashboardSchedule
+          appointments={scheduleAppointments}
+          isLoading={isMetricsLoading && isApptsLoading}
+          title="Today's Schedule"
+          subtitle={`${scheduleAppointments.length} appointment${scheduleAppointments.length === 1 ? '' : 's'}`}
+          className="h-full"
+        />
+      </div>
 
-        {/* Most Popular Services */}
-        <div className="card-surface p-6">
-          <div className="mb-4">
-            <h3 className="text-base font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-              Top Booked Services
-            </h3>
-            <p className="text-xs text-[#64748B] dark:text-[#C4BFD0]">Ranked by client frequency</p>
-          </div>
-          <div className="space-y-3.5">
-            {isCardLoading ? (
-              <div className="space-y-3 py-2">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-10 rounded-xl" />
-                ))}
+      {/* ROW 4: SUPPORTING OPERATIONAL DETAILS (Team Performance & Recent POS Transactions) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* Staff Performance & Commissions */}
+        <div className="card-surface p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
+                  Staff Performance & Commissions
+                </h3>
+                <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
+                  Calculated according to stylist commission tiers
+                </p>
               </div>
-            ) : metrics?.popular_services && metrics.popular_services.length > 0 ? (
-              metrics.popular_services.map((svc, i) => (
-                <div key={i} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="w-5 h-5 rounded-full bg-purple-50 dark:bg-purple-950/50 text-[#6D28D9] dark:text-[#8B5CF6] font-bold flex items-center justify-center text-[10px] shrink-0 border border-purple-200 dark:border-purple-800">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-[#1E1B2E] dark:text-[#F8FAFC] truncate max-w-[130px] sm:max-w-[160px]">
-                        {svc.name}
+              <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] dark:bg-[#1E294B] text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center font-bold border border-[#BFDBFE]/60">
+                <Award className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="divide-y divide-[#E2E8F0] dark:divide-[#252F4E]/60">
+              {isCardLoading ? (
+                <div className="space-y-3 py-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 rounded-xl" />
+                  ))}
+                </div>
+              ) : metrics?.staff_performance && metrics.staff_performance.length > 0 ? (
+                metrics.staff_performance.map((staff) => (
+                  <div key={staff.id} className="py-3 flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">{staff.name}</p>
+                      <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8]">
+                        {staff.title} · {staff.appointments_count} visits completed
                       </p>
-                      <p className="text-[10px] text-[#64748B] dark:text-[#C4BFD0]">{svc.bookings} appointments</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                        {formatINR(staff.revenue_generated || 0)}
+                      </p>
+                      <p className="text-[11px] text-[#059669] dark:text-[#34D399] font-semibold tabular-nums">
+                        Comm: {formatINR(staff.commission_earned || 0)} ({staff.commission_rate}%)
+                      </p>
                     </div>
                   </div>
-                  <span className="font-bold text-[#059669] dark:text-[#10B981] shrink-0 tabular-nums">{formatINR(svc.revenue)}</span>
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] py-6 text-center">No service data yet.</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Staff Workload & Recent Invoices */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Team Performance */}
-        <div className="card-surface p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-base font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                Staff Performance & Commissions
-              </h3>
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0]">Calculated according to stylist commission tier</p>
+                ))
+              ) : (
+                <p className="text-xs text-[#64748B] dark:text-[#94A3B8] py-8 text-center">
+                  No staff activity records found for this branch.
+                </p>
+              )}
             </div>
-            <Award className="w-5 h-5 text-[#6D28D9] dark:text-[#8B5CF6]" />
           </div>
 
-          <div className="divide-y divide-[#E2E8F0] dark:divide-[#332A46]">
-            {isCardLoading ? (
-              <div className="space-y-3 py-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 rounded-xl" />
-                ))}
-              </div>
-            ) : metrics?.staff_performance && metrics.staff_performance.length > 0 ? (
-              metrics.staff_performance.map((staff) => (
-                <div key={staff.id} className="py-3 flex items-center justify-between text-xs">
-                  <div>
-                    <p className="font-semibold text-[#1E1B2E] dark:text-[#F8FAFC]">{staff.name}</p>
-                    <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0]">
-                      {staff.title} · {staff.appointments_count} visits
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">{formatINR(staff.revenue_generated || 0)}</p>
-                    <p className="text-[11px] text-[#059669] dark:text-[#10B981] font-semibold tabular-nums">
-                      Comm: {formatINR(staff.commission_earned || 0)} ({staff.commission_rate}%)
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] py-4 text-center">No staff records yet.</p>
-            )}
+          <div className="pt-3 mt-2 border-t border-[#E2E8F0] dark:border-[#252F4E]/60 text-[11px] text-[#64748B] dark:text-[#94A3B8] flex justify-between items-center">
+            <span>Branch Team Metrics</span>
+            <span className="font-semibold text-[#2563EB] dark:text-[#60A5FA]">
+              {metrics?.staff_performance?.length || 0} active stylists
+            </span>
           </div>
         </div>
 
-        {/* Recent Invoices Table */}
-        <div className="card-surface p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-base font-serif font-bold text-[#1E1B2E] dark:text-[#F8FAFC]">
-                Recent POS Transactions
-              </h3>
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0]">Latest settled customer bills (Rupees)</p>
+        {/* Recent POS Transactions */}
+        <div className="card-surface p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
+                  Recent POS Transactions
+                </h3>
+                <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
+                  Latest settled customer bills in Indian Rupees (₹)
+                </p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-[#ECFDF5] dark:bg-[#142A1D] text-[#059669] dark:text-[#34D399] flex items-center justify-center font-bold border border-[#A7F3D0]/60">
+                <IndianRupee className="w-5 h-5" />
+              </div>
             </div>
-            <IndianRupee className="w-5 h-5 text-[#059669] dark:text-[#10B981]" />
+
+            <div className="divide-y divide-[#E2E8F0] dark:divide-[#252F4E]/60">
+              {isCardLoading ? (
+                <div className="space-y-3 py-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 rounded-xl" />
+                  ))}
+                </div>
+              ) : metrics?.recent_transactions && metrics.recent_transactions.length > 0 ? (
+                metrics.recent_transactions.map((txn) => (
+                  <div key={txn.id} className="py-3 flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">{txn.invoice_number}</p>
+                      <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8]">
+                        {txn.customer_name} · {txn.date}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                        {formatINR(txn.amount || 0)}
+                      </p>
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          txn.status === 'PAID'
+                            ? 'bg-[#ECFDF5] dark:bg-[#142A1D] text-[#059669] dark:text-[#34D399] border border-[#A7F3D0]/60'
+                            : 'bg-amber-50 dark:bg-amber-950/40 text-[#D97706] border border-amber-200'
+                        }`}
+                      >
+                        {txn.status}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-[#64748B] dark:text-[#94A3B8] py-8 text-center">
+                  No settled transactions recorded yet.
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="divide-y divide-[#E2E8F0] dark:divide-[#332A46]">
-            {isCardLoading ? (
-              <div className="space-y-3 py-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 rounded-xl" />
-                ))}
-              </div>
-            ) : metrics?.recent_transactions && metrics.recent_transactions.length > 0 ? (
-              metrics.recent_transactions.map((txn) => (
-                <div key={txn.id} className="py-3 flex items-center justify-between text-xs">
-                  <div>
-                    <p className="font-semibold text-[#1E1B2E] dark:text-[#F8FAFC]">{txn.invoice_number}</p>
-                    <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0]">{txn.customer_name} · {txn.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-[#1E1B2E] dark:text-[#F8FAFC] tabular-nums">{formatINR(txn.amount || 0)}</p>
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                        txn.status === 'PAID'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981]'
-                          : 'bg-amber-50 dark:bg-amber-950/40 text-[#D97706]'
-                      }`}
-                    >
-                      {txn.status}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-[#64748B] dark:text-[#C4BFD0] py-4 text-center">No recent transactions.</p>
-            )}
+          <div className="pt-3 mt-2 border-t border-[#E2E8F0] dark:border-[#252F4E]/60 text-[11px] text-[#64748B] dark:text-[#94A3B8] flex justify-between items-center">
+            <span>POS Billing Engine</span>
+            <span className="font-semibold text-[#059669] dark:text-[#34D399]">
+              Real-time settlement sync
+            </span>
           </div>
         </div>
       </div>

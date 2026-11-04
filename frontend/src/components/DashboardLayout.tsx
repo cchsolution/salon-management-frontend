@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { useAuth } from '../context/AuthContext';
 import { QuickBookingModal } from './QuickBookingModal';
+
+const DashboardLoadingFallback: React.FC = () => (
+  <div className="space-y-6 animate-pulse font-sans">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-2">
+        <div className="h-8 w-56 bg-[#CACED6]/40 dark:bg-slate-800 rounded-lg" />
+        <div className="h-4 w-72 bg-[#CACED6]/30 dark:bg-slate-800/60 rounded" />
+      </div>
+      <div className="h-8 w-32 bg-[#CACED6]/30 dark:bg-slate-800 rounded-full" />
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="h-28 bg-[#FFFFFF] dark:bg-[#141A2E] rounded-xl border border-[#CACED6]/40 dark:border-slate-800" />
+      ))}
+    </div>
+    <div className="h-80 bg-[#FFFFFF] dark:bg-[#141A2E] rounded-xl border border-[#CACED6]/40 dark:border-slate-800" />
+  </div>
+);
 
 export const DashboardLayout: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -31,7 +49,7 @@ export const DashboardLayout: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[var(--color-background)]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#0F766E] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-[#0A24E9] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm font-semibold text-[var(--color-text-primary)]">Loading LuxeSalon Platform...</p>
         </div>
       </div>
@@ -63,7 +81,9 @@ export const DashboardLayout: React.FC = () => {
           onOpenQuickBooking={() => setIsQuickBookingOpen(true)}
         />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-          <Outlet />
+          <Suspense fallback={<DashboardLoadingFallback />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

@@ -9,7 +9,6 @@ import {
   Calendar,
   AlertTriangle,
   User as UserIcon,
-  Sparkles,
   Shield,
   Check
 } from 'lucide-react';
@@ -88,68 +87,56 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
     try {
       await api.post('/notifications/alerts/mark_all_read/');
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    } catch {}
+    } catch { }
   };
 
   const getRoleBadgeClasses = (role?: string) => {
     switch (role) {
       case 'SUPERADMIN':
-        return 'bg-purple-100 dark:bg-purple-950/60 text-[#6D28D9] dark:text-[#8B5CF6] border border-purple-200 dark:border-purple-800';
+        return 'bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] border border-[#0A24E9]/20';
       case 'STYLIST':
         return 'bg-sky-50 dark:bg-sky-950/40 text-[#0284C7] dark:text-[#38BDF8] border border-sky-200 dark:border-sky-800';
       case 'RECEPTIONIST':
-        return 'bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-[#10B981] border border-emerald-200 dark:border-emerald-800';
+        return 'bg-[#F0FDF4] dark:bg-[#17261F] text-[#5C9764] dark:text-[#7DB585] border border-[#5C9764]/30';
       case 'SALON_OWNER':
       default:
-        return 'bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] border border-purple-200 dark:border-purple-800';
+        return 'bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] border border-[#0A24E9]/20';
     }
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 sm:px-6 bg-white/95 dark:bg-[#171225]/95 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[#332A46] shadow-subtle transition-colors duration-200">
-      {/* Left section: mobile hamburger, salon brand pill & branch switcher */}
+    <header className="sticky top-0 z-30 flex items-center justify-between h-20 px-4 sm:px-6 bg-white/95 dark:bg-[#141A2E]/95 backdrop-blur-md border-b border-[#CACED6] dark:border-[#252F4E] shadow-subtle transition-colors duration-200">
+      {/* Left section: mobile hamburger & branch switcher */}
       <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
         <button
           onClick={onToggleSidebar}
           aria-label="Toggle navigation menu"
-          className="p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl lg:hidden transition-colors shrink-0"
+          className="p-2 text-[#6B7280] dark:text-[#94A3B8] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] rounded-xl lg:hidden transition-colors shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Salon Brand Pill for Salon Roles */}
-        {user?.role !== 'SUPERADMIN' && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50/80 dark:bg-purple-950/30 rounded-xl border border-purple-200/60 dark:border-purple-800/40 shrink-0">
-            <div className="w-6 h-6 rounded-lg bg-[#6D28D9] text-white flex items-center justify-center text-xs font-bold font-serif shadow-xs">
-              {salon?.name ? salon.name[0] : 'R'}
-            </div>
-            <span className="text-xs font-bold text-[#1E1B2E] dark:text-[#F8FAFC] font-serif truncate max-w-[120px] sm:max-w-[180px]">
-              {salon?.name || 'Ruhi Beauty Salon'}
-            </span>
-          </div>
-        )}
-
         {/* Custom Branch Selector for Salon Roles */}
         {branches.length > 0 && user?.role !== 'SUPERADMIN' && (
-          <div className="relative" ref={branchRef}>
+          <div className="relative shrink-0" ref={branchRef}>
             <button
               type="button"
               onClick={() => setIsBranchOpen(!isBranchOpen)}
-              className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 dark:bg-[#211A32] rounded-xl border border-[#E2E8F0] dark:border-[#332A46] text-xs hover:border-[#6D28D9]/40 transition-colors shrink-0 cursor-pointer active:scale-95"
+              className="flex items-center gap-2 px-2.5 py-1.5 bg-[#F0F2F5] dark:bg-[#1C2542] rounded-xl border border-[#CACED6] dark:border-[#252F4E] text-xs hover:border-[#0A24E9]/50 transition-colors shrink-0 cursor-pointer active:scale-95"
             >
-              <MapPin className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981] shrink-0" />
-              <span className="font-medium text-[#1E1B2E] dark:text-[#F8FAFC] max-w-[110px] sm:max-w-[160px] truncate">
+              <MapPin className="w-3.5 h-3.5 text-[#5C9764] dark:text-[#7DB585] shrink-0" />
+              <span className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC] max-w-[110px] sm:max-w-[160px] truncate">
                 {branch?.name || 'Select Branch'}
               </span>
-              <ChevronDown className={`w-3 h-3 text-[#64748B] dark:text-[#C4BFD0] transition-transform duration-200 shrink-0 ${isBranchOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3 h-3 text-[#6B7280] dark:text-[#94A3B8] transition-transform duration-200 shrink-0 ${isBranchOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isBranchOpen && (
-              <div className="absolute left-0 mt-1.5 w-60 bg-white dark:bg-[#171225] rounded-2xl border border-[#E2E8F0] dark:border-[#332A46] shadow-dropdown dark:shadow-dropdown-dark py-1.5 z-50 animate-scaleIn">
-                <div className="px-3.5 py-1.5 border-b border-[#E2E8F0] dark:border-[#332A46] text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#C4BFD0]">
+              <div className="absolute left-0 mt-1.5 w-60 bg-white dark:bg-[#141A2E] rounded-2xl border border-[#CACED6] dark:border-[#252F4E] shadow-dropdown dark:shadow-dropdown-dark py-1.5 z-50 animate-scaleIn">
+                <div className="px-3.5 py-1.5 border-b border-[#CACED6]/70 dark:border-[#252F4E] text-[10px] font-bold uppercase tracking-wider text-[#A9B6C0] dark:text-[#94A3B8]">
                   Select Salon Branch
                 </div>
-                <div className="max-h-60 overflow-y-auto divide-y divide-[#E2E8F0]/40 dark:divide-[#332A46]/40 p-1">
+                <div className="max-h-60 overflow-y-auto divide-y divide-[#CACED6]/40 dark:divide-[#252F4E]/40 p-1">
                   {branches.map((b) => {
                     const isSelected = b.id === branch?.id;
                     return (
@@ -160,20 +147,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
                           setBranch(b);
                           setIsBranchOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl transition-colors text-left ${
-                          isSelected
-                            ? 'bg-purple-50 dark:bg-purple-950/40 text-[#6D28D9] dark:text-[#8B5CF6] font-semibold'
-                            : 'text-[#1E1B2E] dark:text-[#F8FAFC] hover:bg-slate-50 dark:hover:bg-[#211A32]'
-                        }`}
+                        className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl transition-colors text-left ${isSelected
+                          ? 'bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] font-semibold'
+                          : 'text-[#0B0D17] dark:text-[#F8FAFC] hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542]'
+                          }`}
                       >
                         <div className="min-w-0 pr-2">
                           <p className="truncate font-medium">{b.name}</p>
-                          <p className="text-[10px] text-[#64748B] dark:text-[#C4BFD0] truncate">
+                          <p className="text-[10px] text-[#6B7280] dark:text-[#94A3B8] truncate">
                             {b.city ? `${b.city} · ` : ''}{b.address}
                           </p>
                         </div>
                         {isSelected && (
-                          <Check className="w-3.5 h-3.5 text-[#059669] dark:text-[#10B981] shrink-0" />
+                          <Check className="w-3.5 h-3.5 text-[#5C9764] dark:text-[#7DB585] shrink-0" />
                         )}
                       </button>
                     );
@@ -186,7 +172,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
 
         {/* Superadmin Platform Indicator */}
         {user?.role === 'SUPERADMIN' && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800/60 text-xs text-[#6D28D9] dark:text-[#8B5CF6] font-semibold">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#EEF2FF] dark:bg-[#1E294B] rounded-xl border border-[#0A24E9]/20 text-xs text-[#0A24E9] dark:text-[#4D68FF] font-semibold">
             <Shield className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Platform Superadmin</span>
           </div>
@@ -198,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
         {onOpenQuickBooking && user?.role !== 'SUPERADMIN' && (
           <button
             onClick={onOpenQuickBooking}
-            className="btn-primary btn-sm hidden sm:inline-flex items-center gap-1.5 shadow-sm font-bold"
+            className="btn-primary btn-sm hidden sm:inline-flex items-center gap-1.5 shadow-sm font-semibold"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Appointment</span>
@@ -213,57 +199,56 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
             aria-label="View notifications"
-            className="relative p-2 text-[#64748B] dark:text-[#C4BFD0] hover:text-[#1E1B2E] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl transition-colors active:scale-95"
+            className="relative p-2 text-[#6B7280] dark:text-[#94A3B8] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] rounded-xl transition-colors active:scale-95"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-[#DC2626] rounded-full animate-pulse">
+              <span className="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-[#EF4444] rounded-full animate-pulse">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-[#171225] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#E2E8F0] dark:border-[#332A46] py-2 z-50 animate-scaleIn">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-[#E2E8F0] dark:border-[#332A46]">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#1E1B2E] dark:text-[#F8FAFC]">
+            <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-[#141A2E] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#CACED6] dark:border-[#252F4E] py-2 z-50 animate-scaleIn">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-[#CACED6]/70 dark:border-[#252F4E]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#0B0D17] dark:text-[#F8FAFC]">
                   Notifications
                 </span>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllRead}
-                    className="text-xs text-[#059669] dark:text-[#10B981] hover:underline font-semibold"
+                    className="text-xs text-[#5C9764] dark:text-[#7DB585] hover:underline font-semibold"
                   >
                     Mark all read
                   </button>
                 )}
               </div>
-              <div className="max-h-72 overflow-y-auto divide-y divide-[#E2E8F0] dark:divide-[#332A46]">
+              <div className="max-h-72 overflow-y-auto divide-y divide-[#CACED6]/40 dark:divide-[#252F4E]/40">
                 {notifications.length === 0 ? (
-                  <p className="p-4 text-xs text-center text-[#64748B] dark:text-[#C4BFD0]">
+                  <p className="p-4 text-xs text-center text-[#6B7280] dark:text-[#94A3B8]">
                     No new notifications
                   </p>
                 ) : (
                   notifications.map((n) => (
                     <div
                       key={n.id}
-                      className={`p-3 text-xs flex gap-3 transition-colors ${
-                        !n.is_read
-                          ? 'bg-purple-50/50 dark:bg-purple-950/20'
-                          : 'hover:bg-slate-50 dark:hover:bg-[#211A32]'
-                      }`}
+                      className={`p-3 text-xs flex gap-3 transition-colors ${!n.is_read
+                        ? 'bg-[#EEF2FF]/60 dark:bg-[#1E294B]/30'
+                        : 'hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542]'
+                        }`}
                     >
                       <div className="mt-0.5 shrink-0">
                         {n.notification_type === 'LOW_STOCK' ? (
-                          <AlertTriangle className="w-4 h-4 text-[#D97706]" />
+                          <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
                         ) : (
-                          <Calendar className="w-4 h-4 text-[#6D28D9] dark:text-[#8B5CF6]" />
+                          <Calendar className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-[#1E1B2E] dark:text-[#F8FAFC] truncate">{n.title}</p>
-                        <p className="text-[#64748B] dark:text-[#C4BFD0] mt-0.5 line-clamp-2">{n.message}</p>
-                        <span className="text-[10px] text-[#64748B] dark:text-[#C4BFD0] mt-1 block">
+                        <p className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC] truncate">{n.title}</p>
+                        <p className="text-[#6B7280] dark:text-[#94A3B8] mt-0.5 line-clamp-2">{n.message}</p>
+                        <span className="text-[10px] text-[#A9B6C0] dark:text-[#94A3B8] mt-1 block">
                           {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -279,33 +264,33 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-slate-100 dark:hover:bg-[#211A32] rounded-xl transition-colors active:scale-98 border border-transparent hover:border-[#E2E8F0] dark:hover:border-[#332A46]"
+            className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] rounded-xl transition-colors active:scale-98 border border-transparent hover:border-[#CACED6] dark:hover:border-[#252F4E]"
             aria-label="User profile menu"
             aria-expanded={isProfileOpen}
           >
-            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-950/60 text-[#6D28D9] dark:text-[#8B5CF6] font-bold flex items-center justify-center text-xs border border-purple-200 dark:border-purple-800 shrink-0 shadow-xs">
+            <div className="w-8 h-8 rounded-full bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] font-bold flex items-center justify-center text-xs border border-[#0A24E9]/20 shrink-0 shadow-xs">
               {user?.first_name?.[0] || user?.email?.[0] || 'R'}
             </div>
             <div className="hidden md:flex flex-col text-left">
-              <span className="text-xs font-bold text-[#1E1B2E] dark:text-[#F8FAFC] truncate max-w-[130px] font-sans leading-tight">
+              <span className="text-xs ml-1.5 font-bold text-[#0B0D17] dark:text-[#F8FAFC] truncate max-w-[130px] leading-tight">
                 {user?.full_name || user?.username}
               </span>
-              <span className={`inline-block mt-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider leading-none w-fit font-sans ${getRoleBadgeClasses(user?.role)}`}>
+              <span className={`inline-block mt-1 px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider leading-none w-fit ${getRoleBadgeClasses(user?.role)}`}>
                 {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : 'User'}
               </span>
             </div>
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 ml-0.5 transition-transform duration-200 shrink-0 ${isProfileOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 text-[#6B7280] dark:text-[#94A3B8] ml-0.5 transition-transform duration-200 shrink-0 ${isProfileOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#171225] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#E2E8F0] dark:border-[#332A46] py-1.5 z-50 animate-scaleIn font-sans">
-              <div className="px-4 py-2.5 border-b border-[#E2E8F0] dark:border-[#332A46]">
-                <p className="text-xs font-bold text-[#1E1B2E] dark:text-[#F8FAFC] truncate">{user?.full_name || user?.username}</p>
-                <p className="text-[11px] text-[#64748B] dark:text-[#C4BFD0] truncate mt-0.5">{user?.email}</p>
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#141A2E] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#CACED6] dark:border-[#252F4E] py-1.5 z-50 animate-scaleIn">
+              <div className="px-4 py-2.5 border-b border-[#CACED6]/70 dark:border-[#252F4E]">
+                <p className="text-xs font-bold text-[#0B0D17] dark:text-[#F8FAFC] truncate">{user?.full_name || user?.username}</p>
+                <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8] truncate mt-0.5">{user?.email}</p>
               </div>
               <button
                 onClick={logout}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#DC2626] hover:bg-[#DC2626]/10 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>
