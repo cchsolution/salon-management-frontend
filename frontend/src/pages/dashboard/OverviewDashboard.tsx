@@ -48,16 +48,22 @@ const OwnerOverviewDashboard: React.FC = () => {
   const [selectedDays, setSelectedDays] = useState<number>(7);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch live metrics
+  // Fetch live metrics (passing branch and selectedDays filter to backend)
   const {
     data: metrics,
     isLoading: isMetricsLoading,
     error: queryError,
     refetch: refetchMetrics,
-  } = useDashboardMetrics(branch?.id);
+  } = useDashboardMetrics(branch?.id, selectedDays);
 
-  // Today's appointments for schedule synchronization
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  // Today's appointments for schedule synchronization (using client's local timezone)
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
   const dateRangeLabel = useMemo(() => {
     const end = new Date();
     const start = new Date();
@@ -109,7 +115,11 @@ const OwnerOverviewDashboard: React.FC = () => {
 
   // Real data-driven comparison metrics (Never invent percentages)
   const revenueTrend = useMemo(() => {
-    const backendGrowth = (metrics?.summary as any)?.revenue_growth ?? (metrics as any)?.revenue_comparison;
+    const backendGrowth =
+      (metrics?.trends?.revenue as any)?.percentage ??
+      (metrics?.summary as any)?.revenue_change_percentage ??
+      (metrics?.summary as any)?.revenue_growth ??
+      (metrics as any)?.revenue_comparison;
     if (typeof backendGrowth === 'number' && !isNaN(backendGrowth)) {
       return {
         value: `${Math.abs(backendGrowth).toFixed(1)}%`,
@@ -118,7 +128,7 @@ const OwnerOverviewDashboard: React.FC = () => {
         label: 'vs last period',
       };
     }
-    const chart = metrics?.revenue_chart;
+    const chart = metrics?.revenue_chart || metrics?.revenue_graph;
     if (chart && chart.length >= 2) {
       const latest = chart[chart.length - 1]?.revenue ?? 0;
       const previous = chart[chart.length - 2]?.revenue ?? 0;
@@ -148,7 +158,11 @@ const OwnerOverviewDashboard: React.FC = () => {
   }, [metrics]);
 
   const bookingsTrend = useMemo(() => {
-    const backendGrowth = (metrics?.summary as any)?.appointments_growth ?? (metrics as any)?.appointments_comparison;
+    const backendGrowth =
+      (metrics?.trends?.appointments as any)?.percentage ??
+      (metrics?.summary as any)?.appointments_change_percentage ??
+      (metrics?.summary as any)?.appointments_growth ??
+      (metrics as any)?.appointments_comparison;
     if (typeof backendGrowth === 'number' && !isNaN(backendGrowth)) {
       return {
         value: `${Math.abs(backendGrowth).toFixed(1)}%`,
@@ -157,7 +171,7 @@ const OwnerOverviewDashboard: React.FC = () => {
         label: 'vs last period',
       };
     }
-    const chart = metrics?.revenue_chart;
+    const chart = metrics?.revenue_chart || metrics?.revenue_graph;
     if (chart && chart.length >= 2) {
       const latest = chart[chart.length - 1]?.appointments ?? 0;
       const previous = chart[chart.length - 2]?.appointments ?? 0;
@@ -187,7 +201,11 @@ const OwnerOverviewDashboard: React.FC = () => {
   }, [metrics]);
 
   const clientsTrend = useMemo(() => {
-    const backendGrowth = (metrics?.summary as any)?.clients_growth ?? (metrics as any)?.clients_comparison;
+    const backendGrowth =
+      (metrics?.trends?.clients as any)?.percentage ??
+      (metrics?.summary as any)?.clients_change_percentage ??
+      (metrics?.summary as any)?.clients_growth ??
+      (metrics as any)?.clients_comparison;
     if (typeof backendGrowth === 'number' && !isNaN(backendGrowth)) {
       return {
         value: `${Math.abs(backendGrowth).toFixed(1)}%`,
@@ -298,7 +316,7 @@ const OwnerOverviewDashboard: React.FC = () => {
         {/* Card 2: Today's Bookings (Blue Accent) */}
         <DashboardKPICard
           title="Today's Bookings"
-          value={summary?.today_appointments ?? 0}
+          value={summary?.today_bookings ?? summary?.today_appointments ?? 0}
           icon={Calendar}
           hoverVariant="blue"
           trend={bookingsTrend}
@@ -309,7 +327,7 @@ const OwnerOverviewDashboard: React.FC = () => {
         {/* Card 3: Active Clients (Grey Accent) */}
         <DashboardKPICard
           title="Active Clients"
-          value={summary?.total_clients ?? 0}
+          value={summary?.active_clients ?? summary?.total_clients ?? 0}
           icon={Users}
           hoverVariant="gray"
           trend={clientsTrend}
@@ -320,12 +338,12 @@ const OwnerOverviewDashboard: React.FC = () => {
         {/* Card 4: Inventory Alerts (Orange Accent) */}
         <DashboardKPICard
           title="Inventory Alerts"
-          value={summary?.low_stock_count ?? 0}
+          value={summary?.inventory_alerts ?? summary?.low_stock_count ?? 0}
           icon={AlertTriangle}
           hoverVariant="orange"
           isLoading={isCardLoading}
           sublabel={
-            summary && summary.low_stock_count > 0
+            summary && (summary.inventory_alerts ?? summary.low_stock_count) > 0
               ? 'Items below reorder point'
               : 'All stock levels optimal'
           }
@@ -338,7 +356,7 @@ const OwnerOverviewDashboard: React.FC = () => {
         <div className="lg:col-span-2">
           {chartViewMode === 'revenue' ? (
             <RevenueChart
-              data={metrics?.revenue_chart || []}
+              data={metrics?.revenue_chart || metrics?.revenue_graph || []}
               isLoading={isMetricsLoading}
               title="Revenue Overview"
               subtitle={`Actual ${selectedDays}-day revenue performance · Indian Rupees (₹)`}
@@ -351,7 +369,7 @@ const OwnerOverviewDashboard: React.FC = () => {
             />
           ) : (
             <RevenueAppointmentsChart
-              data={metrics?.revenue_chart || []}
+              data={metrics?.revenue_chart || metrics?.revenue_graph || []}
               isLoading={isMetricsLoading}
               title="Revenue & Bookings Combined"
               subtitle={`Dual-axis ${selectedDays}-day volume & financial trends`}
@@ -368,7 +386,7 @@ const OwnerOverviewDashboard: React.FC = () => {
         {/* Top Services Donut Chart - Stable ring with dynamic hover focus */}
         <div className="lg:col-span-1">
           <TopServicesChart
-            data={metrics?.popular_services || []}
+            data={metrics?.popular_services || metrics?.top_services || []}
             isLoading={isMetricsLoading}
             title="Top Services"
             subtitle="Bookings by service frequency"

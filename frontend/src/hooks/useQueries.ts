@@ -204,12 +204,18 @@ export function useInventoryProducts(branchId?: string | null) {
 /**
  * Query hook for Dashboard Business Metrics
  */
-export function useDashboardMetrics(branchId?: string | null) {
-  const cacheKey = `luxe_cache_metrics_${branchId || 'default'}`;
+export function useDashboardMetrics(branchId?: string | null, days?: number) {
+  const cacheKey = `luxe_cache_metrics_${branchId || 'default'}_${days || 7}`;
   return useQuery({
-    queryKey: ['analytics', 'metrics', branchId || 'default'],
+    queryKey: ['analytics', 'metrics', branchId || 'default', days || 7],
     queryFn: async () => {
-      const url = branchId ? `/analytics/metrics/?branch=${branchId}` : '/analytics/metrics/';
+      let url = '/analytics/metrics/';
+      const params = new URLSearchParams();
+      if (branchId) params.append('branch', branchId);
+      if (days && days > 0) params.append('days', String(days));
+      const queryString = params.toString();
+      if (queryString) url += `?${queryString}`;
+
       const data = await api.get<DashboardMetrics>(url);
       persistData(cacheKey, data);
       return data;

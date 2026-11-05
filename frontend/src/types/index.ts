@@ -359,6 +359,7 @@ export interface DashboardMetrics {
   summary: {
     today_revenue: number;
     today_appointments: number;
+    today_bookings?: number;
     completed_today: number;
     pending_today: number;
     cancelled_today: number;
@@ -366,10 +367,31 @@ export interface DashboardMetrics {
     avg_bill_value: number;
     pending_payments: number;
     total_clients: number;
+    active_clients?: number;
     new_clients_this_month: number;
     low_stock_count: number;
+    inventory_alerts?: number;
+    revenue_change_percentage?: number;
+    revenue_trend?: string;
+    appointments_change_percentage?: number;
+    appointments_trend?: string;
+    clients_change_percentage?: number;
+    clients_trend?: string;
+    period?: string;
+    period_days?: number;
+  };
+  trends?: {
+    revenue?: { percentage: number; formatted: string; direction: string; is_neutral: boolean };
+    appointments?: { percentage: number; formatted: string; direction: string; is_neutral: boolean };
+    clients?: { percentage: number; formatted: string; direction: string; is_neutral: boolean };
   };
   revenue_chart: {
+    date: string;
+    iso_date: string;
+    revenue: number;
+    appointments: number;
+  }[];
+  revenue_graph?: {
     date: string;
     iso_date: string;
     revenue: number;
@@ -379,6 +401,13 @@ export interface DashboardMetrics {
     name: string;
     bookings: number;
     revenue: number;
+    percentage?: number;
+  }[];
+  top_services?: {
+    name: string;
+    bookings: number;
+    revenue: number;
+    percentage?: number;
   }[];
   staff_performance: {
     id: string;
