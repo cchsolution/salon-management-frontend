@@ -13,13 +13,14 @@
   /* Button System Variables */
   --btn-primary-bg: #2868ff;
   --btn-primary-text: #ffffff;
-  --btn-primary-hover-bg: #212121;
-  --btn-primary-hover-text: #e8e8e8;
-  --btn-primary-shadow: 4px 8px 19px -3px rgba(0, 0, 0, 0.27);
+  --btn-primary-hover-bg: #29315D;
+  --btn-primary-hover-text: #ffffff;
+  --btn-primary-active-bg: #202747;
+  --btn-primary-shadow: 0 2px 8px -1px rgba(40, 104, 255, 0.25);
   --btn-radius: 15px;
 
   --btn-secondary-bg: #ffffff;
-  --btn-secondary-text: #0B0D17;
+  --btn-secondary-text: #29315D;
   --btn-secondary-border: #CBD5E1;
   --btn-secondary-hover-bg: #EFF4FF;
   --btn-secondary-hover-text: #2868ff;
@@ -33,7 +34,7 @@
   --btn-danger-hover-bg: #DC2626;
 
   /* Typography Colors */
-  --text-primary: #0B0D17;
+  --text-primary: #29315D;
   --text-secondary: #6B7280;
   --text-muted: #A9B6C0;
 
@@ -102,9 +103,10 @@
   /* Button System Variables - Dark Mode */
   --btn-primary-bg: #2868ff;
   --btn-primary-text: #ffffff;
-  --btn-primary-hover-bg: #161616;
-  --btn-primary-hover-text: #e8e8e8;
-  --btn-primary-shadow: 4px 8px 19px -3px rgba(0, 0, 0, 0.45);
+  --btn-primary-hover-bg: #29315D;
+  --btn-primary-hover-text: #ffffff;
+  --btn-primary-active-bg: #202747;
+  --btn-primary-shadow: 0 2px 8px -1px rgba(40, 104, 255, 0.4);
   --btn-radius: 15px;
 
   --btn-secondary-bg: #141A2E;
@@ -248,7 +250,7 @@
   }
 
   /* ========================================================
-     PRIMARY BUTTONS — #2868ff Base + Expanding #212121 Center Hover Animation
+     PRIMARY BUTTONS — #2868ff Base + Directional Left-to-Right #29315D Hover Sweep
      Driven entirely by :root theme variables
      ======================================================== */
   .btn-primary {
@@ -263,43 +265,43 @@
     border: 0 !important;
     border-radius: var(--btn-radius, 15px) !important;
     font-weight: 700;
-    -webkit-box-shadow: var(--btn-primary-shadow, 4px 8px 19px -3px rgba(0, 0, 0, 0.27));
-    box-shadow: var(--btn-primary-shadow, 4px 8px 19px -3px rgba(0, 0, 0, 0.27));
+    box-shadow: var(--btn-primary-shadow, 0 2px 8px -1px rgba(40, 104, 255, 0.25));
     cursor: pointer;
     user-select: none;
     overflow: hidden;
+    isolation: isolate;
     z-index: 1;
-    transition: all 250ms ease;
+    transition: background-color 350ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 250ms ease;
   }
 
-  /* Center expansion circle/rect */
+  /* Directional Left-to-Right Animated Color Sweep */
   .btn-primary::before {
     content: "";
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background-color: var(--btn-primary-hover-bg, #212121);
-    transform: translate(-50%, -50%);
-    transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1), height 300ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 300ms ease;
-    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--btn-primary-hover-bg, #29315D);
+    border-radius: inherit;
+    transform: translateX(-101%);
+    transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease;
+    z-index: -1;
     pointer-events: none;
   }
 
-  .btn-primary:hover:not(:disabled)::before {
-    width: 280%;
-    height: 280%;
-    border-radius: var(--btn-radius, 15px);
+  .btn-primary:hover:not(:disabled)::before,
+  .btn-primary:focus-visible:not(:disabled)::before {
+    transform: translateX(0);
   }
 
-  .btn-primary:hover:not(:disabled) {
-    color: var(--btn-primary-hover-text, #e8e8e8) !important;
+  .btn-primary:active:not(:disabled)::before {
+    transform: translateX(0);
+    background-color: var(--btn-primary-active-bg, #202747);
   }
 
   .btn-primary:active:not(:disabled) {
-    transform: scale(0.92);
+    background-color: var(--btn-primary-active-bg, #202747) !important;
   }
 
   .btn-primary > *,
@@ -307,14 +309,25 @@
   .btn-primary svg {
     position: relative;
     z-index: 2;
-    color: inherit;
-    transition: color 250ms ease;
+    color: #ffffff !important;
+    transition: color 200ms ease;
     pointer-events: none;
   }
 
   .dark .btn-primary {
     background-color: var(--btn-primary-bg, #2868ff) !important;
     color: var(--btn-primary-text, #ffffff) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary,
+    .btn-primary::before {
+      transition: none !important;
+      animation: none !important;
+    }
+    .btn-primary:hover:not(:disabled)::before {
+      transform: none !important;
+    }
   }
 
   /* Secondary Button — Driven by :root variables */
@@ -357,7 +370,7 @@
 
   /* Outline Button — blue border and light blue background on hover */
   .btn-outline {
-    @apply btn-base bg-transparent border border-[#CBD5E1] dark:border-[#252F4E] text-[#0B0D17] dark:text-[#F8FAFC];
+    @apply btn-base bg-transparent border border-[#CBD5E1] dark:border-[#252F4E] text-[#29315D] dark:text-[#F8FAFC];
     transition: background-color 160ms ease-out, border-color 160ms ease-out, color 160ms ease-out;
   }
 

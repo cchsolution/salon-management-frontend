@@ -111,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
         <button
           onClick={onToggleSidebar}
           aria-label="Toggle navigation menu"
-          className="p-2 text-[#6B7280] dark:text-[#94A3B8] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] rounded-xl lg:hidden transition-colors shrink-0"
+          className="p-2 text-[#6B7280] dark:text-[#94A3B8] hover:text-[#29315D] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] rounded-xl lg:hidden transition-colors shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -125,7 +125,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
               className="flex items-center gap-2 px-2.5 py-1.5 bg-[#F0F2F5] dark:bg-[#1C2542] rounded-xl border border-[#CACED6] dark:border-[#252F4E] text-xs hover:border-[#0A24E9]/50 transition-colors shrink-0 cursor-pointer active:scale-95"
             >
               <MapPin className="w-3.5 h-3.5 text-[#5C9764] dark:text-[#7DB585] shrink-0" />
-              <span className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC] max-w-[110px] sm:max-w-[160px] truncate">
+              <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC] max-w-[110px] sm:max-w-[160px] truncate">
                 {branch?.name || 'Select Branch'}
               </span>
               <ChevronDown className={`w-3 h-3 text-[#6B7280] dark:text-[#94A3B8] transition-transform duration-200 shrink-0 ${isBranchOpen ? 'rotate-180' : ''}`} />
@@ -149,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl transition-colors text-left ${isSelected
                           ? 'bg-[#EEF2FF] dark:bg-[#1E294B] text-[#0A24E9] dark:text-[#4D68FF] font-semibold'
-                          : 'text-[#0B0D17] dark:text-[#F8FAFC] hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542]'
+                          : 'text-[#29315D] dark:text-[#F8FAFC] hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542]'
                           }`}
                       >
                         <div className="min-w-0 pr-2">
@@ -199,7 +199,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
             aria-label="View notifications"
-            className="relative p-2 text-[#6B7280] dark:text-[#94A3B8] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] rounded-xl transition-colors active:scale-95"
+            className="relative p-2 text-[#6B7280] dark:text-[#94A3B8] hover:text-[#29315D] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] rounded-xl transition-colors active:scale-95"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
@@ -212,7 +212,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
           {isNotifOpen && (
             <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-[#141A2E] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#CACED6] dark:border-[#252F4E] py-2 z-50 animate-scaleIn">
               <div className="flex items-center justify-between px-4 py-2 border-b border-[#CACED6]/70 dark:border-[#252F4E]">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#0B0D17] dark:text-[#F8FAFC]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#29315D] dark:text-[#F8FAFC]">
                   Notifications
                 </span>
                 {unreadCount > 0 && (
@@ -246,7 +246,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC] truncate">{n.title}</p>
+                        <p className="font-semibold text-[#29315D] dark:text-[#F8FAFC] truncate">{n.title}</p>
                         <p className="text-[#6B7280] dark:text-[#94A3B8] mt-0.5 line-clamp-2">{n.message}</p>
                         <span className="text-[10px] text-[#A9B6C0] dark:text-[#94A3B8] mt-1 block">
                           {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -272,7 +272,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
               {user?.first_name?.[0] || user?.email?.[0] || 'R'}
             </div>
             <div className="hidden md:flex flex-col text-left">
-              <span className="text-xs ml-1.5 font-bold text-[#0B0D17] dark:text-[#F8FAFC] truncate max-w-[130px] leading-tight">
+              <span className="text-xs ml-1.5 font-bold text-[#29315D] dark:text-[#F8FAFC] truncate max-w-[130px] leading-tight">
                 {user?.full_name || user?.username}
               </span>
               <span className={`inline-block mt-1 px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider leading-none w-fit ${getRoleBadgeClasses(user?.role)}`}>
@@ -285,7 +285,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, onOpenQuickBook
           {isProfileOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#141A2E] rounded-2xl shadow-dropdown dark:shadow-dropdown-dark border border-[#CACED6] dark:border-[#252F4E] py-1.5 z-50 animate-scaleIn">
               <div className="px-4 py-2.5 border-b border-[#CACED6]/70 dark:border-[#252F4E]">
-                <p className="text-xs font-bold text-[#0B0D17] dark:text-[#F8FAFC] truncate">{user?.full_name || user?.username}</p>
+                <p className="text-xs font-bold text-[#29315D] dark:text-[#F8FAFC] truncate">{user?.full_name || user?.username}</p>
                 <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8] truncate mt-0.5">{user?.email}</p>
               </div>
               <button

@@ -1,22 +1,15 @@
-// Canonical active backend deployment URLs
-const PRIMARY_BACKEND_URL = 'https://salon-management-backend-codecraftersshub-6043s-projects.vercel.app';
-const FALLBACK_BACKEND_URL = 'https://salon-management-backend.vercel.app';
-const DEFAULT_BACKEND_URL = PRIMARY_BACKEND_URL;
+// Default active backend deployment URL
+const DEFAULT_BACKEND_URL = 'https://salon-management-backend.vercel.app';
 
 // Base API URL configuration:
-// 1. If VITE_API_BASE_URL environment variable is provided, use it (filtering out obsolete/stale preview URLs).
+// 1. If VITE_API_BASE_URL environment variable is provided, use it.
 // 2. In production builds, default to DEFAULT_BACKEND_URL.
 // 3. In local development (npm run dev), default to '/api' (proxied by Vite to http://127.0.0.1:8000).
 const getApiBaseUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   let targetUrl: string;
 
-  if (
-    envUrl &&
-    envUrl.trim() !== '' &&
-    !envUrl.includes('onrender.com') &&
-    !envUrl.includes('7xj0qfafq')
-  ) {
+  if (envUrl && envUrl.trim() !== '' && !envUrl.includes('onrender.com')) {
     targetUrl = envUrl.trim();
   } else if (import.meta.env.PROD) {
     targetUrl = DEFAULT_BACKEND_URL;

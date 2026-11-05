@@ -701,7 +701,7 @@ export const WebsiteBuilderPage: React.FC = () => {
         {/* Right Side: Interactive Live Preview Frame */}
         <div className="flex-1 overflow-y-auto bg-[var(--background)] p-4 md:p-8 flex justify-center transition-colors">
           <div
-            className={`bg-white text-slate-900 transition-all duration-300 ease-in-out shadow-2xl rounded-2xl overflow-y-auto border border-[var(--border)] flex flex-col ${
+            className={`bg-white text-[#29315D] transition-all duration-300 ease-in-out shadow-2xl rounded-2xl overflow-y-auto border border-[var(--border)] flex flex-col ${
               viewport === 'mobile'
                 ? 'w-[375px] min-h-[667px]'
                 : viewport === 'tablet'
@@ -915,7 +915,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                               {content.subtitle || 'Founded with Passion & Care'}
                             </span>
                             <h2
-                              className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight"
+                              className="text-2xl md:text-3xl font-bold text-[#29315D] leading-tight"
                               style={{ fontFamily: headingFont }}
                             >
                               {content.title || 'The Philosophy of Ruhi Beauty Salon'}
@@ -1006,7 +1006,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                               Treatment Menu
                             </span>
                             <h2
-                              className="text-2xl md:text-3xl font-bold text-slate-900"
+                              className="text-2xl md:text-3xl font-bold text-[#29315D]"
                               style={{ fontFamily: headingFont }}
                             >
                               {content.heading || 'Signature Treatments & Services'}
@@ -1073,7 +1073,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                                       </span>
                                     )}
                                   </div>
-                                  <h3 className="font-bold text-sm text-slate-900">
+                                  <h3 className="font-bold text-sm text-[#29315D]">
                                     {svc.name}
                                   </h3>
                                   {content.show_description !== false && (
@@ -1131,7 +1131,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                             Artisans & Specialists
                           </span>
                           <h2
-                            className="text-2xl md:text-3xl font-bold text-slate-900"
+                            className="text-2xl md:text-3xl font-bold text-[#29315D]"
                             style={{ fontFamily: headingFont }}
                           >
                             {content.heading || 'Meet Our Expert Stylists & Artists'}
@@ -1167,7 +1167,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                                     className="w-full h-full object-cover"
                                   />
                                 </div>
-                                <h3 className="font-bold text-sm text-slate-900">
+                                <h3 className="font-bold text-sm text-[#29315D]">
                                   {stf.user_details?.full_name || stf.title}
                                 </h3>
                                 <p
@@ -1223,7 +1223,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                               Portfolio
                             </span>
                             <h2
-                              className="text-2xl md:text-3xl font-bold text-slate-900"
+                              className="text-2xl md:text-3xl font-bold text-[#29315D]"
                               style={{ fontFamily: headingFont }}
                             >
                               {content.heading || 'Salon Portfolio & Bridal Transformations'}
@@ -1353,7 +1353,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                             Help & Questions
                           </span>
                           <h2
-                            className="text-2xl md:text-3xl font-bold text-slate-900"
+                            className="text-2xl md:text-3xl font-bold text-[#29315D]"
                             style={{ fontFamily: headingFont }}
                           >
                             {content.heading || 'Frequently Asked Questions'}
@@ -1420,7 +1420,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                                 Visit Us
                               </span>
                               <h2
-                                className="text-2xl md:text-3xl font-bold text-slate-900"
+                                className="text-2xl md:text-3xl font-bold text-[#29315D]"
                                 style={{ fontFamily: headingFont }}
                               >
                                 {content.heading || 'Visit Our Studios'}
@@ -1477,7 +1477,7 @@ export const WebsiteBuilderPage: React.FC = () => {
                               >
                                 <MapPin className="w-6 h-6" />
                               </div>
-                              <p className="font-bold text-slate-900 text-base">
+                              <p className="font-bold text-[#29315D] text-base">
                                 Himmatnagar Central Studio
                               </p>
                               <p className="text-xs text-slate-500 max-w-xs">{address}</p>

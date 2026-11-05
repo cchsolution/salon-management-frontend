@@ -131,7 +131,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-[#F8FAFC] tracking-tight">
+            <h3 className="text-base sm:text-lg font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
               {title}
             </h3>
             {effectivePeriodLabel && (
@@ -155,7 +155,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
                   className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
                     selectedDays === d
                       ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                      : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                      : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
                   }`}
                 >
                   {d}D
@@ -171,7 +171,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
                 className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'revenue'
                     ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
                 }`}
               >
                 <LineChart className="w-3.5 h-3.5" />
@@ -183,7 +183,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
                 className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'combined'
                     ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -237,7 +237,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
         ) : chartData.length === 0 ? (
           <div className="w-full h-56 flex flex-col items-center justify-center text-center p-6 bg-[#F0F2F5]/50 dark:bg-[#141A2E]/50 rounded-xl border border-dashed border-[#D1D5DB] dark:border-[#252F4E]">
             <AlertCircle className="w-8 h-8 text-[#6B7280] dark:text-[#94A3B8] mb-2 stroke-[1.5]" />
-            <p className="text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">No data recorded for this timeframe</p>
+            <p className="text-sm font-semibold text-[#29315D] dark:text-[#F8FAFC]">No data recorded for this timeframe</p>
           </div>
         ) : (
           <div className="relative w-full">
@@ -346,7 +346,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
                     y1={marginTop}
                     x2={activePoint.x}
                     y2={marginTop + innerH}
-                    stroke="#111827"
+                    stroke="#29315D"
                     strokeWidth="1.5"
                     strokeDasharray="3 3"
                     className="opacity-40 dark:opacity-60"
@@ -376,7 +376,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
                       textAnchor="middle"
                       className={`text-[11px] font-medium transition-colors ${
                         isHovered
-                          ? 'fill-[#111827] dark:fill-white font-bold'
+                          ? 'fill-[#29315D] dark:fill-white font-bold'
                           : 'fill-[#6B7280] dark:fill-[#94A3B8]'
                       }`}
                     >
@@ -400,7 +400,7 @@ export const RevenueAppointmentsChart: React.FC<RevenueAppointmentsChartProps> =
             {/* Tooltip */}
             {activePoint && (
               <div
-                className="absolute z-20 pointer-events-none transition-all duration-100 ease-out -top-3 shadow-xl rounded-xl p-2.5 bg-[#111827] text-white dark:bg-white dark:text-[#111827] border border-white/10 dark:border-slate-200"
+                className="absolute z-20 pointer-events-none transition-all duration-100 ease-out -top-3 shadow-xl rounded-xl p-2.5 bg-[#29315D] text-white dark:bg-white dark:text-[#29315D] border border-white/10 dark:border-slate-200"
                 style={{
                   left: `${(activePoint.x / width) * 100}%`,
                   transform: 'translate(-50%, -100%)',

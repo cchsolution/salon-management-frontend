@@ -29,7 +29,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       {label && (
         <label
           htmlFor={id}
-          className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC]"
+          className="block text-xs font-semibold text-[#29315D] dark:text-[#F8FAFC]"
         >
           {label}
           {required && (

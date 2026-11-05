@@ -128,7 +128,7 @@ export const TestimonialsSectionEditor: React.FC<TestimonialsSectionEditorProps>
                     <Star className="w-3.5 h-3.5 fill-current" />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white text-xs">
+                    <p className="font-semibold text-[#29315D] dark:text-white text-xs">
                       {t.client || 'Anonymous Client'}
                     </p>
                     <p className="text-[10px] text-slate-500">{t.role || 'Guest'}</p>

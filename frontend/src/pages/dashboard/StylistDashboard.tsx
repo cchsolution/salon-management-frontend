@@ -81,7 +81,7 @@ export const StylistDashboard: React.FC = () => {
       {/* Page Title & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Welcome, {user?.first_name || user?.full_name || 'Stylist'}
           </h1>
           <p className="text-xs md:text-sm text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -110,7 +110,7 @@ export const StylistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {appointments.length}
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-2">
@@ -130,7 +130,7 @@ export const StylistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {inProgressCount}
               </h3>
               <p className="text-xs text-[#D97706] mt-2 font-semibold">
@@ -150,7 +150,7 @@ export const StylistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {upcomingCount}
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-2">
@@ -170,7 +170,7 @@ export const StylistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {completedCount}
               </h3>
               <p className="text-xs text-[#5C9764] dark:text-[#7DB585] mt-2 font-semibold">
@@ -187,7 +187,7 @@ export const StylistDashboard: React.FC = () => {
         <div className="lg:col-span-2 card-surface p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+              <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC]">
                 My Appointments for Today
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
@@ -206,7 +206,7 @@ export const StylistDashboard: React.FC = () => {
           ) : appointments.length === 0 ? (
             <div className="py-12 text-center text-xs text-[#6B7280] dark:text-[#94A3B8] space-y-2">
               <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
-              <p className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">No appointments assigned today</p>
+              <p className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">No appointments assigned today</p>
               <p className="text-[11px]">Enjoy your break or consult the front desk for walk-in clients.</p>
             </div>
           ) : (
@@ -215,7 +215,7 @@ export const StylistDashboard: React.FC = () => {
                 <div key={appt.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-[#F0F2F5]/60 dark:hover:bg-[#1C2542]/60 rounded-xl px-2.5 transition-colors">
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#0B0D17] dark:text-[#F8FAFC]">
+                      <span className="font-bold text-sm text-[#29315D] dark:text-[#F8FAFC]">
                         {appt.customer_details?.full_name || 'Walk-in Client'}
                       </span>
                       <span
@@ -246,7 +246,7 @@ export const StylistDashboard: React.FC = () => {
 
                     <div className="flex items-center gap-1.5 pt-1">
                       <Scissors className="w-3.5 h-3.5 text-[#0A24E9] dark:text-[#4D68FF]" />
-                      <span className="font-medium text-[#0B0D17] dark:text-[#F8FAFC]">
+                      <span className="font-medium text-[#29315D] dark:text-[#F8FAFC]">
                         {appt.items?.map((i) => i.service_name).join(', ') || 'Service treatment'}
                       </span>
                     </div>
@@ -290,7 +290,7 @@ export const StylistDashboard: React.FC = () => {
         {/* Stylist Profile & Status Summary Card */}
         <div className="card-surface p-6 space-y-5">
           <div>
-            <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+            <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC]">
               Stylist Profile
             </h3>
             <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
@@ -306,7 +306,7 @@ export const StylistDashboard: React.FC = () => {
               {user?.first_name?.[0] || 'S'}
             </div>
             <div className="min-w-0">
-              <h4 className="font-bold text-sm text-[#0B0D17] dark:text-[#F8FAFC] truncate">
+              <h4 className="font-bold text-sm text-[#29315D] dark:text-[#F8FAFC] truncate">
                 {user?.full_name || user?.username}
               </h4>
               <p className="text-xs text-[#0A24E9] dark:text-[#4D68FF] font-semibold">
@@ -321,7 +321,7 @@ export const StylistDashboard: React.FC = () => {
           <div className="space-y-2.5 text-xs">
             <div className="flex justify-between py-1.5 border-b border-[#CACED6]/40 dark:border-[#252F4E]/60">
               <span className="text-[#6B7280] dark:text-[#94A3B8]">Assigned Branch:</span>
-              <span className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">
+              <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">
                 {branch?.name || myStaffProfile?.branch_name || 'Main Studio'}
               </span>
             </div>
@@ -345,7 +345,7 @@ export const StylistDashboard: React.FC = () => {
               <p className="text-[10px] font-bold uppercase tracking-wider text-[#A9B6C0] dark:text-[#94A3B8] mb-1">
                 Bio & Specializations
               </p>
-              <p className="text-[#0B0D17] dark:text-[#F8FAFC] text-[11px]">
+              <p className="text-[#29315D] dark:text-[#F8FAFC] text-[11px]">
                 {myStaffProfile.bio}
               </p>
             </div>

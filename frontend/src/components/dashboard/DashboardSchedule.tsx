@@ -50,7 +50,7 @@ export const DashboardSchedule: React.FC<DashboardScheduleProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-[#F8FAFC] tracking-tight">
+          <h3 className="text-base sm:text-lg font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             {title}
           </h3>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-0.5">
@@ -90,7 +90,7 @@ export const DashboardSchedule: React.FC<DashboardScheduleProps> = ({
         ) : appointments.length === 0 ? (
           <div className="py-8 text-center flex flex-col items-center justify-center bg-[#F8FAFC]/60 dark:bg-[#141A2E]/40 rounded-xl border border-dashed border-[#CBD5E1] dark:border-[#252F4E] p-5">
             <Calendar className="w-7 h-7 text-[#64748B] dark:text-[#94A3B8] mb-1.5 stroke-[1.5]" />
-            <p className="text-xs font-semibold text-[#111827] dark:text-[#F8FAFC]">
+            <p className="text-xs font-semibold text-[#29315D] dark:text-[#F8FAFC]">
               No appointments scheduled for today
             </p>
             <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8] mt-0.5 mb-2.5">
@@ -124,7 +124,7 @@ export const DashboardSchedule: React.FC<DashboardScheduleProps> = ({
                     </div>
 
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-[#111827] dark:text-[#F8FAFC] truncate">
+                      <p className="text-xs font-bold text-[#29315D] dark:text-[#F8FAFC] truncate">
                         {serviceTitle}
                       </p>
                       <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8] truncate">
@@ -140,7 +140,7 @@ export const DashboardSchedule: React.FC<DashboardScheduleProps> = ({
 
                   {/* Right: Time on top, clean StatusLabel underneath */}
                   <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                    <span className="text-xs font-bold text-[#111827] dark:text-[#F8FAFC] tabular-nums">
+                    <span className="text-xs font-bold text-[#29315D] dark:text-[#F8FAFC] tabular-nums">
                       {appt.time || '10:00'}
                     </span>
                     <StatusLabel status={appt.status} size="xs" />
@@ -158,7 +158,7 @@ export const DashboardSchedule: React.FC<DashboardScheduleProps> = ({
           <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse"></span>
           <span>Live calendar stream</span>
         </span>
-        <span className="font-medium text-[#111827] dark:text-slate-300">
+        <span className="font-medium text-[#29315D] dark:text-slate-300">
           {count} booked visits
         </span>
       </div>

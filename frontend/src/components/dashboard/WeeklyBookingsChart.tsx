@@ -73,7 +73,7 @@ export const WeeklyBookingsChart: React.FC<WeeklyBookingsChartProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-[#F8FAFC] tracking-tight">
+            <h3 className="text-base sm:text-lg font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
               {title}
             </h3>
             <span className="text-[11px] font-semibold text-[#0A24E9] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E294B] px-2.5 py-0.5 rounded-full border border-[#BFDBFE]/60">
@@ -98,7 +98,7 @@ export const WeeklyBookingsChart: React.FC<WeeklyBookingsChartProps> = ({
               <span className="block text-[10px] uppercase font-bold text-[#64748B] dark:text-[#94A3B8]">
                 Avg / Day
               </span>
-              <span className="font-bold text-[#111827] dark:text-[#F8FAFC] tabular-nums text-sm">
+              <span className="font-bold text-[#29315D] dark:text-[#F8FAFC] tabular-nums text-sm">
                 {avgBookings}
               </span>
             </div>
@@ -120,7 +120,7 @@ export const WeeklyBookingsChart: React.FC<WeeklyBookingsChartProps> = ({
         ) : chartData.length === 0 ? (
           <div className="w-full h-48 flex flex-col items-center justify-center text-center p-6 bg-[#F8FAFC]/60 dark:bg-[#141A2E]/50 rounded-xl border border-dashed border-[#CBD5E1] dark:border-[#252F4E]">
             <AlertCircle className="w-8 h-8 text-[#64748B] dark:text-[#94A3B8] mb-2 stroke-[1.5]" />
-            <p className="text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">No appointment data for this week</p>
+            <p className="text-sm font-semibold text-[#29315D] dark:text-[#F8FAFC]">No appointment data for this week</p>
           </div>
         ) : (
           <div className="relative w-full">
@@ -238,7 +238,7 @@ export const WeeklyBookingsChart: React.FC<WeeklyBookingsChartProps> = ({
             {/* Hover Tooltip */}
             {activeItem && hoveredIdx !== null && (
               <div
-                className="absolute z-20 pointer-events-none transition-all duration-100 ease-out -top-2 shadow-xl rounded-xl p-2.5 bg-[#0F172A] text-white dark:bg-white dark:text-[#0F172A] border border-white/10 dark:border-slate-200"
+                className="absolute z-20 pointer-events-none transition-all duration-100 ease-out -top-2 shadow-xl rounded-xl p-2.5 bg-[#29315D] text-white dark:bg-white dark:text-[#29315D] border border-white/10 dark:border-slate-200"
                 style={{
                   left: `${((getBarX(hoveredIdx) + barWidth / 2) / width) * 100}%`,
                   transform: 'translate(-50%, -100%)',
@@ -266,7 +266,7 @@ export const WeeklyBookingsChart: React.FC<WeeklyBookingsChartProps> = ({
       <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#252F4E]/60 flex items-center justify-between text-[11px] text-[#64748B] dark:text-[#94A3B8]">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-[#0A24E9] dark:bg-[#60A5FA]"></span>
-          <span className="font-semibold text-[#111827] dark:text-[#F8FAFC]">Client Appointments</span>
+          <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">Client Appointments</span>
         </div>
         <span>Mon–Sun 7-Day Cycle</span>
       </div>

@@ -140,7 +140,7 @@ export const SettingsPage: React.FC = () => {
     <div className="space-y-8 page-enter font-sans">
       {/* Page Title */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
           Salon Organization Settings
         </h1>
         <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -156,7 +156,7 @@ export const SettingsPage: React.FC = () => {
 
       {/* Theme & Visual System Settings */}
       <div className="card-surface p-6 space-y-4">
-        <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+        <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC] flex items-center gap-2">
           <Palette className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
           Visual Theme & Display Preferences
         </h3>
@@ -194,7 +194,7 @@ export const SettingsPage: React.FC = () => {
 
       {/* Main Settings Form */}
       <form onSubmit={salonForm.handleSubmit} noValidate className="card-surface p-6 space-y-5 text-xs">
-        <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+        <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC] flex items-center gap-2">
           <Building className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
           General Salon Profile (India)
         </h3>
@@ -225,7 +225,7 @@ export const SettingsPage: React.FC = () => {
           </FormField>
 
           <div>
-            <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">
+            <label className="block text-xs font-semibold text-[#29315D] dark:text-[#F8FAFC] mb-1.5">
               Public Web Slug & Online Booking URL
             </label>
             <input
@@ -277,7 +277,7 @@ export const SettingsPage: React.FC = () => {
           </FormField>
 
           <div>
-            <label className="block text-xs font-semibold text-[#0B0D17] dark:text-[#F8FAFC] mb-1.5">
+            <label className="block text-xs font-semibold text-[#29315D] dark:text-[#F8FAFC] mb-1.5">
               GST Tax Rate <span className="text-red-500">*</span>
             </label>
             <CustomSelect
@@ -339,7 +339,7 @@ export const SettingsPage: React.FC = () => {
         <div className="card-surface p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+              <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC] flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[#5C9764] dark:text-[#7DB585]" />
                 Studio Branches ({branches.length})
               </h3>

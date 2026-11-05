@@ -36,7 +36,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({
             <Lock className="w-3 h-3" />
             Access Restricted
           </span>
-          <h2 className="text-2xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h2 className="text-2xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Access Denied
           </h2>
           <p className="text-xs sm:text-sm text-[#6B7280] dark:text-[#94A3B8] max-w-md mx-auto">
@@ -48,7 +48,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({
         <div className="p-4 rounded-xl bg-[#F0F2F5] dark:bg-[#1C2542] border border-[#CACED6]/70 dark:border-[#252F4E] text-xs text-left space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[#6B7280] dark:text-[#94A3B8] font-medium">Your Signed-in Account:</span>
-            <span className="font-semibold text-[#0B0D17] dark:text-white">{user?.email}</span>
+            <span className="font-semibold text-[#29315D] dark:text-white">{user?.email}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[#6B7280] dark:text-[#94A3B8] font-medium">Assigned Role:</span>

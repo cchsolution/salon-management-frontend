@@ -106,7 +106,7 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-[#F8FAFC] tracking-tight">
+          <h3 className="text-base sm:text-lg font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             {title}
           </h3>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-0.5">{subtitle}</p>
@@ -135,7 +135,7 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
         ) : slices.length === 0 || totalBookings === 0 ? (
           <div className="py-8 text-center flex flex-col items-center justify-center">
             <AlertCircle className="w-7 h-7 text-[#6B7280] dark:text-[#94A3B8] mb-1.5 stroke-[1.5]" />
-            <p className="text-xs font-semibold text-[#111827] dark:text-[#F8FAFC]">No service bookings yet</p>
+            <p className="text-xs font-semibold text-[#29315D] dark:text-[#F8FAFC]">No service bookings yet</p>
             <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8] mt-0.5">
               Service distribution will appear as appointments are completed.
             </p>
@@ -198,7 +198,7 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
                     >
                       {activeSlice.bookings}
                     </span>
-                    <span className="text-[11px] font-bold text-[#0B0D17] dark:text-white truncate max-w-[120px]">
+                    <span className="text-[11px] font-bold text-[#29315D] dark:text-white truncate max-w-[120px]">
                       {activeSlice.name}
                     </span>
                     <span className="text-[10px] font-semibold text-[#5C9764] dark:text-[#7DB585] uppercase tracking-wider">
@@ -207,7 +207,7 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
                   </>
                 ) : (
                   <>
-                    <span className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+                    <span className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                       {totalBookings}
                     </span>
                     <span className="text-[10px] font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
@@ -245,7 +245,7 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
                         className={`text-xs truncate transition-colors ${
                           isHovered
                             ? 'font-bold text-[#0A24E9] dark:text-[#60A5FA]'
-                            : 'font-medium text-[#0B0D17] dark:text-[#E2E8F0]'
+                            : 'font-medium text-[#29315D] dark:text-[#E2E8F0]'
                         }`}
                         title={slice.name}
                       >
@@ -254,7 +254,7 @@ export const TopServicesChart: React.FC<TopServicesChartProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-xs font-bold tabular-nums ${isHovered ? 'text-[#0A24E9] dark:text-[#60A5FA]' : 'text-[#0B0D17] dark:text-[#F8FAFC]'}`}>
+                      <span className={`text-xs font-bold tabular-nums ${isHovered ? 'text-[#0A24E9] dark:text-[#60A5FA]' : 'text-[#29315D] dark:text-[#F8FAFC]'}`}>
                         {slice.bookings}
                       </span>
                       <span className="text-[10px] font-semibold text-[#64748B] dark:text-[#94A3B8] tabular-nums w-7 text-right">

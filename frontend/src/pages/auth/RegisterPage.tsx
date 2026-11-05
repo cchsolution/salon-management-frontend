@@ -59,12 +59,12 @@ export const RegisterPage: React.FC = () => {
       </div>
 
       <div className="w-full max-w-lg bg-white dark:bg-[#141A2E] rounded-2xl shadow-card dark:shadow-card-dark border border-[#CACED6] dark:border-[#252F4E] p-6 sm:p-8 space-y-6 animate-scaleIn">
-        <Link to="/login" className="inline-flex items-center gap-1.5 text-xs text-[#6B7280] dark:text-[#94A3B8] hover:text-[#0B0D17] dark:hover:text-white transition-colors">
+        <Link to="/login" className="inline-flex items-center gap-1.5 text-xs text-[#6B7280] dark:text-[#94A3B8] hover:text-[#29315D] dark:hover:text-white transition-colors">
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
         </Link>
 
         <div>
-          <h2 className="text-2xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h2 className="text-2xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Create Your Salon Organization
           </h2>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -182,7 +182,7 @@ export const RegisterPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#0B0D17] dark:hover:text-white transition-colors focus:outline-none rounded"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#29315D] dark:hover:text-white transition-colors focus:outline-none rounded"
                 title={showPassword ? 'Hide password' : 'Show password'}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >

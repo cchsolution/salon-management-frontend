@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <h1 className="text-sm font-bold text-[#0B0D17] dark:text-white truncate tracking-tight">
+                <h1 className="text-sm font-bold text-[#29315D] dark:text-white truncate tracking-tight">
                   {headerTitle}
                 </h1>
                 <p className="text-[11px] text-[#5C9764] dark:text-[#7DB585] truncate flex items-center gap-1.5 font-semibold mt-0.5">
@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={onToggleCollapse}
               aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-[#6B7280] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] transition-colors"
+              className="hidden lg:flex items-center justify-center p-1.5 rounded-lg text-[#6B7280] hover:text-[#29315D] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] transition-colors"
             >
               {isCollapsed ? (
                 <PanelLeftOpen className="w-4 h-4" />
@@ -113,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onClose}
             aria-label="Close sidebar"
-            className="p-1.5 rounded-lg text-[#6B7280] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] lg:hidden transition-colors"
+            className="p-1.5 rounded-lg text-[#6B7280] hover:text-[#29315D] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] lg:hidden transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -170,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <span className="truncate flex-1 text-left">{item.label}</span>
                     ) : (
                       /* Floating Tooltip in Collapsed Mode */
-                      <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#0B0D17] dark:bg-slate-100 text-white dark:text-[#0B0D17] text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                      <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#29315D] dark:bg-slate-100 text-white dark:text-[#29315D] text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
                         {item.label}
                       </div>
                     )}

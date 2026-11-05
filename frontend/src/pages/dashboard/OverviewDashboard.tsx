@@ -255,11 +255,11 @@ const OwnerOverviewDashboard: React.FC = () => {
       {/* Sleek Top Header */}
       <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#252F4E]/60 pb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Dashboard
           </h1>
           <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-0.5 flex items-center gap-1.5">
-            <span className="font-semibold text-[#0F172A] dark:text-white">{salon?.name || 'Ruhi Beauty Salon'}</span>
+            <span className="font-semibold text-[#29315D] dark:text-white">{salon?.name || 'Ruhi Beauty Salon'}</span>
             <span>·</span>
             <span>{branch ? branch.name : 'All Active Branches'}</span>
           </p>
@@ -403,7 +403,7 @@ const OwnerOverviewDashboard: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
+                <h3 className="text-base font-extrabold text-[#29315D] dark:text-[#F8FAFC]">
                   Staff Performance & Commissions
                 </h3>
                 <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
@@ -426,13 +426,13 @@ const OwnerOverviewDashboard: React.FC = () => {
                 metrics.staff_performance.map((staff) => (
                   <div key={staff.id} className="py-3 flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">{staff.name}</p>
+                      <p className="font-bold text-[#29315D] dark:text-[#F8FAFC]">{staff.name}</p>
                       <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8]">
                         {staff.title} · {staff.appointments_count} visits completed
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                      <p className="font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums">
                         {formatINR(staff.revenue_generated || 0)}
                       </p>
                       <p className="text-[11px] text-[#059669] dark:text-[#34D399] font-semibold tabular-nums">
@@ -462,7 +462,7 @@ const OwnerOverviewDashboard: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
+                <h3 className="text-base font-extrabold text-[#29315D] dark:text-[#F8FAFC]">
                   Recent POS Transactions
                 </h3>
                 <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
@@ -485,13 +485,13 @@ const OwnerOverviewDashboard: React.FC = () => {
                 metrics.recent_transactions.map((txn) => (
                   <div key={txn.id} className="py-3 flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">{txn.invoice_number}</p>
+                      <p className="font-bold text-[#29315D] dark:text-[#F8FAFC]">{txn.invoice_number}</p>
                       <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8]">
                         {txn.customer_name} · {txn.date}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                      <p className="font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums">
                         {formatINR(txn.amount || 0)}
                       </p>
                       <span

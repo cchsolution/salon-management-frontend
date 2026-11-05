@@ -37,7 +37,7 @@ export const AnalyticsReportsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Reports & Business Analytics
           </h1>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -66,7 +66,7 @@ export const AnalyticsReportsPage: React.FC = () => {
       {/* Staff Commission Audit Table */}
       <div className="card-surface p-6 space-y-4">
         <div>
-          <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+          <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC]">
             Staff Commission Breakdown
           </h3>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
@@ -113,7 +113,7 @@ export const AnalyticsReportsPage: React.FC = () => {
       {/* Branch Comparisons */}
       <div className="card-surface p-6 space-y-4">
         <div>
-          <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+          <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC]">
             Gujarat Branch Performance Comparison
           </h3>
           <p className="text-xs text-[var(--text-secondary)]">

@@ -112,7 +112,7 @@ export const TeamSectionEditor: React.FC<TeamSectionEditorProps> = ({
                       {stf.user_details?.first_name?.[0] || 'S'}
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900 dark:text-white text-xs">
+                      <p className="font-semibold text-[#29315D] dark:text-white text-xs">
                         {stf.user_details?.full_name || stf.title}
                       </p>
                       <p className="text-[10px] text-slate-500">{stf.title}</p>

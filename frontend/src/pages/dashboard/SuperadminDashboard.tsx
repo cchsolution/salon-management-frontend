@@ -30,7 +30,7 @@ export const SuperadminDashboard: React.FC = () => {
       {/* Platform Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Platform Overview · LuxeSalon Network
           </h1>
           <p className="text-xs md:text-sm text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -59,7 +59,7 @@ export const SuperadminDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {salons.length}
               </h3>
               <p className="text-xs text-[#5C9764] dark:text-[#7DB585] mt-2 font-semibold">
@@ -79,7 +79,7 @@ export const SuperadminDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {branches.length}
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-2">
@@ -99,7 +99,7 @@ export const SuperadminDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {salons.filter((s) => s.subscription_plan === 'PRO' || s.subscription_plan === 'ENTERPRISE').length}
               </h3>
               <p className="text-xs text-[#D97706] mt-2 font-semibold">
@@ -135,7 +135,7 @@ export const SuperadminDashboard: React.FC = () => {
       <div className="card-surface p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>
-            <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+            <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC]">
               Tenant Salon Organizations
             </h3>
             <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
@@ -178,7 +178,7 @@ export const SuperadminDashboard: React.FC = () => {
                           {s.name[0]}
                         </div>
                         <div>
-                          <p className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">{s.name}</p>
+                          <p className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">{s.name}</p>
                           <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8] line-clamp-1">{s.tagline}</p>
                         </div>
                       </div>
@@ -187,7 +187,7 @@ export const SuperadminDashboard: React.FC = () => {
                       /s/{s.slug}
                     </td>
                     <td className="py-3.5 px-3">
-                      <p className="text-[#0B0D17] dark:text-[#F8FAFC] font-medium">{s.email}</p>
+                      <p className="text-[#29315D] dark:text-[#F8FAFC] font-medium">{s.email}</p>
                       <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8]">{s.phone}</p>
                     </td>
                     <td className="py-3.5 px-3">

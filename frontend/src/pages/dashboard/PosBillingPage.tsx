@@ -641,7 +641,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
       {/* Page Header (Hidden when printing invoice) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Retail Point of Sale (POS) & Billing
           </h1>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -1480,7 +1480,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
           </div>
 
           {/* Printable A4 Invoice Document Card */}
-          <div className="max-w-3xl mx-auto bg-white text-[#0F172A] p-8 sm:p-12 rounded-2xl shadow-card border border-[#CACED6] space-y-6 print-area font-sans">
+          <div className="max-w-3xl mx-auto bg-white text-[#29315D] p-8 sm:p-12 rounded-2xl shadow-card border border-[#CACED6] space-y-6 print-area font-sans">
             {/* Invoice Top Brand Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b border-gray-200">
               <div className="space-y-1">
@@ -1489,7 +1489,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                     R
                   </div>
                   <div>
-                    <h2 className="text-xl font-extrabold text-[#0F172A] tracking-tight">
+                    <h2 className="text-xl font-extrabold text-[#29315D] tracking-tight">
                       {salon?.name || 'Ruhi Beauty Salon'}
                     </h2>
                     <p className="text-[11px] text-gray-500 font-medium">
@@ -1509,7 +1509,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                 <span className="inline-block px-2.5 py-1 rounded-md text-xs font-extrabold bg-[#EEF2FF] text-[#0A24E9] border border-[#0A24E9]/20 uppercase tracking-wider">
                   Tax Invoice
                 </span>
-                <p className="text-xs font-bold text-gray-900 pt-1">
+                <p className="text-xs font-bold text-[#29315D] pt-1">
                   Invoice #: <span className="font-mono text-sm">{completedInvoice.invoice_number}</span>
                 </p>
                 <p className="text-xs text-gray-600">
@@ -1534,7 +1534,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
                   Billed To Customer
                 </span>
-                <p className="font-bold text-gray-900 text-sm mt-0.5">
+                <p className="font-bold text-[#29315D] text-sm mt-0.5">
                   {selectedCustomerObj?.full_name || 'Retail Walk-in Customer'}
                 </p>
                 <p className="text-gray-600">
@@ -1545,7 +1545,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
                   Branch Studio
                 </span>
-                <p className="font-bold text-gray-900">
+                <p className="font-bold text-[#29315D]">
                   {branch?.name || 'Himmatnagar Main Studio'}
                 </p>
                 <p className="text-gray-600">
@@ -1572,17 +1572,17 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                     <tr key={item.id}>
                       <td className="py-3 px-3 text-gray-500">{idx + 1}</td>
                       <td className="py-3 px-3">
-                        <p className="font-bold text-gray-900">{item.name}</p>
+                        <p className="font-bold text-[#29315D]">{item.name}</p>
                         <span className="text-[10px] text-gray-500">{item.brand}</span>
                       </td>
                       <td className="py-3 px-3 font-mono text-[11px] text-gray-600">{item.sku || '—'}</td>
-                      <td className="py-3 px-3 text-center font-bold text-gray-900 tabular-nums">
+                      <td className="py-3 px-3 text-center font-bold text-[#29315D] tabular-nums">
                         {item.quantity}
                       </td>
                       <td className="py-3 px-3 text-right tabular-nums text-gray-700">
                         {formatINR(item.unit_price)}
                       </td>
-                      <td className="py-3 px-3 text-right font-bold text-gray-900 tabular-nums">
+                      <td className="py-3 px-3 text-right font-bold text-[#29315D] tabular-nums">
                         {formatINR(item.unit_price * item.quantity)}
                       </td>
                     </tr>
@@ -1603,7 +1603,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
               <div className="space-y-2 text-xs w-full sm:w-64">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal:</span>
-                  <span className="font-semibold text-gray-900 tabular-nums">{formatINR(subtotal)}</span>
+                  <span className="font-semibold text-[#29315D] tabular-nums">{formatINR(subtotal)}</span>
                 </div>
                 {calculatedDiscount > 0 && (
                   <div className="flex justify-between text-red-600">
@@ -1613,13 +1613,13 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
                 )}
                 <div className="flex justify-between text-gray-600">
                   <span>Taxable Value:</span>
-                  <span className="font-semibold text-gray-900 tabular-nums">{formatINR(taxableAmount)}</span>
+                  <span className="font-semibold text-[#29315D] tabular-nums">{formatINR(taxableAmount)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>GST ({salon?.tax_rate || 18}%):</span>
-                  <span className="font-semibold text-gray-900 tabular-nums">{formatINR(taxAmount)}</span>
+                  <span className="font-semibold text-[#29315D] tabular-nums">{formatINR(taxAmount)}</span>
                 </div>
-                <div className="flex justify-between text-base font-extrabold text-gray-900 pt-2 border-t-2 border-gray-900">
+                <div className="flex justify-between text-base font-extrabold text-[#29315D] pt-2 border-t-2 border-[#29315D]">
                   <span>Grand Total:</span>
                   <span className="text-emerald-700 tabular-nums">{formatINR(completedInvoice.total_amount)}</span>
                 </div>
@@ -1628,7 +1628,7 @@ Thank you for shopping with ${salonName}! We look forward to pampering you again
 
             {/* Invoice Footer Thank You */}
             <div className="text-center pt-6 border-t border-dashed border-gray-300 space-y-1">
-              <p className="text-xs font-bold text-gray-900">
+              <p className="text-xs font-bold text-[#29315D]">
                 Thank you for visiting {salon?.name || 'Ruhi Beauty Salon'}!
               </p>
               <p className="text-[11px] text-gray-500">

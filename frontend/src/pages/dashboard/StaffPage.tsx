@@ -109,7 +109,7 @@ export const StaffPage: React.FC = () => {
     <div className="space-y-6 page-enter font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Salon Stylists & Staff
           </h1>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -148,7 +148,7 @@ export const StaffPage: React.FC = () => {
                     {stf.user_details?.first_name?.[0] || stf.title?.[0] || 'S'}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] truncate">
+                    <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC] truncate">
                       {stf.user_details?.full_name || stf.title}
                     </h3>
                     <p className="text-xs text-[#2868ff] dark:text-[#4D68FF] font-semibold truncate">

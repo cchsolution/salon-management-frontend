@@ -162,7 +162,7 @@ export const LoginPage: React.FC = () => {
             <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#0A24E9] text-white font-extrabold text-2xl flex items-center justify-center mx-auto shadow-md ring-4 ring-[#0A24E9]/15">
               R
             </div>
-            <h2 className="text-2xl sm:text-[26px] font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight pt-1">
+            <h2 className="text-2xl sm:text-[26px] font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight pt-1">
               Welcome Back
             </h2>
             <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
@@ -187,7 +187,7 @@ export const LoginPage: React.FC = () => {
                 className={`py-2.5 px-2 rounded-xl border text-center transition-all duration-150 active:scale-95 text-xs font-semibold flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   activeDemo === 'OWNER'
                     ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] text-[#0A24E9] dark:text-[#818CF8] shadow-xs ring-1 ring-[#0A24E9]/30'
-                    : 'bg-white dark:bg-[#141A2E] text-[#0B0D17] dark:text-white border-[#CACED6] dark:border-[#252F4E] hover:bg-[#EEF2FF]/60 hover:border-[#0A24E9]/50'
+                    : 'bg-white dark:bg-[#141A2E] text-[#29315D] dark:text-white border-[#CACED6] dark:border-[#252F4E] hover:bg-[#EEF2FF]/60 hover:border-[#0A24E9]/50'
                 }`}
                 title="Login as Salon Owner"
               >
@@ -202,7 +202,7 @@ export const LoginPage: React.FC = () => {
                 className={`py-2.5 px-2 rounded-xl border text-center transition-all duration-150 active:scale-95 text-xs font-semibold flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   activeDemo === 'RECEPTIONIST'
                     ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] text-[#0A24E9] dark:text-[#818CF8] shadow-xs ring-1 ring-[#0A24E9]/30'
-                    : 'bg-white dark:bg-[#141A2E] text-[#0B0D17] dark:text-white border-[#CACED6] dark:border-[#252F4E] hover:bg-[#EEF2FF]/60 hover:border-[#0A24E9]/50'
+                    : 'bg-white dark:bg-[#141A2E] text-[#29315D] dark:text-white border-[#CACED6] dark:border-[#252F4E] hover:bg-[#EEF2FF]/60 hover:border-[#0A24E9]/50'
                 }`}
                 title="Login as Salon Receptionist"
               >
@@ -217,7 +217,7 @@ export const LoginPage: React.FC = () => {
                 className={`py-2.5 px-2 rounded-xl border text-center transition-all duration-150 active:scale-95 text-xs font-semibold flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   activeDemo === 'ADMIN'
                     ? 'bg-[#EEF2FF] dark:bg-[#1E294B] border-[#0A24E9] text-[#0A24E9] dark:text-[#818CF8] shadow-xs ring-1 ring-[#0A24E9]/30'
-                    : 'bg-white dark:bg-[#141A2E] text-[#0B0D17] dark:text-white border-[#CACED6] dark:border-[#252F4E] hover:bg-[#EEF2FF]/60 hover:border-[#0A24E9]/50'
+                    : 'bg-white dark:bg-[#141A2E] text-[#29315D] dark:text-white border-[#CACED6] dark:border-[#252F4E] hover:bg-[#EEF2FF]/60 hover:border-[#0A24E9]/50'
                 }`}
                 title="Login as Superadmin"
               >
@@ -287,7 +287,7 @@ export const LoginPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#0B0D17] dark:hover:text-white transition-colors focus:outline-none rounded cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#29315D] dark:hover:text-white transition-colors focus:outline-none rounded cursor-pointer"
                   title={showPassword ? 'Hide password' : 'Show password'}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >

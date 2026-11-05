@@ -197,7 +197,7 @@ export const LoyaltyOffersPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Loyalty & Promotional Offers
           </h1>
           <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -220,7 +220,7 @@ export const LoyaltyOffersPage: React.FC = () => {
 
       {/* Promo Coupons */}
       <div className="space-y-4">
-        <h2 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+        <h2 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC] flex items-center gap-2">
           <Tag className="w-4 h-4 text-[#2868ff] dark:text-[#4D68FF]" />
           Active Discount Coupons
         </h2>
@@ -296,7 +296,7 @@ export const LoyaltyOffersPage: React.FC = () => {
 
       {/* Membership Plans */}
       <div className="space-y-4">
-        <h2 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC] flex items-center gap-2">
+        <h2 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC] flex items-center gap-2">
           <Award className="w-4 h-4 text-[#059669] dark:text-[#10B981]" />
           VIP Membership Tiers
         </h2>

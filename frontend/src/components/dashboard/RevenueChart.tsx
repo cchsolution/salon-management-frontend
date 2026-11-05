@@ -175,7 +175,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-[#F8FAFC] tracking-tight">
+            <h3 className="text-base sm:text-lg font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
               {title}
             </h3>
             <span className="text-[11px] font-semibold text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E294B] px-2.5 py-0.5 rounded-full border border-[#BFDBFE]/60">
@@ -197,7 +197,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
                   className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
                     selectedDays === d
                       ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                      : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                      : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
                   }`}
                 >
                   {d}D
@@ -214,7 +214,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
                 className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'revenue'
                     ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
                 }`}
               >
                 <LineChart className="w-3.5 h-3.5" />
@@ -226,7 +226,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
                 className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'combined'
                     ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#111827]'
+                    : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -264,7 +264,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
         ) : chartData.length === 0 ? (
           <div className="w-full h-56 flex flex-col items-center justify-center text-center p-6 bg-[#F8FAFC]/60 dark:bg-[#141A2E]/50 rounded-xl border border-dashed border-[#CBD5E1] dark:border-[#252F4E]">
             <AlertCircle className="w-8 h-8 text-[#64748B] dark:text-[#94A3B8] mb-2 stroke-[1.5]" />
-            <p className="text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">No revenue records in this timeframe</p>
+            <p className="text-sm font-semibold text-[#29315D] dark:text-[#F8FAFC]">No revenue records in this timeframe</p>
             <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1 max-w-sm">
               Revenue will automatically plot here as completed appointments and retail bills are settled.
             </p>
@@ -413,7 +413,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
             {/* Interactive Shopeers Floating Tooltip Card */}
             {activePoint && (
               <div
-                className="absolute z-30 pointer-events-none transition-all duration-150 ease-out -translate-x-1/2 -top-4 shadow-xl rounded-2xl p-3 bg-white text-[#0B0D17] dark:bg-[#141A2E] dark:text-white border border-[#CBD5E1]/80 dark:border-[#252F4E] min-w-[130px]"
+                className="absolute z-30 pointer-events-none transition-all duration-150 ease-out -translate-x-1/2 -top-4 shadow-xl rounded-2xl p-3 bg-white text-[#29315D] dark:bg-[#141A2E] dark:text-white border border-[#CBD5E1]/80 dark:border-[#252F4E] min-w-[130px]"
                 style={{
                   left: `${(activePoint.x / width) * 100}%`,
                   transform: 'translate(-50%, -100%)',
@@ -423,7 +423,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
                   <Calendar className="w-3 h-3 text-[#0A24E9] dark:text-[#60A5FA]" />
                   <span>{activePoint.data.date || 'Day'}</span>
                 </div>
-                <div className="text-base font-extrabold text-[#0B0D17] dark:text-white tabular-nums tracking-tight">
+                <div className="text-base font-extrabold text-[#29315D] dark:text-white tabular-nums tracking-tight">
                   {formatINR(activePoint.data.revenue)}
                 </div>
                 <div className="text-[11px] font-semibold text-[#5C9764] dark:text-[#7DB585] mt-0.5 flex items-center gap-1.5">
@@ -443,7 +443,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8]">
               Salon Services
             </span>
-            <p className="text-xs sm:text-sm font-extrabold text-[#0B0D17] dark:text-white tabular-nums mt-0.5">
+            <p className="text-xs sm:text-sm font-extrabold text-[#29315D] dark:text-white tabular-nums mt-0.5">
               {formatINR(totalRevenue > 0 ? totalRevenue * 0.75 : 0)}
             </p>
           </div>
@@ -451,7 +451,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8]">
               Retail Products
             </span>
-            <p className="text-xs sm:text-sm font-extrabold text-[#0B0D17] dark:text-white tabular-nums mt-0.5">
+            <p className="text-xs sm:text-sm font-extrabold text-[#29315D] dark:text-white tabular-nums mt-0.5">
               {formatINR(totalRevenue > 0 ? totalRevenue * 0.18 : 0)}
             </p>
           </div>
@@ -459,7 +459,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8]">
               Packages & Offers
             </span>
-            <p className="text-xs sm:text-sm font-extrabold text-[#0B0D17] dark:text-white tabular-nums mt-0.5">
+            <p className="text-xs sm:text-sm font-extrabold text-[#29315D] dark:text-white tabular-nums mt-0.5">
               {formatINR(totalRevenue > 0 ? totalRevenue * 0.07 : 0)}
             </p>
           </div>
@@ -471,7 +471,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB]"></span>
-            <span className="font-semibold text-[#111827] dark:text-[#F8FAFC]">Revenue (₹)</span>
+            <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">Revenue (₹)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>

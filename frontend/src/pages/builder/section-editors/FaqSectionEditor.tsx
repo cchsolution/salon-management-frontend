@@ -118,7 +118,7 @@ export const FaqSectionEditor: React.FC<FaqSectionEditorProps> = ({ content, onC
               >
                 <div className="flex items-center gap-2 pr-2 overflow-hidden">
                   <HelpCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
-                  <p className="font-semibold text-slate-900 dark:text-white text-xs truncate">
+                  <p className="font-semibold text-[#29315D] dark:text-white text-xs truncate">
                     {f.question || 'Untitled Question'}
                   </p>
                 </div>

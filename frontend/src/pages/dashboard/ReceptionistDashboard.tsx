@@ -92,7 +92,7 @@ export const ReceptionistDashboard: React.FC = () => {
       {/* Page Title & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Front Desk · {salon?.name || 'Ruhi Beauty Salon'}
           </h1>
           <p className="text-xs md:text-sm text-[#6B7280] dark:text-[#94A3B8] mt-1">
@@ -126,7 +126,7 @@ export const ReceptionistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {appointments.length}
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-2">
@@ -146,7 +146,7 @@ export const ReceptionistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {inServiceCount}
               </h3>
               <p className="text-xs text-[#D97706] mt-2 font-semibold">
@@ -166,7 +166,7 @@ export const ReceptionistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {upcomingCount}
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8] mt-2">
@@ -186,7 +186,7 @@ export const ReceptionistDashboard: React.FC = () => {
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="text-3xl font-extrabold text-[#0B0D17] dark:text-[#F8FAFC] tabular-nums tracking-tight">
+              <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums tracking-tight">
                 {completedCount}
               </h3>
               <p className="text-xs text-[#5C9764] dark:text-[#7DB585] mt-2 font-semibold">
@@ -203,7 +203,7 @@ export const ReceptionistDashboard: React.FC = () => {
         <div className="lg:col-span-2 card-surface p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-base font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+              <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC]">
                 Today's Appointment & Check-In Queue
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
@@ -225,7 +225,7 @@ export const ReceptionistDashboard: React.FC = () => {
           ) : appointments.length === 0 ? (
             <div className="py-12 text-center text-xs text-[#6B7280] dark:text-[#94A3B8] space-y-2">
               <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
-              <p className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">No bookings scheduled for today</p>
+              <p className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">No bookings scheduled for today</p>
               <button
                 onClick={() => setIsQuickBookingOpen(true)}
                 className="mt-2 text-xs font-semibold text-[#0A24E9] dark:text-[#4D68FF] underline"
@@ -239,7 +239,7 @@ export const ReceptionistDashboard: React.FC = () => {
                 <div key={appt.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-[#F0F2F5]/60 dark:hover:bg-[#1C2542]/60 rounded-xl px-2.5 transition-colors">
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#0B0D17] dark:text-[#F8FAFC]">
+                      <span className="font-bold text-sm text-[#29315D] dark:text-[#F8FAFC]">
                         {appt.customer_details?.full_name || 'Walk-in Client'}
                       </span>
                       <span
@@ -266,14 +266,14 @@ export const ReceptionistDashboard: React.FC = () => {
                           {appt.customer_details.phone}
                         </span>
                       )}
-                      <span className="flex items-center gap-1 text-[#0B0D17] dark:text-[#F8FAFC] font-semibold">
+                      <span className="flex items-center gap-1 text-[#29315D] dark:text-[#F8FAFC] font-semibold">
                         <Scissors className="w-3 h-3 text-[#0A24E9] dark:text-[#4D68FF]" />
                         Stylist: {appt.staff_details?.user_details?.full_name || appt.staff_details?.title || 'Assigned Stylist'}
                       </span>
                     </div>
 
                     <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8]">
-                      Service: <span className="text-[#0B0D17] dark:text-[#F8FAFC] font-medium">{appt.items?.map((i) => i.service_name).join(', ') || 'Service'}</span>
+                      Service: <span className="text-[#29315D] dark:text-[#F8FAFC] font-medium">{appt.items?.map((i) => i.service_name).join(', ') || 'Service'}</span>
                     </p>
                   </div>
 
@@ -320,7 +320,7 @@ export const ReceptionistDashboard: React.FC = () => {
           {/* Quick Client Search */}
           <div className="card-surface p-5 space-y-3">
             <div>
-              <h3 className="text-sm font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+              <h3 className="text-sm font-bold text-[#29315D] dark:text-[#F8FAFC]">
                 Client Quick Lookup
               </h3>
               <p className="text-xs text-[#6B7280] dark:text-[#94A3B8]">
@@ -344,7 +344,7 @@ export const ReceptionistDashboard: React.FC = () => {
                 {filteredClients.map((c) => (
                   <div key={c.id} className="py-2 text-xs flex items-center justify-between">
                     <div>
-                      <p className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">{c.full_name}</p>
+                      <p className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">{c.full_name}</p>
                       <p className="text-[11px] text-[#6B7280] dark:text-[#94A3B8]">{c.phone}</p>
                     </div>
                     <button
@@ -371,7 +371,7 @@ export const ReceptionistDashboard: React.FC = () => {
 
           {/* Front Desk Shortcuts */}
           <div className="card-surface p-5 space-y-3">
-            <h3 className="text-sm font-bold text-[#0B0D17] dark:text-[#F8FAFC]">
+            <h3 className="text-sm font-bold text-[#29315D] dark:text-[#F8FAFC]">
               Front-Desk Operations
             </h3>
 
@@ -382,7 +382,7 @@ export const ReceptionistDashboard: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <CreditCard className="w-4 h-4 text-[#5C9764] dark:text-[#7DB585]" />
-                  <span className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">
+                  <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">
                     POS Billing & Counter
                   </span>
                 </div>
@@ -395,7 +395,7 @@ export const ReceptionistDashboard: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <Scissors className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
-                  <span className="font-semibold text-[#0B0D17] dark:text-[#F8FAFC]">
+                  <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">
                     Service Menu & Pricing
                   </span>
                 </div>

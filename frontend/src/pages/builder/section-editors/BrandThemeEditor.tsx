@@ -51,7 +51,7 @@ export const BrandThemeEditor: React.FC<BrandThemeEditorProps> = ({ theme, onCha
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-semibold text-slate-900 dark:text-white text-xs">
+                  <span className="font-semibold text-[#29315D] dark:text-white text-xs">
                     {preset.name}
                   </span>
                   {isSelected && <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />}

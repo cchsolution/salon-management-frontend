@@ -340,7 +340,7 @@ const SalonStorefrontContent: React.FC = () => {
     : DEFAULT_STOREFRONT_SECTIONS;
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] text-[#0B0D17] font-sans selection:bg-purple-500/20" style={{ fontFamily: bodyFont }}>
+    <div className="min-h-screen bg-[#F0F2F5] text-[#29315D] font-sans selection:bg-purple-500/20" style={{ fontFamily: bodyFont }}>
       {/* Navigation Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CACED6] shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -520,7 +520,7 @@ const SalonStorefrontContent: React.FC = () => {
                     {content.subtitle || 'Founded with Passion & Care'}
                   </span>
                   <h2
-                    className="text-3xl md:text-4xl font-bold text-[#0B0D17] leading-tight"
+                    className="text-3xl md:text-4xl font-bold text-[#29315D] leading-tight"
                     style={{ fontFamily: headingFont }}
                   >
                     {content.title || 'The Philosophy of Ruhi Beauty Salon'}
@@ -607,7 +607,7 @@ const SalonStorefrontContent: React.FC = () => {
                     Treatment Menu
                   </span>
                   <h2
-                    className="text-3xl md:text-4xl font-bold text-[#0B0D17]"
+                    className="text-3xl md:text-4xl font-bold text-[#29315D]"
                     style={{ fontFamily: headingFont }}
                   >
                     {content.heading || 'Signature Treatments & Services'}
@@ -666,7 +666,7 @@ const SalonStorefrontContent: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <h3 className="text-base font-bold text-[#0B0D17] mt-1" style={{ fontFamily: headingFont }}>
+                        <h3 className="text-base font-bold text-[#29315D] mt-1" style={{ fontFamily: headingFont }}>
                           {svc.name}
                         </h3>
                         {content.show_description !== false && (
@@ -718,7 +718,7 @@ const SalonStorefrontContent: React.FC = () => {
                   Artisans & Specialists
                 </span>
                 <h2
-                  className="text-3xl md:text-4xl font-bold text-[#0B0D17]"
+                  className="text-3xl md:text-4xl font-bold text-[#29315D]"
                   style={{ fontFamily: headingFont }}
                 >
                   {content.heading || 'Meet Our Expert Stylists & Artists'}
@@ -752,7 +752,7 @@ const SalonStorefrontContent: React.FC = () => {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <h3 className="text-base font-bold text-[#0B0D17]" style={{ fontFamily: headingFont }}>
+                      <h3 className="text-base font-bold text-[#29315D]" style={{ fontFamily: headingFont }}>
                         {stf.user_details?.full_name || (stf as any).name || stf.title}
                       </h3>
                       <p className="text-xs font-semibold mt-0.5" style={{ color: secondaryColor }}>
@@ -812,7 +812,7 @@ const SalonStorefrontContent: React.FC = () => {
                     Portfolio
                   </span>
                   <h2
-                    className="text-3xl md:text-4xl font-bold text-[#0B0D17]"
+                    className="text-3xl md:text-4xl font-bold text-[#29315D]"
                     style={{ fontFamily: headingFont }}
                   >
                     {content.heading || 'Salon Portfolio & Bridal Transformations'}
@@ -933,7 +933,7 @@ const SalonStorefrontContent: React.FC = () => {
                   Questions & Support
                 </span>
                 <h2
-                  className="text-3xl md:text-4xl font-bold text-[#0B0D17]"
+                  className="text-3xl md:text-4xl font-bold text-[#29315D]"
                   style={{ fontFamily: headingFont }}
                 >
                   {content.heading || 'Frequently Asked Questions'}
@@ -995,7 +995,7 @@ const SalonStorefrontContent: React.FC = () => {
                     Visit Us
                   </span>
                   <h2
-                    className="text-3xl md:text-4xl font-bold text-[#0B0D17]"
+                    className="text-3xl md:text-4xl font-bold text-[#29315D]"
                     style={{ fontFamily: headingFont }}
                   >
                     {content.heading || 'Visit Our Studios'}
@@ -1012,7 +1012,7 @@ const SalonStorefrontContent: React.FC = () => {
                           key={b.id}
                           className="p-5 bg-white rounded-2xl border border-[#CACED6] shadow-sm space-y-2"
                         >
-                          <p className="font-bold text-[#0B0D17] text-base" style={{ fontFamily: headingFont }}>
+                          <p className="font-bold text-[#29315D] text-base" style={{ fontFamily: headingFont }}>
                             {b.name}
                           </p>
                           <p className="text-xs text-[#4A5568] flex items-center gap-2">
@@ -1031,7 +1031,7 @@ const SalonStorefrontContent: React.FC = () => {
                       ))
                     ) : (
                       <div className="p-5 bg-white rounded-2xl border border-[#CACED6] shadow-sm space-y-2">
-                        <p className="font-bold text-[#0B0D17] text-base">{salon?.name || 'Ruhi Beauty Salon'}</p>
+                        <p className="font-bold text-[#29315D] text-base">{salon?.name || 'Ruhi Beauty Salon'}</p>
                         <p className="text-xs text-[#4A5568] flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
                           {address}
@@ -1151,7 +1151,7 @@ const SalonStorefrontContent: React.FC = () => {
                 <div className="w-14 h-14 rounded-full bg-emerald-100 text-[#059669] flex items-center justify-center mx-auto shadow-sm">
                   <Check className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0B0D17]" style={{ fontFamily: headingFont }}>
+                <h3 className="text-xl font-bold text-[#29315D]" style={{ fontFamily: headingFont }}>
                   Appointment Confirmed!
                 </h3>
                 <p className="text-xs text-[#4A5568] max-w-sm mx-auto leading-relaxed">
@@ -1168,13 +1168,13 @@ const SalonStorefrontContent: React.FC = () => {
             ) : (
               <>
                 <div className="flex items-center justify-between pb-3 border-b border-[#CACED6]">
-                  <h3 className="text-base font-bold text-[#0B0D17]" style={{ fontFamily: headingFont }}>
+                  <h3 className="text-base font-bold text-[#29315D]" style={{ fontFamily: headingFont }}>
                     Book Treatment Online
                   </h3>
                   <button
                     type="button"
                     onClick={() => setIsBookModalOpen(false)}
-                    className="text-[#718096] hover:text-[#0B0D17] transition-colors"
+                    className="text-[#718096] hover:text-[#29315D] transition-colors"
                   >
                     ✕
                   </button>
@@ -1189,7 +1189,7 @@ const SalonStorefrontContent: React.FC = () => {
 
                 <form onSubmit={handleSelfBook} className="space-y-4 text-xs" noValidate>
                   <div>
-                    <label className="block text-[#0B0D17] font-semibold mb-1">
+                    <label className="block text-[#29315D] font-semibold mb-1">
                       Selected Treatment *
                     </label>
                     <CustomSelect
@@ -1208,7 +1208,7 @@ const SalonStorefrontContent: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[#0B0D17] font-semibold mb-1">Branch</label>
+                      <label className="block text-[#29315D] font-semibold mb-1">Branch</label>
                       <CustomSelect
                         value={selectedBranch}
                         onChange={setSelectedBranch}
@@ -1221,7 +1221,7 @@ const SalonStorefrontContent: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[#0B0D17] font-semibold mb-1">Stylist</label>
+                      <label className="block text-[#29315D] font-semibold mb-1">Stylist</label>
                       <CustomSelect
                         value={selectedStaff}
                         onChange={setSelectedStaff}
@@ -1287,7 +1287,7 @@ const SalonStorefrontContent: React.FC = () => {
                             className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-150 active:scale-95 ${
                               selectedSlot === slot
                                 ? 'bg-[#6D28D9] text-white border-[#6D28D9] shadow-sm'
-                                : 'bg-white text-[#0B0D17] border-[#CACED6] hover:border-[#6D28D9]/40'
+                                : 'bg-white text-[#29315D] border-[#CACED6] hover:border-[#6D28D9]/40'
                             }`}
                           >
                             {slot}
@@ -1298,7 +1298,7 @@ const SalonStorefrontContent: React.FC = () => {
                   </FormField>
 
                   <div className="space-y-3 pt-2 border-t border-[#CACED6]">
-                    <span className="block text-xs font-bold text-[#0B0D17] uppercase tracking-wider">
+                    <span className="block text-xs font-bold text-[#29315D] uppercase tracking-wider">
                       Client Contact Details
                     </span>
 
@@ -1437,7 +1437,7 @@ class StorefrontErrorBoundary extends React.Component<
       return (
         <div className="min-h-screen flex items-center justify-center bg-[#F0F2F5] p-6 text-center">
           <div className="max-w-md bg-white p-8 rounded-2xl shadow-xl border border-[#CACED6]">
-            <h2 className="text-xl font-bold text-[#0B0D17]">Welcome to Our Salon</h2>
+            <h2 className="text-xl font-bold text-[#29315D]">Welcome to Our Salon</h2>
             <p className="text-xs text-[#718096] mt-2">
               The live storefront is refreshing with the latest salon updates. Click below to continue.
             </p>

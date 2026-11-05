@@ -37,11 +37,11 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false })
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle theme mode"
-        className="p-2 rounded-xl text-[#6B7280] dark:text-[#94A3B8] hover:text-[#0B0D17] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-[#0A24E9]/30 active:scale-95 cursor-pointer"
+        className="p-2 rounded-xl text-[#6B7280] dark:text-[#94A3B8] hover:text-[#29315D] dark:hover:text-white hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-[#0A24E9]/30 active:scale-95 cursor-pointer"
       >
         <CurrentIcon className="w-4 h-4 text-[#0A24E9] dark:text-[#4D68FF]" />
         {!compact && (
-          <span className="text-xs font-semibold capitalize hidden sm:inline text-[#0B0D17] dark:text-[#F8FAFC]">
+          <span className="text-xs font-semibold capitalize hidden sm:inline text-[#29315D] dark:text-[#F8FAFC]">
             {themeMode}
           </span>
         )}
@@ -65,7 +65,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false })
                 className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors cursor-pointer ${
                   isSelected
                     ? 'text-[#0A24E9] dark:text-[#4D68FF] bg-[#EEF2FF] dark:bg-[#1E294B] font-semibold'
-                    : 'text-[#6B7280] dark:text-[#94A3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] hover:text-[#0B0D17] dark:hover:text-white'
+                    : 'text-[#6B7280] dark:text-[#94A3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#1C2542] hover:text-[#29315D] dark:hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2.5">

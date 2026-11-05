@@ -142,7 +142,7 @@ export const AppointmentCalendarPage: React.FC = () => {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight">
             Appointment Calendar
           </h1>
           <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1">
@@ -184,7 +184,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs sm:text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC] bg-transparent focus:outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+              className="text-xs sm:text-sm font-semibold text-[#29315D] dark:text-[#F8FAFC] bg-transparent focus:outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
           </div>
 
@@ -258,7 +258,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 viewMode === 'day'
                   ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                  : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A]'
+                  : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
               }`}
             >
               Timeline
@@ -268,7 +268,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 viewMode === 'agenda'
                   ? 'bg-white dark:bg-[#141A2E] text-[#2563EB] dark:text-[#60A5FA] shadow-xs'
-                  : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A]'
+                  : 'text-[#64748B] dark:text-[#94A3B8] hover:text-[#29315D]'
               }`}
             >
               Agenda
@@ -283,7 +283,7 @@ export const AppointmentCalendarPage: React.FC = () => {
       ) : appointments.length === 0 ? (
         <div className="card-surface p-12 text-center rounded-2xl border border-dashed border-[#CBD5E1] dark:border-[#252F4E]">
           <CalendarIcon className="w-12 h-12 text-[#94A3B8] dark:text-slate-600 mx-auto stroke-[1.5]" />
-          <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC] mt-3">
+          <h3 className="text-base font-bold text-[#29315D] dark:text-[#F8FAFC] mt-3">
             No Bookings Found for {new Date(selectedDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
           </h3>
           <p className="text-xs text-[#64748B] dark:text-[#94A3B8] mt-1 max-w-sm mx-auto">
@@ -306,7 +306,7 @@ export const AppointmentCalendarPage: React.FC = () => {
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
+                  <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#29315D] dark:text-[#F8FAFC]">
                     <Clock className="w-3.5 h-3.5 text-[#2563EB] dark:text-[#60A5FA]" />
                     <span>
                       {appt.start_time.slice(0, 5)} – {appt.end_time.slice(0, 5)}
@@ -316,7 +316,7 @@ export const AppointmentCalendarPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-[#0F172A] dark:text-[#F8FAFC] flex items-center gap-1.5">
+                  <h4 className="text-sm font-bold text-[#29315D] dark:text-[#F8FAFC] flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-[#64748B] dark:text-[#94A3B8]" />
                     <span>{appt.customer_details?.full_name || 'Walk-in Client'}</span>
                   </h4>
@@ -354,7 +354,7 @@ export const AppointmentCalendarPage: React.FC = () => {
                     )}
                   </span>
                 </div>
-                <span className="font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums text-sm">
+                <span className="font-extrabold text-[#29315D] dark:text-[#F8FAFC] tabular-nums text-sm">
                   {formatINR(appt.total_amount || 0)}
                 </span>
               </div>
@@ -375,7 +375,7 @@ export const AppointmentCalendarPage: React.FC = () => {
           >
             <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-[#252F4E] pb-3">
               <div>
-                <h3 className="text-base font-extrabold text-[#0F172A] dark:text-[#F8FAFC]">
+                <h3 className="text-base font-extrabold text-[#29315D] dark:text-[#F8FAFC]">
                   Appointment Details
                 </h3>
                 <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
@@ -385,7 +385,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               <button
                 onClick={() => setSelectedAppt(null)}
                 aria-label="Close"
-                className="p-1.5 text-[#64748B] hover:text-[#0F172A] dark:hover:text-white rounded-xl hover:bg-[#F1F5F9] dark:hover:bg-[#1C2542] transition-colors active:scale-95 cursor-pointer"
+                className="p-1.5 text-[#64748B] hover:text-[#29315D] dark:hover:text-white rounded-xl hover:bg-[#F1F5F9] dark:hover:bg-[#1C2542] transition-colors active:scale-95 cursor-pointer"
               >
                 ✕
               </button>
@@ -394,25 +394,25 @@ export const AppointmentCalendarPage: React.FC = () => {
             <div className="space-y-1 text-xs">
               <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
                 <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Client:</span>
-                <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC] break-words">
+                <span className="font-bold text-[#29315D] dark:text-[#F8FAFC] break-words">
                   {selectedAppt.customer_details?.full_name || 'Walk-in Client'}
                 </span>
               </div>
               <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
                 <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Phone:</span>
-                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+                <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">
                   {selectedAppt.customer_details?.phone || 'Not provided'}
                 </span>
               </div>
               <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
                 <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Stylist:</span>
-                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+                <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">
                   {selectedAppt.staff_details?.user_details?.full_name || selectedAppt.staff_details?.title}
                 </span>
               </div>
               <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-b border-[#E2E8F0] dark:border-[#252F4E]">
                 <span className="text-[#64748B] dark:text-[#94A3B8] font-medium">Branch:</span>
-                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+                <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC]">
                   {selectedAppt.branch_details?.name || 'Main Branch'}
                 </span>
               </div>
@@ -425,7 +425,7 @@ export const AppointmentCalendarPage: React.FC = () => {
 
               {/* Items */}
               <div className="pt-2">
-                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] block mb-1.5">
+                <span className="font-semibold text-[#29315D] dark:text-[#F8FAFC] block mb-1.5">
                   Booked Services:
                 </span>
                 <div className="space-y-1">
@@ -434,10 +434,10 @@ export const AppointmentCalendarPage: React.FC = () => {
                       key={i}
                       className="flex justify-between py-1.5 px-3 bg-[#F8FAFC] dark:bg-[#1C2542] rounded-xl border border-[#E2E8F0] dark:border-[#252F4E]"
                     >
-                      <span className="text-[#0F172A] dark:text-[#F8FAFC]">
+                      <span className="text-[#29315D] dark:text-[#F8FAFC]">
                         {it.service_name} ({formatDuration(it.duration_minutes)})
                       </span>
-                      <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                      <span className="font-bold text-[#29315D] dark:text-[#F8FAFC] tabular-nums">
                         {formatINR(it.price || 0)}
                       </span>
                     </div>
@@ -446,7 +446,7 @@ export const AppointmentCalendarPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-[140px_1fr] items-center gap-3 py-2.5 px-3 border-t border-[#E2E8F0] dark:border-[#252F4E] text-sm font-bold">
-                <span className="text-[#0F172A] dark:text-[#F8FAFC]">Total Amount:</span>
+                <span className="text-[#29315D] dark:text-[#F8FAFC]">Total Amount:</span>
                 <span className="text-[#059669] dark:text-[#34D399] tabular-nums font-bold text-base">
                   {formatINR(selectedAppt.total_amount || 0)}
                 </span>

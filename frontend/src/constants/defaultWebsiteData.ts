@@ -131,7 +131,7 @@ export const THEME_COLOR_PRESETS: ColorPreset[] = [
     secondary: '#374151',
     accent: '#8B5CF6',
     background: '#FFFFFF',
-    text: '#111827',
+    text: '#29315D',
   },
   {
     id: 'premium-rose',

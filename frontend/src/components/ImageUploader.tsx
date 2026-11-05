@@ -247,7 +247,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             type="button"
             disabled={isUploading || !isCustomImage}
             onClick={handleResetToDefault}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50 transition disabled:opacity-30 disabled:pointer-events-none ml-auto"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-[#29315D] hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50 transition disabled:opacity-30 disabled:pointer-events-none ml-auto"
             title="Reset to default image"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Reset to Default

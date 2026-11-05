@@ -166,7 +166,7 @@ export const DashboardKPICard: React.FC<DashboardKPICardProps> = ({
           </div>
         ) : (
           <>
-            <h3 className="text-3xl font-extrabold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight tabular-nums">
+            <h3 className="text-3xl font-extrabold text-[#29315D] dark:text-[#F8FAFC] tracking-tight tabular-nums">
               {value}
             </h3>
             {trend ? (
