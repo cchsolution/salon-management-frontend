@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://salon-management-backend-7xj0qfafq.vercel.app/api/:path*"
+      "destination": "https://salon-management-backend-codecraftersshub-6043s-projects.vercel.app/api/:path*"
     },
     {
       "source": "/(.*)",
