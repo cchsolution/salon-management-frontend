@@ -1,5 +1,5 @@
 // Default active backend deployment URL
-const DEFAULT_BACKEND_URL = 'https://salon-management-backend.vercel.app';
+const DEFAULT_BACKEND_URL = 'https://salon-management-backend-7xj0qfafq.vercel.app';
 
 // Base API URL configuration:
 // 1. If VITE_API_BASE_URL environment variable is provided and valid, use it.
